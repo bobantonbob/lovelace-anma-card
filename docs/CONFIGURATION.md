@@ -54,3 +54,9 @@ The card includes a Home Assistant editor and entity selection support. Search b
 - **Demo chart:** bind real entities and verify Recorder history. Do not treat demo points as recorded measurements.
 - **Phone overflow:** use responsive profile and remove old custom width/height/scale overrides from imported layouts.
 - **No forecast:** install/configure a forecast integration; this card does not generate a production forecast itself.
+
+## Whole-card and device backgrounds
+
+Power Flow and Cloud Flow settings include Card background: upload a PNG/JPEG/WebP image or enter its URL, choose cover or contain, select a position and adjust visibility (0–100%). Cover fills every edge and crops excess image area without changing aspect ratio. Background photos remain outside the document layout and do not move readings or controls.
+
+Inverter and battery photos have their own visibility controls; their icons remain above the image. Whole-card settings are stored in `layout.powerFlow.background` with `image`, `opacity`, `fit` and `position`. Older `layout.background` station images remain supported when no card-specific override is set.

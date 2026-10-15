@@ -10,11 +10,11 @@ This is a distribution of the existing ANMA Energy Platform dashboard code. The 
 
 GitHub Pages, Docker deployment and a Python server are not required to install the Home Assistant card. GitHub hosts the repository and releases; Home Assistant serves the JavaScript.
 
-## 2. First release
+## 2. Stable releases
 
-After committing the extracted files to `main`, create a GitHub Release with tag `v0.2.0-beta.4`, title “ANMA Energy Dashboards 0.2.0-beta.4”, and mark it as a pre-release while installation testing remains pending. Copy the relevant CHANGELOG entry into the release notes. Attach the **root `anma-card.js`** as a release asset. The repository ZIP is for maintainers; it is not the JavaScript resource installed in Home Assistant.
+After committing the extracted files to `main`, create a GitHub Release with tag `v0.2.0`, title “ANMA Energy Dashboards 0.2.0”, and publish it as the latest regular release. Copy the relevant CHANGELOG entry into the release notes. Attach the **root `anma-card.js`** as a release asset. The repository ZIP is for maintainers; it is not the JavaScript resource installed in Home Assistant.
 
-The first candidate intentionally contains the exact current tested platform bundle. `src/anma-card.js` is its maintained entry with embedded shared modules; `src/model.js` and `src/power-flow.js` are the shared source snapshots. Run `python tools/build.py` to refresh the embedded blocks and root artifact, then `node --check anma-card.js` and `python tools/validate.py`. Commit source and artifact together. Prefer bringing changes from the primary platform rather than allowing the distribution to diverge.
+The distribution contains the exact current tested platform bundle. `src/anma-card.js` is its maintained entry with embedded shared modules; `src/model.js` and `src/power-flow.js` are the shared source snapshots. Run `python tools/build.py` to refresh the embedded blocks and root artifact, then `node --check anma-card.js` and `python tools/validate.py`. Commit source and artifact together. Prefer bringing changes from the primary platform rather than allowing the distribution to diverge.
 
 ## 3. Test as a HACS custom repository
 

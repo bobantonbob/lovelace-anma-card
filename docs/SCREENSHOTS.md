@@ -1,37 +1,31 @@
-# Screenshot gallery
+# Desktop and phone gallery
 
-## Home Assistant entity editor (beta.2)
+Captured from the actual 0.2.0 JavaScript card with synthetic demonstration data. Phone views use an iPhone 16-sized portrait browser viewport (393 × 852 CSS pixels), not a physical iPhone capture or a Safari certification.
 
-![Live entity suggestions and Power Flow editor](images/ha-entity-editor.png)
+## Power Flow
 
-This local harness uses the actual custom card editor with synthetic Home Assistant states and configuration echo behavior.
+![Power Flow desktop](images/power-flow-stable.png)
 
-New English screenshots below were captured from the packaged JavaScript in a local browser preview using synthetic entity states. They demonstrate the real renderer, not image mockups, and do not expose a private Home Assistant installation.
+<img src="images/power-flow-phone-stable.png" alt="Power Flow phone preview" width="393">
 
-## Power Flow — eight strings, one battery
+Eight PV groups fill two balanced rows. Phone mode prioritizes short PV/battery labels, icons and primary readings; long names and secondary technical details are reduced. All sensor bindings remain configured.
 
-![Power Flow desktop](images/power-flow.png)
+## Cloud Flow
 
-## Cloud Flow — six directional nodes
+![Cloud Flow desktop](images/cloud-flow-stable.png)
 
-![Cloud Flow desktop](images/cloud-flow.png)
+<img src="images/cloud-flow-phone-stable.png" alt="Cloud Flow phone preview" width="393">
 
-## Full analytics — first section of the scrolling dashboard
+Phone mode hides long node names and secondary status labels while preserving icons, readings and flow paths.
 
-![Full analytics](images/analytics.png)
+## Full analytics
 
-The preview has no Home Assistant Recorder or forecast service. Missing history and forecast data are intentionally not presented as real observations.
+![Full analytics desktop](images/analytics-stable.png)
 
-## Phone previews
+<img src="images/analytics-phone-stable.png" alt="Full analytics phone preview" width="393">
 
-![Power Flow mobile](images/power-flow-mobile.png)
+This shows the first section of one scrolling dashboard. Additional metric, weather, forecast and chart blocks are below it. Forecast and historical data require Home Assistant integrations and Recorder; this local preview does not fabricate missing history.
 
-![Cloud Flow mobile](images/cloud-flow-mobile.png)
+## Background images
 
-## Earlier development captures
-
-These historical captures show UI iteration with demonstration data and Ukrainian labels. They may differ from the final English configuration.
-
-![Template selector](images/template-icons.png)
-
-![Perimeter utilization examples](images/perimeter-demo.png)
+Power Flow and Cloud Flow support a whole-card image, independent inverter/battery photos, cover/contain fit, position and 0–100% visibility. Cover crops the excess without stretching. Background layers never move content or intercept controls.
