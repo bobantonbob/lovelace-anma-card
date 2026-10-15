@@ -2,6 +2,7 @@
 
 ## 0.2.0-beta.5 — card backgrounds and balanced PV rows
 
+- Fix Home Assistant widget CSS overriding background positioning: photos no longer shift content or consume layout space. Verified identical geometry before/after station and device photos with 48 additional assertions.
 - Add independent whole-card background photos to Power Flow and Cloud Flow, with upload/URL, cover/contain, position and 0–100% visibility controls.
 - Preserve existing device photos, sensor bindings and saved layouts.
 - Balance 2–10 PV groups across two full-width rows: 3 = 2+1, 7 = 4+3, 8 = 4+4, 10 = 5+5. A single group fills the solar area.
