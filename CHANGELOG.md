@@ -1,5 +1,12 @@
 # Changelog
 
+## 0.2.0 — stable release
+
+- Promote the current card to the stable release channel.
+- Include independent card backgrounds, opacity controls, balanced PV rows and the Home Assistant background positioning fix.
+- Refresh desktop and iPhone 16-sized browser screenshots and explain compact mobile behavior.
+- Preserve existing layouts and sensor bindings; no migration is needed.
+
 ## 0.2.0-beta.6 — background geometry fix
 
 - Prevent Home Assistant widget styles from placing the background photo in the content flow.

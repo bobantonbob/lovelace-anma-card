@@ -2,7 +2,7 @@
 
 Responsive energy dashboards for Home Assistant: solar generation, battery storage, grid exchange and household consumption in one custom card.
 
-**Release candidate: 0.2.0-beta.6.** This is the standalone dashboard distribution from ANMA Energy Platform. It does not replace the platform, install a Django server or create sensor integrations. Connect your existing Home Assistant entities to the supplied layouts.
+**Stable release: 0.2.0.** This is the standalone dashboard distribution from ANMA Energy Platform. It does not replace the platform, install a Django server or create sensor integrations. Connect your existing Home Assistant entities to the supplied layouts.
 
 ## Explore ANMA Energy Platform
 
@@ -31,15 +31,41 @@ Power Flow supports manual power values or sensor bindings, maximum-power perime
 
 Layouts adapt to desktop, tablet and phone. Mobile views reduce labels, use compact controls and arrange metric/forecast tiles in two columns. Full analytics combines blocks in one scrolling view. Fullscreen belongs to the overall view rather than each child block.
 
-## Screenshots
+## Make it yours
 
-These are development/demo previews, not measurements from a customer installation. Some historical preview labels are Ukrainian; the card supports English and Ukrainian. See [the gallery](docs/SCREENSHOTS.md).
+Add a **whole-card background image** to Power Flow or Cloud Flow: upload a photo or paste an image URL, choose its position and cover/contain fit, then adjust visibility from 0 to 100%. Cover fills the card and crops excess edges without stretching the image. The background never moves the diagram or blocks its controls.
 
-![ANMA Power Flow](docs/images/power-flow.png)
+Inverter and battery photos are independent backgrounds: equipment icons and readings stay visible above them. Existing entity bindings and dashboard layouts are preserved when updating.
 
-![ANMA Cloud Flow](docs/images/cloud-flow.png)
+Power Flow automatically balances up to ten PV groups across two full-width rows: **3 → 2+1, 7 → 4+3, 8 → 4+4, 10 → 5+5**. One group fills the solar area.
 
-![Full analytics](docs/images/analytics.png)
+## Desktop and phone gallery
+
+Fresh captures from the actual 0.2.0 card with synthetic demonstration states. Mobile screenshots use a **393 × 852 CSS-pixel viewport**, matching iPhone 16 portrait dimensions; these are browser previews, not physical-device or Safari certification. See [the gallery](docs/SCREENSHOTS.md).
+
+### ANMA Power Flow
+
+![Power Flow desktop](docs/images/power-flow-stable.png)
+
+<img src="docs/images/power-flow-phone-stable.png" alt="Power Flow at iPhone 16 viewport size" width="393">
+
+On phones, short PV/battery labels and primary readings take priority. Secondary names, status text and technical details are reduced or hidden in compact mode, keeping the energy diagram readable. Sensor bindings remain unchanged.
+
+### ANMA Cloud Flow
+
+![Cloud Flow desktop](docs/images/cloud-flow-stable.png)
+
+<img src="docs/images/cloud-flow-phone-stable.png" alt="Cloud Flow at iPhone 16 viewport size" width="393">
+
+On phones, node icons and values remain visible while long equipment names and secondary status labels are hidden. Directional paths keep the flow relationship clear.
+
+### Full system analytics
+
+![Full analytics desktop](docs/images/analytics-stable.png)
+
+<img src="docs/images/analytics-phone-stable.png" alt="Full analytics at iPhone 16 viewport size" width="393">
+
+Full analytics is one scrollable dashboard. On phones, metric and forecast tiles use compact layouts and chart legends reduce text. History and forecast values require the corresponding Home Assistant data services; the preview does not invent missing history.
 
 ## Install
 
@@ -58,7 +84,7 @@ This package has not yet been accepted into the default HACS catalog. Custom rep
 ### Manual installation
 
 1. Copy the root `anma-card.js` to `/config/www/anma-card.js` on Home Assistant.
-2. In Settings → Dashboards → Resources (enable Advanced mode if needed), add `/local/anma-card.js?v=0.2.0-beta.6` as a **JavaScript module**.
+2. In Settings → Dashboards → Resources (enable Advanced mode if needed), add `/local/anma-card.js?v=0.2.0` as a **JavaScript module**.
 3. Reload the browser. On updates, replace the same file and change the query version to refresh the cache.
 4. Keep only one ANMA resource registration. No database migration is required for this frontend card.
 
