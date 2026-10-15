@@ -1,5 +1,12 @@
 # Changelog
 
+## Unreleased — licensing and project information
+
+- Adopt the MIT license with owner approval.
+- Add the ANMA Energy Platform website, equipment knowledge base, comparison tools, System Builder and dashboard overview.
+- Publish beta.4 on GitHub; default HACS catalog review and clean-install testing remain pending.
+
+
 ## 0.2.0-beta.4 — block background photos
 
 - Inverter and battery photos fill their blocks using centered cover cropping without changing aspect ratio.

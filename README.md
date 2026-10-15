@@ -4,6 +4,19 @@ Responsive energy dashboards for Home Assistant: solar generation, battery stora
 
 **Release candidate: 0.2.0-beta.4.** This is the standalone dashboard distribution from ANMA Energy Platform. It does not replace the platform, install a Django server or create sensor integrations. Connect your existing Home Assistant entities to the supplied layouts.
 
+## Explore ANMA Energy Platform
+
+**[Open ANMA Energy Platform](https://app.anma-electric.com.ua/)** — the online home of the ANMA tools.
+
+Use the website to explore electrical equipment, compare products, build an energy system and design dashboards:
+
+- **Equipment Knowledge Base:** a searchable technical reference for inverters, batteries, PV modules, meters, EV chargers and other electrical equipment, with specifications and source information.
+- **Compare:** compare equipment specifications when choosing components.
+- **System Builder:** assemble and configure your energy-system project.
+- **Dashboards:** create and customize energy views for monitoring your system.
+
+This repository provides the Home Assistant dashboard card. The hosted website provides the broader ANMA platform; its account and feature access conditions are shown on the site.
+
 ## Dashboard styles
 
 | Style | Purpose |
@@ -70,8 +83,6 @@ See [publishing and releases](docs/PUBLISHING.md), [configuration](docs/CONFIGUR
 
 ## License
 
-No open-source license has been selected. Public visibility is not an open-source license grant. The owner will decide licensing before publication; see [LICENSE-NOTICE.md](LICENSE-NOTICE.md).
+Licensed under the [MIT License](LICENSE). Copyright (c) 2026 Anton Babenko and ANMA contributors.
 
-
-
-
+Project website: [ANMA Energy Platform](https://app.anma-electric.com.ua/).

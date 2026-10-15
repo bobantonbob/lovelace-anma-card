@@ -1,5 +1,7 @@
-# License status
+# License
 
-Copyright 2026 ANMA contributors. All rights reserved unless separately granted by the rights holder.
+ANMA Energy Dashboards is licensed under the [MIT License](LICENSE).
 
-The owner explicitly deferred the choice of an open-source license. No MIT, Apache, GPL or other open-source license is granted by this package. Before public distribution, the owner should confirm ownership of the included code and assets and decide what use, modification and redistribution permissions to grant. This notice is not an assertion that HACS has reviewed or approved the licensing status.
+Copyright (c) 2026 Anton Babenko and ANMA contributors.
+
+This notice replaces the earlier license-pending notice. The license applies to this dashboard distribution; it does not change the terms of the separately hosted ANMA Energy Platform service.
