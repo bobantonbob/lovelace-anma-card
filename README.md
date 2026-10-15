@@ -2,7 +2,7 @@
 
 Responsive energy dashboards for Home Assistant: solar generation, battery storage, grid exchange and household consumption in one custom card.
 
-**Release candidate: 0.2.0-beta.4.** This is the standalone dashboard distribution from ANMA Energy Platform. It does not replace the platform, install a Django server or create sensor integrations. Connect your existing Home Assistant entities to the supplied layouts.
+**Release candidate: 0.2.0-beta.5.** This is the standalone dashboard distribution from ANMA Energy Platform. It does not replace the platform, install a Django server or create sensor integrations. Connect your existing Home Assistant entities to the supplied layouts.
 
 ## Explore ANMA Energy Platform
 
@@ -58,7 +58,7 @@ This package has not yet been accepted into the default HACS catalog. Custom rep
 ### Manual installation
 
 1. Copy the root `anma-card.js` to `/config/www/anma-card.js` on Home Assistant.
-2. In Settings → Dashboards → Resources (enable Advanced mode if needed), add `/local/anma-card.js?v=0.2.0-beta.4` as a **JavaScript module**.
+2. In Settings → Dashboards → Resources (enable Advanced mode if needed), add `/local/anma-card.js?v=0.2.0-beta.5` as a **JavaScript module**.
 3. Reload the browser. On updates, replace the same file and change the query version to refresh the cache.
 4. Keep only one ANMA resource registration. No database migration is required for this frontend card.
 

@@ -1,6 +1,14 @@
 # Changelog
 
-## Unreleased — licensing and project information
+## 0.2.0-beta.5 — card backgrounds and balanced PV rows
+
+- Add independent whole-card background photos to Power Flow and Cloud Flow, with upload/URL, cover/contain, position and 0–100% visibility controls.
+- Preserve existing device photos, sensor bindings and saved layouts.
+- Balance 2–10 PV groups across two full-width rows: 3 = 2+1, 7 = 4+3, 8 = 4+4, 10 = 5+5. A single group fills the solar area.
+- Validate 239 browser assertions across 360/768/1440px containers, five model tests and Django system checks.
+- Update the installed card's console version to 0.2.0-beta.5.
+
+### Licensing and project information
 
 - Adopt the MIT license with owner approval.
 - Add the ANMA Energy Platform website, equipment knowledge base, comparison tools, System Builder and dashboard overview.
