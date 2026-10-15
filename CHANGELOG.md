@@ -1,5 +1,12 @@
 # Changelog
 
+## 0.2.0-beta.6 — background geometry fix
+
+- Prevent Home Assistant widget styles from placing the background photo in the content flow.
+- Cover cropping preserves image proportions and fills the card without moving its contents.
+- Station, inverter and battery photos passed 48 geometry assertions across both flow templates and three viewport widths.
+- Keep sensor bindings, device icons and opacity controls unchanged.
+
 ## 0.2.0-beta.5 — card backgrounds and balanced PV rows
 
 - Fix Home Assistant widget CSS overriding background positioning: photos no longer shift content or consume layout space. Verified identical geometry before/after station and device photos with 48 additional assertions.
