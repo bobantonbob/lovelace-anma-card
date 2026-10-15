@@ -2,9 +2,9 @@
 
 ## 1. Repository
 
-Recommended repository name: **anma-card**. Recommended description: “Responsive Home Assistant energy dashboards: Power Flow, Cloud Flow and full system analytics.” Suggested topics: `home-assistant`, `hacs`, `lovelace`, `energy`, `solar`, `dashboard`.
+Recommended repository name: **lovelace-anma-card**. Recommended description: “Responsive Home Assistant energy dashboards: Power Flow, Cloud Flow and full system analytics.” Suggested topics: `home-assistant`, `hacs`, `lovelace`, `energy`, `solar`, `dashboard`.
 
-Create an empty public GitHub repository. Extract the supplied ZIP and upload its **contents**, not the ZIP itself and not an extra parent directory. The repository root must contain `anma-card.js`, `hacs.json` and `README.md`. Include `docs`, `examples`, `src` and `tools`. Enable Issues. Resolve the license decision before inviting public redistribution.
+Create an empty public GitHub repository. Extract the supplied ZIP and upload its **contents**, not the ZIP itself and not an extra parent directory. The repository root must contain `anma-card.js`, `hacs.json` and `README.md`. Include `docs`, `examples`, `src` and `tools`. Enable Issues. Include the MIT `LICENSE` file when distributing the code. Set the repository website to https://app.anma-electric.com.ua/.
 
 This is a distribution of the existing ANMA Energy Platform dashboard code. The platform remains the source of truth; do not move the Django backend or catalog into this repository.
 

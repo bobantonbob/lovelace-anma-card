@@ -11,10 +11,10 @@
 
 ## Still required before a stable release
 
-- Publish the actual repository, run the official HACS validation action and install it through HACS on a clean Home Assistant instance.
+- Install the published repository through HACS on a clean Home Assistant instance.
 - Verify live Recorder history, weather and solar forecast with the user's integrations.
 - Verify complete mobile analytics scrolling, sign conventions and persistence on the target installation.
-- Select a license and confirm ownership of included assets.
+- Review any new third-party assets before including them.
 
 No HACS approval or public installation success is claimed. This candidate is a packaging snapshot; it does not certify completion of the separate Pivdenne installation task.
 
@@ -26,3 +26,7 @@ Weather includes a forecast presentation, and adding a separate solar_forecast s
 
 Beta.2: tested the actual HA editor with synthetic states and config-changed echoes. BAT search returned live-labelled values; selection retained focus; manual 4500 W and maximum 9 kW rendered 50%; repeated HA state updates preserved Power Flow and Cloud Flow animation objects. Target Home Assistant installation is still pending.
 
+
+## Publication update
+
+The public GitHub repository and beta.4 release are published. The owner selected the MIT license. The official HACS validation workflow is enabled; check its latest run for current results. Default catalog acceptance remains a separate review.
