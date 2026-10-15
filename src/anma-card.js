@@ -51,7 +51,7 @@ if (typeof window !== 'undefined' && !window.AnmaDashboard) {
   function render(layout,{uk=false,demo=false,hass=null,change=null}={}){
     const c=normalize(layout.powerFlow),n=(tag,cls,txt)=>{const e=document.createElement(tag);e.className=cls||'';if(txt!==undefined)e.textContent=txt;return e;},tr=(en,ua)=>uk?ua:en;
     const card=n('section','apf db-widget-box');card.dataset.mode=c.mode==='auto'?(String(layout.theme?.mode).startsWith('light')||layout.theme?.mode==='nordic'?'day':'night'):c.mode;card.dataset.profile=c.profile;card.setAttribute('aria-label','ANMA Power Flow');
-    card.append(n('style','',css));const sceneBackground=background(c.background||layout.background);if(sceneBackground.image){const bg=n('img','apf-bg');bg.src=sceneBackground.image;bg.alt='';bg.style.opacity=sceneBackground.opacity/100;bg.style.objectFit=sceneBackground.fit;bg.style.objectPosition=sceneBackground.position;bg.style.pointerEvents='none';card.append(bg);}
+    card.append(n('style','',css));const sceneBackground=background(c.background||layout.background);if(sceneBackground.image){const bg=n('img','apf-bg');bg.src=sceneBackground.image;bg.alt='';bg.style.cssText='position:absolute;inset:0;width:100%;height:100%;max-width:none;max-height:none;z-index:-1;pointer-events:none';bg.style.opacity=sceneBackground.opacity/100;bg.style.objectFit=sceneBackground.fit;bg.style.objectPosition=sceneBackground.position;card.append(bg);}
     const head=n('header','apf-head'),brand=n('div');brand.append(n('span','apf-kicker','ANMA ELECTRIC / ENERGY SYSTEM'),n('h2','','Power Flow'));head.append(brand,n('span','apf-badge',demo?tr('DEMO · PREVIEW','ДЕМО · ПЕРЕГЛЯД'):tr('HOME ASSISTANT','HOME ASSISTANT')));card.append(head);
     const manualValues=[c.grid,c.load,c.ev,c.nonBackup,c.inverter.power,...c.batteries.map(b=>b.power),...c.strings.flatMap(s=>s.mppts.length?s.mppts.map(m=>m.power):[s.power])].some(isManual);
     if(manualValues){head.querySelector('.apf-badge').textContent=tr('MANUAL VALUES INCLUDED','Є РУЧНІ ЗНАЧЕННЯ');head.querySelector('h2').title=tr('Some power values are manually configured, not live telemetry.','Частину потужностей задано вручну — це не живі показники сенсорів.');}
@@ -2072,7 +2072,7 @@ if (typeof window !== 'undefined' && !window.AnmaDashboard) {
 (() => {
   'use strict';
 
-  const CARD_VERSION = '0.2.0-beta.5';
+  const CARD_VERSION = '0.2.0-beta.6';
   const EN = {
     'Стан системи':'System status', 'Помилки':'Errors', 'Стан АКБ':'Battery status', 'Електромобіль — потужність':'EV — power', 'Генератор — потужність':'Generator — power', 'Мова картки': 'Card language', 'Сонце': 'Solar', 'Дім': 'Home', 'Самоспоживання': 'Self-consumption', 'АКБ': 'Battery', 'Прогноз на 7 днів': '7-day forecast', 'Середньодобово': 'Daily average', 'Найкращий день': 'Best day', 'Мікроінвертор': 'Microinverter', 'MPPT МАТРИЦЯ': 'MPPT MATRIX', '✓ Оптимально': '✓ Optimal', 'Автоматично (Home Assistant)': 'Automatic (Home Assistant)',
     'Імпортувати макет ANMA / Import ANMA layout (.json)': 'Import ANMA layout (.json)',
@@ -2490,7 +2490,7 @@ if (typeof window !== 'undefined' && !window.AnmaDashboard) {
       z-index: 0;
       filter: saturate(1.2);
     }
-    .db-widget-box > *:not(.db-watermark-bg),
+    .db-widget-box > *:not(.db-watermark-bg):not(.apf-bg),
     .db-compact-card > *:not(.db-watermark-bg) {
       position: relative;
       z-index: 1;
