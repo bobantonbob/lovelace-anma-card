@@ -2,7 +2,7 @@
 
 Responsive energy dashboards for Home Assistant: solar generation, battery storage, grid exchange and household consumption in one custom card.
 
-**Stable release: 0.2.0.** This is the standalone dashboard distribution from ANMA Energy Platform. It does not replace the platform, install a Django server or create sensor integrations. Connect your existing Home Assistant entities to the supplied layouts.
+**Stable release: 0.3.0.** This is the standalone dashboard distribution from ANMA Energy Platform. It does not replace the platform, install a Django server or create sensor integrations. Connect your existing Home Assistant entities to the supplied layouts.
 
 ## Explore ANMA Energy Platform
 
@@ -84,7 +84,7 @@ This package has not yet been accepted into the default HACS catalog. Custom rep
 ### Manual installation
 
 1. Copy the root `anma-card.js` to `/config/www/anma-card.js` on Home Assistant.
-2. In Settings → Dashboards → Resources (enable Advanced mode if needed), add `/local/anma-card.js?v=0.2.0` as a **JavaScript module**.
+2. In Settings → Dashboards → Resources (enable Advanced mode if needed), add `/local/anma-card.js?v=0.3.0` as a **JavaScript module**.
 3. Reload the browser. On updates, replace the same file and change the query version to refresh the cache.
 4. Keep only one ANMA resource registration. No database migration is required for this frontend card.
 
@@ -112,3 +112,7 @@ See [publishing and releases](docs/PUBLISHING.md), [configuration](docs/CONFIGUR
 Licensed under the [MIT License](LICENSE). Copyright (c) 2026 Anton Babenko and ANMA contributors.
 
 Project website: [ANMA Energy Platform](https://app.anma-electric.com.ua/).
+
+## New in 0.3.0
+
+Every Power Flow and Cloud Flow node supports its own background photo. Panel opacity defaults to 40% and can be adjusted independently from photo visibility. PV entity pickers are beside the PV equipment; bindings survive later edits. Signed grid power selects import/export direction automatically in single-sensor mode. See [the changelog](CHANGELOG.md) for full release notes.

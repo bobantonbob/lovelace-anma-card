@@ -1,5 +1,29 @@
 # Changelog
 
+## 0.3.0 — node backgrounds and reliable flow bindings (2026-10-16)
+
+### Added
+- Individual background photos for every Power Flow and Cloud Flow node: PV strings, inverter, batteries, grid, guaranteed and non-guaranteed loads, EV, and Cloud Flow totals.
+- Independent panel opacity (40% by default, 0–100%) and photo visibility. Icons and readings remain opaque. Set both to zero for a background-free node.
+- Photos use centered cover cropping without stretching or changing node geometry.
+- Visible PV entity pickers next to each PV array in the Home Assistant equipment editor; expanded PV entity settings on the website.
+- Explicit signed or split power meter selection for grid and battery in the Home Assistant editor.
+
+### Fixed
+- Editing equipment settings no longer restores stale configuration and discards recently assigned entities.
+- Individual PV flow lines now respond to their own live power readings.
+- Signed grid direction verified: positive import, negative export, optional sign inversion; zero and unavailable readings pause animation.
+
+### Release alignment and compatibility
+- Website release notes, runtime card and downloadable installation artifacts share version 0.3.0.
+- Existing sensor bindings and layouts are preserved; no database migration is required.
+- This builds on stable 0.2.0: responsive Power Flow / Cloud Flow, balanced PV rows, independent whole-card backgrounds and continuous animations.
+- Validated node photos and unchanged geometry at 375, 768 and 1440 px, PV editing persistence, grid direction and Django system checks.
+
+### Updating
+Update ANMA Card through HACS after it detects this release, or replace anma-card.js manually and refresh the Home Assistant browser cache. Existing configurations remain usable. The new default panel opacity is 40%; set it to 100% for solid panels.
+
+
 ## 0.2.0 — stable release
 
 - Promote the current card to the stable release channel.
