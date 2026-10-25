@@ -1,5 +1,12 @@
 # Changelog
 
+## 0.6.1 — Refresh stale shared runtime
+
+Always initialize the bundled Energy Station renderer even when an older ANMA resource has already initialized global helpers. Verified Energy Station YAML retains its template with a preloaded legacy model. Existing entity mappings remain unchanged.
+
+After updating, fully reload Home Assistant and keep only one ANMA JavaScript resource registered.
+
+
 ## 0.6.0 — Three-phase telemetry and configurable flow colors
 
 - Select single-phase or three-phase inverter telemetry, with separate L1/L2/L3 voltage and current entities and shared frequency.
