@@ -4,7 +4,7 @@
 
 Build an energy dashboard around your existing Home Assistant sensors. Start with **Energy Station**, choose the components you want to see and connect their entities. Follow solar production, battery charging, grid imports and exports, and the loads that matter to you.
 
-**Latest release: 0.4.1** · [Download](https://github.com/bobantonbob/lovelace-anma-card/releases/latest) · [Configuration](docs/CONFIGURATION.md) · [Changelog](CHANGELOG.md)
+**Latest release: 0.5.0** · [Download](https://github.com/bobantonbob/lovelace-anma-card/releases/latest) · [Configuration](docs/CONFIGURATION.md) · [Changelog](CHANGELOG.md)
 
 ## Start with Energy Station
 
@@ -70,7 +70,7 @@ This repository is available through a custom repository; inclusion in the defau
 
 ### Manual installation
 
-Download **anma-card.js** from the latest release and copy it to `/config/www/anma-card.js`. Register `/local/anma-card.js?v=0.4.1` as a JavaScript module. Keep only one ANMA resource registered. When updating, replace the file and refresh your browser cache.
+Download **anma-card.js** from the latest release and copy it to `/config/www/anma-card.js`. Register `/local/anma-card.js?v=0.5.0` as a JavaScript module. Keep only one ANMA resource registered. When updating, replace the file and refresh your browser cache.
 
 ## Connect your readings
 
@@ -89,3 +89,9 @@ Read [validation](docs/VALIDATION.md), [publishing](docs/PUBLISHING.md) and [rel
 ## License
 
 [MIT](LICENSE) · Copyright (c) 2026 Anton Babenko and ANMA contributors.
+
+## Energy Station telemetry (0.5.0)
+
+Measurements are displayed beside their devices: individual battery SOC and decimal voltage, main battery telemetry and daily counters, grid totals and tariff, house consumption and inverter diagnostics. Configure the optional sensors in Connections.
+
+![Energy Station telemetry with demonstration readings](docs/energy-station-telemetry.png)

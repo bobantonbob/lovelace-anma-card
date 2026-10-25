@@ -60,3 +60,11 @@ The card includes a Home Assistant editor and entity selection support. Search b
 Power Flow and Cloud Flow settings include Card background: upload a PNG/JPEG/WebP image or enter its URL, choose cover or contain, select a position and adjust visibility (0–100%). Cover fills every edge and crops excess image area without changing aspect ratio. Background photos remain outside the document layout and do not move readings or controls.
 
 Inverter and battery photos have their own visibility controls; their icons remain above the image. Whole-card settings are stored in `layout.powerFlow.background` with `image`, `opacity`, `fit` and `position`. Older `layout.background` station images remain supported when no card-specific override is set.
+
+## Energy Station telemetry (0.5.0)
+
+Under `layout.powerFlow.station`, individual `batteries` accept `soc` and `voltage` entity IDs. Voltage displays two decimal places.
+
+`master` accepts `power`, `soc`, `voltage`, `current`, `capacity`, `chargeToday`, and `dischargeToday`. Capacity is energy in kWh (not Ah). Set `reserveSoc` to the desired minimum percentage. Runtime uses current discharge power and available capacity above reserve; it is an estimate, not a guarantee.
+
+`telemetry` accepts `importToday`, `exportToday`, `homeToday`, `voltage`, `current`, `frequency`, `acTemperature`, `dcTemperature`, and `buyPrice`. Set `currency` for the purchase price label. Configure `inverterStatus` and the `inverterOn`, `inverterOff`, `inverterFault` state lists for status indication. Optional measurements appear beside their matching diagram node. `fit: true` enables desktop/tablet viewport fitting.

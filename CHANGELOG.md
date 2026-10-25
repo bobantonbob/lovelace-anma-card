@@ -1,5 +1,19 @@
 # Changelog
 
+## 0.5.0 — Energy Station telemetry beside devices
+
+- Read individual battery SOC and decimal voltage directly beside each battery.
+- Main battery readings include power, SOC, voltage, current, capacity, daily charge/discharge and estimated time to the configured reserve SOC.
+- Grid import/export counters and purchase tariff appear beside the grid; daily home consumption beside backup loads.
+- Inverter status, voltage, current, frequency and AC/DC temperatures appear beside the inverter.
+- Desktop fit option and responsive telemetry placement; no separate telemetry panels.
+- Existing layouts and entity bindings remain supported. Unknown readings stay unknown.
+
+Capacity uses kWh. Runtime is an estimate based on current battery discharge power and available energy above reserve SOC; it is unavailable while charging or when required readings are missing.
+
+Validation: 11 Energy Station tests and Django system checks passed. Real sensor mappings should be verified after installation.
+
+
 ## 0.4.1 — refreshed connections and Energy Station gallery
 
 - Power Flow connections now meet measured node boundaries, including after resizing.

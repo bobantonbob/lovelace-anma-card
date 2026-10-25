@@ -30,11 +30,17 @@ if (typeof window !== 'undefined' && !window.AnmaDashboard) {
     const anchor=width===null?center:Math.max(70+half,Math.min(width-70-half,center));
     return anchor+(index-start-(n-1)/2)*spacing;
   }
+  const telemetryKinds={soc:'soc',voltage:'voltage',current:'current',capacity:'energy',chargeToday:'energy',dischargeToday:'energy',importToday:'energy',exportToday:'energy',homeToday:'energy',frequency:'frequency',acTemperature:'temperature',dcTemperature:'temperature',buyPrice:'price'};
+  function runtimeHours(soc,capacity,power,reserve){
+    if(![soc,capacity,power,reserve].every(Number.isFinite)||soc<0||soc>100||capacity<=0||power<10||reserve<0||reserve>100)return null;
+    return Math.max(0,soc-reserve)/100*capacity*1000/power;
+  }
   function normalize(raw={}){
     raw=raw&&typeof raw==='object'?raw:{};
-    const device=(d={},i)=>({name:str(d.name),power:str(d.power),soc:str(d.soc),voltage:str(d.voltage),temperature:str(d.temperature),visible:d.visible!==false});
+    const device=(d={},i)=>({name:str(d.name),power:str(d.power),soc:str(d.soc),voltage:str(d.voltage),temperature:str(d.temperature),capacity:str(d.capacity),visible:d.visible!==false});
     const list=(v,n,max)=> (Array.isArray(v)?v:Array.from({length:n},()=>({}))).slice(0,max).map(device);
     return {
+      fit:raw.fit!==false,master:Object.fromEntries(['power','soc','voltage','current','capacity','chargeToday','dischargeToday'].map(k=>[k,str(raw.master?.[k])])),reserveSoc:str(raw.reserveSoc)||'20',telemetry:Object.fromEntries(['importToday','exportToday','homeToday','voltage','current','frequency','acTemperature','dcTemperature','buyPrice'].map(k=>[k,str(raw.telemetry?.[k])])),currency:str(raw.currency)||'UAH',inverterStatus:str(raw.inverterStatus),inverterOn:str(raw.inverterOn)||'on,online,running,normal',inverterOff:str(raw.inverterOff)||'off,offline,standby',inverterFault:str(raw.inverterFault)||'fault,error,alarm',
       format:choose(raw.format,['auto','wide','square','phone'],'auto'),
       theme:choose(raw.theme,['auto','day','night'],'auto'),
       demoScene:choose(raw.demoScene,['sun','import','night','outage'],'sun'),
@@ -57,7 +63,7 @@ if (typeof window !== 'undefined' && !window.AnmaDashboard) {
     if(/^[+-]?(?:\d+(?:\.\d*)?|\.\d+)$/.test(id.trim()))return Number.isFinite(Number(id))?Number(id):null;
     const s=states?.[id];if(!s||s.state==null||String(s.state).trim()===''||!Number.isFinite(Number(s.state)))return null;
     const value=Number(s.state),u=s.attributes?.unit_of_measurement;
-    const units=kind==='power'?{W:1,kW:1000,MW:1000000}:kind==='energy'?{Wh:.001,kWh:1,MWh:1000}:kind==='soc'?{'%':1}:kind==='voltage'?{V:1,mV:.001}:kind==='temperature'?{'°C':1}:{};
+    const units=kind==='power'?{W:1,kW:1000,MW:1000000}:kind==='energy'?{Wh:.001,kWh:1,MWh:1000}:kind==='soc'?{'%':1}:kind==='voltage'?{V:1,mV:.001}:kind==='temperature'?{'°C':1}:kind==='current'?{A:1,mA:.001}:kind==='frequency'?{Hz:1,kHz:1000}:kind==='price'&&typeof u==='string'&&/\/kWh$/i.test(u)?{[u]:1}:{};
     return Object.hasOwn(units,u)?value*units[u]:null;
   }
   const sum=values=>values.length&&values.every(Number.isFinite)?values.reduce((a,b)=>a+b,0):null;
@@ -66,7 +72,7 @@ if (typeof window !== 'undefined' && !window.AnmaDashboard) {
     const read=(id,fallback,kind='power')=>demo&&!id?fallback:reading(id,states,kind);
     const pv=c.pv.map(p=>read(p.power,night?0:outage?900:c.demoScene==='import'?800:1200));
     const solar=c.pvTotal?read(c.pvTotal,null):sum(pv);
-    const batteries=c.batteries.map((b,i)=>({power:read(b.power,night?200:-600),soc:read(b.soc,[82,76,91,68,85][i],'soc'),voltage:read(b.voltage,52.4,'voltage'),temperature:read(b.temperature,26,'temperature')}));
+    const batteries=c.batteries.map((b,i)=>({power:read(b.power,night?200:-600),soc:read(b.soc,[82,76,91,68,85][i],'soc'),voltage:read(b.voltage,52.4,'voltage'),temperature:read(b.temperature,26,'temperature'),capacity:read(b.capacity,null,'energy')}));
     const sign=c.batteryPositive==='charge'?-1:1;
     batteries.forEach(b=>{if(b.power!==null)b.power*=sign;});
     const rawState=String(states?.[c.gridStatus]?.state??'').trim().toLowerCase();
@@ -79,12 +85,21 @@ if (typeof window !== 'undefined' && !window.AnmaDashboard) {
     // Child appliances describe their parent total; never add both to the same total.
     const backup=c.backupPower?read(c.backupPower,null):sum(loads.filter((_,i)=>c.loads[i].group==='backup'));
     const nonBackup=gridState==='offline'?0:c.nonBackupPower?read(c.nonBackupPower,null):sum(loads.filter((_,i)=>c.loads[i].group==='grid'));
-    return {pv,solar,today:read(c.solarToday,48.6,'energy'),batteries,batteryTotal:sum(batteries.map(b=>b.power)),grid,gridState,aux,loads,backup,nonBackup,inverter:read(c.inverterPower,night?3000:8000)};
+    const master=Object.fromEntries(Object.entries(c.master).map(([k,id])=>[k,read(id,null,telemetryKinds[k]||'power')]));
+    const batteryTotal=c.master.power?(master.power===null?null:master.power*sign):sum(batteries.map(b=>b.power));
+    const telemetry=Object.fromEntries(Object.entries(c.telemetry).map(([k,id])=>[k,read(id,null,telemetryKinds[k])]));
+    const status=String(states?.[c.inverterStatus]?.state??'').toLowerCase().trim();
+    const inList=list=>list.split(',').map(v=>v.trim().toLowerCase()).includes(status);
+    const inverterState=!status?'unknown':inList(c.inverterFault)?'fault':inList(c.inverterOff)?'offline':inList(c.inverterOn)?'online':'unknown';
+    const runtime=runtimeHours(master.soc,master.capacity,batteryTotal,reading(c.reserveSoc,states,'soc'));
+    return {master,telemetry,runtime,inverterState,pv,solar,today:read(c.solarToday,48.6,'energy'),batteries,batteryTotal,grid,gridState,aux,loads,backup,nonBackup,inverter:read(c.inverterPower,night?3000:8000)};
   }
   const css=`
     .energy-station{--es-bg:#0b1721;--es-panel:#122230;--es-text:#eaf2f8;--es-muted:#91a6b6;--es-line:#304655;--es-off:#78828b;container-type:inline-size;container-name:station;position:relative;isolation:isolate;background:var(--es-bg)!important;color:var(--es-text);border:1px solid var(--es-line);border-radius:18px;padding:16px;min-width:0;overflow:hidden;width:100%;box-sizing:border-box}
     .energy-station[data-es-theme=day],:root[data-theme=light] .energy-station[data-es-theme=auto],.db-preview[data-theme-mode^=light_] .energy-station[data-es-theme=auto],.anma-container[data-theme^=light_] .energy-station[data-es-theme=auto]{--es-bg:#f5f8fb;--es-panel:#fff;--es-text:#152b3c;--es-muted:#526677;--es-line:#c8d6df;--es-off:#78838c}
     .energy-station .es-head{display:flex;align-items:center;justify-content:space-between;gap:12px}.energy-station h2{font:700 20px system-ui;margin:0;color:var(--es-text)}.energy-station .es-subtitle{font:11px system-ui;color:var(--es-muted);margin:5px 0}.energy-station .apf-tools{display:flex;gap:6px}.energy-station button{cursor:pointer;color:var(--es-text);background:var(--es-panel);border:1px solid var(--es-line);border-radius:8px;padding:8px;font:inherit}.energy-station .es-open{color:#f1873d}
+    .es-svg .es-reading{font-size:12px;fill:var(--es-muted)}.es-svg .es-reading-value{fill:var(--es-text);font-weight:600}.es-svg .es-reading text{text-anchor:inherit}
+    .energy-station[data-fit=true] .es-svg{height:clamp(260px,calc(100dvh - 230px),650px)!important;object-fit:contain}.energy-station[data-fit=true] .es-stage{aspect-ratio:auto!important}.energy-station:fullscreen{overflow:auto}.es-svg [data-state=fault]{--node-color:#ff6b64!important}
     .es-stage{width:100%;min-width:0}.es-svg{display:block;width:100%;height:auto;overflow:visible}.es-svg text{font-family:system-ui,sans-serif;text-anchor:middle;fill:var(--es-text);pointer-events:none}.es-svg .es-name{font-size:13px;font-weight:600}.es-svg .es-value{font-size:20px;font-weight:750;fill:var(--node-color)}.es-svg .es-detail{font-size:11px;fill:var(--es-muted)}.es-svg .es-icon{color:var(--node-color)}.es-svg [data-state=idle],.es-svg [data-state=offline],.es-svg [data-state=unknown]{--node-color:var(--es-off)!important}.es-svg .es-wire{fill:none;stroke:var(--wire-color);stroke-width:1.8;stroke-dasharray:4 4;stroke-linecap:round}.es-svg .es-edge[data-active=true] .es-wire{animation:es-stream 1s linear infinite}.es-svg .es-edge[data-active=false]{opacity:.35}.es-svg .es-edge[data-reverse=true] .es-wire{animation-direction:reverse}.es-svg .es-dot{fill:var(--wire-color)}.es-svg .es-inverter-frame{fill:var(--es-panel);stroke:#f1873d;stroke-width:1.4}.es-svg .es-node{outline:none}.es-svg .es-node:focus{filter:drop-shadow(0 0 2px #ff8b32)}.es-svg .es-battery-fill{fill:var(--node-color);opacity:.55}.es-svg .es-edge[data-active=false] .es-dot{display:none}
     @keyframes es-stream{to{stroke-dashoffset:-16}}@media(prefers-reduced-motion:reduce){.energy-station .es-dot{display:none}.energy-station .es-wire{animation:none!important}}
     .energy-station .es-settings{position:absolute;z-index:20;top:65px;right:10px;bottom:10px;width:min(430px,calc(100% - 20px));overflow:auto;overscroll-behavior:contain;touch-action:pan-y;background:var(--es-panel);border:1px solid #b8753e;border-radius:12px;padding:12px;box-sizing:border-box;box-shadow:0 12px 32px #0005}.energy-station .es-settings[hidden]{display:none}
@@ -130,10 +145,11 @@ if (typeof window !== 'undefined' && !window.AnmaDashboard) {
       cancelAnimationFrame(raf);edges=[];nodes=new Map();
       const mobile=cfg.format==='phone'||(cfg.format!=='wide'&&stage.getBoundingClientRect().width<600);phone=mobile;
       const wide=!mobile&&(cfg.format==='wide'||cfg.format==='auto'&&stage.getBoundingClientRect().width>=950);
+      card.dataset.fit=String(cfg.fit&&!mobile);
       const w=mobile?600:wide?1400:1100,cols=mobile?2:wide?10:5,visiblePV=cfg.showSolar?cfg.pv.map((p,i)=>p.visible?i:-1).filter(i=>i>=0):[];
-      const rows=Math.ceil(visiblePV.length/cols),pvTop=135,rowHeight=mobile?145:125;
-      const totalY=cfg.showSolar?pvTop+rows*rowHeight+65:20,coreY=totalY+170;
-      let batteryStart=coreY+(mobile?640:wide?510:650);const batCols=mobile?2:5;
+      const rows=Math.ceil(visiblePV.length/cols),pvTop=110,rowHeight=mobile?145:125;
+      const totalY=cfg.showSolar?pvTop+rows*rowHeight+35:0,coreY=totalY+140;
+      let batteryStart=coreY+(mobile?780:wide?510:650);const batCols=mobile?2:5;
       const loadRows=Math.max(...['backup','grid','aux'].map(group=>Math.ceil(cfg.loads.filter(l=>l.visible&&l.group===group).length/(wide?3:1))),1);
       batteryStart+=Math.max(0,loadRows-(wide?1:3))*145;
       const visibleB=cfg.showBatteries?cfg.batteries.map((b,i)=>b.visible?i:-1).filter(i=>i>=0):[];
@@ -169,8 +185,8 @@ if (typeof window !== 'undefined' && !window.AnmaDashboard) {
           edge(parent,'load'+i,group==='backup'?color.backup:group==='grid'?color.grid:color.aux,{key:'load'+i,out:wide?'bottom':'left',into:wide?'top':'left',route:([sx,sy],[tx,ty])=>wide?`M${sx} ${sy} V${ty-12} H${tx} V${ty}`:`M${sx} ${sy} H${Math.min(sx,tx)-12} V${ty} H${tx}`});
         });
       }
-      if(visibleB.length){
-        node('battery',w/2,batteryStart-150,tr('Battery total','Батареї разом'),'battery',color.battery);edge('inverter','battery',color.battery,{key:'battery',route:([sx,sy],[tx,ty])=>phone?`M${sx} ${sy} H${sx-85} V${ty-15} H${tx} V${ty}`:`M${sx} ${sy} V${ty}`});
+      if(cfg.showBatteries&&(visibleB.length||Object.values(cfg.master).some(Boolean))){
+        node('battery',w/2,batteryStart-150,tr('Main battery','Головна батарея'),'battery',color.battery);edge('inverter','battery',color.battery,{key:'battery',route:([sx,sy],[tx,ty])=>phone?`M${sx} ${sy} H${sx-85} V${ty-15} H${tx} V${ty}`:`M${sx} ${sy} V${ty}`});
         visibleB.forEach((i,j)=>{node('bat'+i,rowPosition(j,visibleB.length,batCols,w/2,w/batCols),batteryStart+Math.floor(j/batCols)*145,cfg.batteries[i].name||tr('Battery ','Батарея ')+(i+1),'battery',color.battery);edge('battery','bat'+i,color.battery,{key:'bat'+i,route:([sx,sy],[tx,ty])=>{const gutter=j%2?w-20:20;return phone&&j>=2?`M${sx} ${sy} H${gutter} V${ty-10} H${tx} V${ty}`:`M${sx} ${sy} V${sy+10} H${tx} V${ty}`;}});});
       }
       updateValues();last=0;raf=requestAnimationFrame(animate);
@@ -182,15 +198,15 @@ if (typeof window !== 'undefined' && !window.AnmaDashboard) {
       set('today',data.today===null?'—':data.today.toLocaleString(uk?'uk':'en',{maximumFractionDigits:1})+' '+tr('kWh','кВт·год'),'',state(data.solar));
       cfg.pv.forEach((p,i)=>set('pv'+i,power(data.pv[i]),'',state(data.pv[i])));
       set('solar',power(data.solar),data.solar===null?tr('No data','Немає даних'):'',state(data.solar));
-      set('inverter',power(data.inverter),data.inverter===null?tr('Power sensor not set','Не задано датчик потужності'):'');
+      set('inverter',power(data.inverter),({online:tr('RUNNING','ПРАЦЮЄ'),offline:tr('OFF / STANDBY','ВИМК. / ОЧІКУЄ'),fault:tr('FAULT','ПОМИЛКА'),unknown:cfg.inverterStatus?tr('Status unavailable','Стан недоступний'):''})[data.inverterState],data.inverterState==='online'?'active':data.inverterState);
       const gridLabel=data.gridState==='offline'?tr('NO GRID','НЕМАЄ МЕРЕЖІ'):data.grid===null?tr('No data','Немає даних'):Math.abs(data.grid)<10?tr('Idle','Очікування'):data.grid>0?tr('IMPORT →','ІМПОРТ →'):tr('← EXPORT','← ЕКСПОРТ');
       set('grid',power(data.grid),gridLabel,data.gridState==='offline'?'offline':state(data.grid));
       const gridNode=nodes.get('grid');if(gridNode){let status=gridNode.g.querySelector('.es-grid-direction');if(!status){status=svgEl('path',{'class':'es-grid-direction',stroke:'currentColor','stroke-width':2,fill:'none'});gridNode.g.querySelector('.es-icon').append(status);}status.setAttribute('d',data.gridState==='offline'?'M4 4L28 28':data.grid>10?'M4 31h24m-5-4 5 4-5 4':data.grid< -10?'M28 31H4m5-4-5 4 5 4':'');gridNode.g.dataset.direction=data.gridState==='offline'?'offline':data.grid===null?'unknown':data.grid>10?'import':data.grid< -10?'export':'idle';}
       set('backup',power(data.backup),'',state(data.backup));set('nonbackup',power(data.nonBackup),data.gridState==='offline'?tr('Grid lost','Мережі немає'):'',data.gridState==='offline'?'offline':state(data.nonBackup));
       set('aux',power(data.aux),cfg.aux.role==='micro'?tr('Source → '+cfg.aux.connection,'Джерело → '+cfg.aux.connection):cfg.aux.role==='generator'?tr('GEN input','Вхід GEN'):tr('GEN output','Вихід GEN'),cfg.aux.role==='micro'&&cfg.aux.connection==='grid'&&data.gridState==='offline'?'offline':state(data.aux));
       cfg.loads.forEach((l,i)=>{const off=l.group==='grid'&&data.gridState==='offline';set('load'+i,off?'—':power(data.loads[i]),off?tr('Grid lost','Мережі немає'):'',off?'offline':state(data.loads[i]));});
-      set('battery',power(data.batteryTotal),batteryState(data.batteryTotal),state(data.batteryTotal));
-      cfg.batteries.forEach((b,i)=>{const v=data.batteries[i];set('bat'+i,v.soc===null?'—':Math.round(v.soc)+'%',power(v.power)+' · '+batteryState(v.power),state(v.power),v.soc);const n=nodes.get('bat'+i);if(n){n.title.textContent+=' · '+(v.voltage===null?'—':v.voltage+' V')+' · '+(v.temperature===null?'—':v.temperature+' °C');n.g.setAttribute('aria-label',n.title.textContent);}});
+      set('battery',data.master.soc===null?power(data.batteryTotal):data.master.soc.toFixed(1)+'%',power(data.batteryTotal)+' · '+batteryState(data.batteryTotal),state(data.batteryTotal),data.master.soc);
+      cfg.batteries.forEach((b,i)=>{const v=data.batteries[i];set('bat'+i,v.soc===null?'—':Math.round(v.soc)+'%',v.voltage===null?(b.voltage?'— V':''):v.voltage.toLocaleString(uk?'uk':'en',{minimumFractionDigits:2,maximumFractionDigits:2})+' V',v.soc!==null?'active':state(v.power),v.soc);const n=nodes.get('bat'+i);if(n){n.title.textContent+=' · '+(v.voltage===null?'—':v.voltage+' V')+' · '+(v.temperature===null?'—':v.temperature+' °C');n.g.setAttribute('aria-label',n.title.textContent);}});
       for(const e of edges){
         let p=null,reverse=false;
         if(e.key==='grid'){p=data.grid;reverse=p<0;}
@@ -203,6 +219,25 @@ if (typeof window !== 'undefined' && !window.AnmaDashboard) {
         e.power=p;e.reverse=reverse;e.g.dataset.active=String(cfg.motion&&layout.motion!==false&&Number.isFinite(p)&&Math.abs(p)>=10);e.g.dataset.reverse=String(reverse);
         e.path.removeAttribute(reverse?'marker-end':'marker-start');e.path.setAttribute(reverse?'marker-start':'marker-end',`url(#${e.markerId})`);
       }
+      svg.querySelectorAll('.es-reading').forEach(e=>e.remove());
+      const number=(v,unit,digits=2)=>v===null?'—':v.toLocaleString(uk?'uk':'en',{minimumFractionDigits:digits,maximumFractionDigits:digits})+' '+unit;
+      const beside=(id,rows,side='right',dy=0)=>{
+        const n=nodes.get(id);if(!n||!rows.length)return;
+        const x=side==='left'?-95:side==='right'?95:0;
+        const g=svgEl('g',{'class':'es-reading','data-reading-for':id,transform:`translate(${n.x+x} ${n.y+dy})`});
+        g.style.textAnchor=side==='left'?'end':side==='right'?'start':'middle';
+        rows.forEach(([name,value],i)=>{const text=svgEl('text',{y:i*26});const caption=svgEl('tspan',{x:0,dy:0});caption.textContent=name;const val=svgEl('tspan',{x:0,dy:13,'class':'es-reading-value'});val.textContent=value;text.append(caption,val);g.append(text);});svg.append(g);
+      };
+      const label={soc:'SOC',voltage:tr('Voltage','Напруга'),current:tr('Current','Струм'),capacity:tr('Capacity','Ємність'),chargeToday:tr('Charged today','Заряд за добу'),dischargeToday:tr('Discharged today','Розряд за добу'),importToday:tr('Import today','Імпорт за добу'),exportToday:tr('Export today','Експорт за добу'),homeToday:tr('Home today','Будинок за добу'),frequency:tr('Frequency','Частота'),acTemperature:tr('AC temperature','Температура AC'),dcTemperature:tr('DC temperature','Температура DC'),buyPrice:tr('Purchase price','Ціна купівлі')};
+      const unit={soc:'%',voltage:'V',current:'A',capacity:'kWh',chargeToday:'kWh',dischargeToday:'kWh',importToday:'kWh',exportToday:'kWh',homeToday:'kWh',frequency:'Hz',acTemperature:'°C',dcTemperature:'°C',buyPrice:cfg.currency+'/kWh'};
+      beside('battery',['chargeToday','dischargeToday'].filter(k=>cfg.master[k]).map(k=>[label[k],number(data.master[k],unit[k])]),'left',4);
+      const mainRows=['voltage','current','capacity'].filter(k=>cfg.master[k]).map(k=>[label[k],number(data.master[k],unit[k])]);
+      if(cfg.master.capacity&&cfg.master.soc)mainRows.push([tr('Est. to reserve ','Оцінка до резерву ')+number(reading(cfg.reserveSoc,live?.states||{},'soc'),'%',0),data.runtime===null?'—':Math.floor(Math.round(data.runtime*60)/60)+' '+tr('h','год')+' '+(Math.round(data.runtime*60)%60)+' '+tr('min','хв')]);
+      beside('battery',mainRows,'right',0);
+      beside('grid',['importToday','exportToday','buyPrice'].filter(k=>cfg.telemetry[k]).map(k=>[label[k],number(data.telemetry[k],unit[k])]),'above',-90);
+      beside('backup',cfg.telemetry.homeToday?[[label.homeToday,number(data.telemetry.homeToday,'kWh')]]:[],'above',-45);
+      beside('inverter',['acTemperature','dcTemperature'].filter(k=>cfg.telemetry[k]).map(k=>[label[k],number(data.telemetry[k],unit[k])]),'left',phone?100:-70);
+      beside('inverter',['voltage','current','frequency'].filter(k=>cfg.telemetry[k]).map(k=>[label[k],number(data.telemetry[k],unit[k])]),'right',phone?100:-85);
       badge.textContent=isDemo?tr('DEMO · SIMULATED VALUES','ДЕМО · ЗМОДЕЛЬОВАНІ ДАНІ'):tr('HOME ASSISTANT · SENSOR VALUES','HOME ASSISTANT · ДАНІ ДАТЧИКІВ');
       foot.textContent=tr('Appliances detail their parent total. Visibility changes the diagram, not the electrical connection.','Прилади деталізують підсумок своєї групи. Видимість змінює схему, а не електричне підключення.');
       if(!isDemo&&data.gridState==='unknown')foot.textContent+=' '+tr('Grid status unknown: configure its status sensor.','Стан мережі невідомий: вкажіть датчик стану.');
@@ -247,7 +282,7 @@ if (typeof window !== 'undefined' && !window.AnmaDashboard) {
     function group(title){const f=el('fieldset');f.append(el('legend',title));form.append(f);return f;}
     function device(parent,title){const d=el('details');d.className='es-device';d.append(el('summary',title));const body=el('div');d.append(body);parent.append(d);return body;}
     function draw(){
-      form.replaceChildren();const display=group(tr('Appearance & preview','Вигляд і перегляд'));
+      form.replaceChildren();const display=group(tr('Appearance & preview','Вигляд і перегляд'));check(display,tr('Fit diagram to screen (desktop/tablet)','Вписувати схему в екран (ПК/планшет)'),c,'fit');
       field(display,tr('Format','Формат'),c,'format',[['auto',tr('Adaptive','Адаптивний')],['wide',tr('Wide','Широкий')],['square',tr('Square','Квадратний')],['phone',tr('Phone','Телефон')]]);
       field(display,tr('Theme','Тема'),c,'theme',[['auto',tr('Site / dashboard','Сайт / дашборд')],['day',tr('Light','Світла')],['night',tr('Dark','Темна')]]);check(display,tr('Animated flows','Анімовані потоки'),c,'motion');
       field(display,tr('Demo scenario (preview only)','Демо-сценарій (лише перегляд)'),c,'demoScene',[['sun',tr('Solar / export','Сонце / експорт')],['import',tr('Import','Імпорт')],['night',tr('Night','Ніч')],['outage',tr('Grid outage','Немає мережі')]]);
@@ -257,8 +292,14 @@ if (typeof window !== 'undefined' && !window.AnmaDashboard) {
       count(solar,'pv',10,tr('PV field count','Кількість PV-полів'));
       c.pv.forEach((p,i)=>{const f=device(solar,p.name||'PV '+(i+1));check(f,tr('Show PV ','Показувати PV ')+(i+1),p,'visible');field(f,tr('PV name ','Назва PV ')+(i+1),p,'name');sensor(f,tr('PV power ','Потужність PV ')+(i+1),p,'power');});
       const batteries=group(tr('Batteries · up to 5','Батареї · до 5'));check(batteries,tr('Show batteries','Показувати батареї'),c,'showBatteries');count(batteries,'batteries',5,tr('Battery count','Кількість батарей'));field(batteries,tr('Positive battery power means','Плюс потужності батареї означає'),c,'batteryPositive',[['discharge',tr('Discharge','Розряд')],['charge',tr('Charge','Заряд')]]);
-      c.batteries.forEach((b,i)=>{const f=device(batteries,b.name||tr('Battery ','Батарея ')+(i+1));check(f,tr('Show battery ','Показувати батарею ')+(i+1),b,'visible');field(f,tr('Battery name ','Назва батареї ')+(i+1),b,'name');sensor(f,tr('Battery power ','Потужність батареї ')+(i+1),b,'power');sensor(f,'SOC % · '+(i+1),b,'soc','soc');sensor(f,tr('Voltage ','Напруга ')+(i+1),b,'voltage','voltage');sensor(f,tr('Temperature ','Температура ')+(i+1),b,'temperature','temperature');});
+      c.batteries.forEach((b,i)=>{const f=device(batteries,b.name||tr('Battery ','Батарея ')+(i+1));check(f,tr('Show battery ','Показувати батарею ')+(i+1),b,'visible');field(f,tr('Battery name ','Назва батареї ')+(i+1),b,'name');sensor(f,tr('Battery power ','Потужність батареї ')+(i+1),b,'power');sensor(f,'SOC % · '+(i+1),b,'soc','soc');sensor(f,tr('Voltage ','Напруга ')+(i+1),b,'voltage','voltage');sensor(f,tr('Temperature ','Температура ')+(i+1),b,'temperature','temperature');sensor(f,tr('Capacity kWh ','Ємність кВт·год ')+(i+1),b,'capacity','energy');});
       const grid=group(tr('Grid & inverter','Мережа та інвертор'));check(grid,tr('Show grid','Показувати мережу'),c,'showGrid');sensor(grid,tr('Signed grid power','Знакова потужність мережі'),c,'gridPower');field(grid,tr('Positive grid power means','Плюс потужності мережі означає'),c,'gridPositive',[['import',tr('Import','Імпорт')],['export',tr('Export','Експорт')]]);sensor(grid,tr('Grid status entity','Сутність стану мережі'),c,'gridStatus','status');field(grid,tr('Connected states, comma separated','Стани підключення через кому'),c,'gridOn');field(grid,tr('Disconnected states','Стани відключення'),c,'gridOff');field(grid,tr('Inverter name','Назва інвертора'),c,'inverterName');sensor(grid,tr('Inverter power','Потужність інвертора'),c,'inverterPower');
+      const master=group(tr('Main battery · inverter totals','Головна батарея · дані інвертора'));
+      for(const [key,en,ua] of [['power','Signed total power','Загальна знакова потужність'],['soc','Main SOC','Головний SOC'],['voltage','Main voltage','Загальна напруга'],['current','Main current','Загальний струм'],['capacity','Total capacity (kWh)','Загальна ємність (кВт·год)'],['chargeToday','Charged today','Заряд за добу'],['dischargeToday','Discharged today','Розряд за добу']])sensor(master,tr(en,ua),c.master,key,telemetryKinds[key]||'power');
+      sensor(master,tr('Reserve SOC (% or entity)','Резервний SOC (% або сутність)'),c,'reserveSoc','soc');master.append(el('small',tr('Runtime estimate uses remaining capacity above reserve and current battery discharge. Unavailable while charging or when inputs are missing. Capacity is kWh, not Ah; daily counters must come from daily energy sensors.','Оцінка часу: залишок ємності вище резерву / поточний розряд батареї. Під час заряду або без даних оцінка недоступна. Ємність — кВт·год, не А·год; добові лічильники — з відповідних датчиків енергії.')));
+      const telemetry=group(tr('Daily counters & inverter telemetry','Добові лічильники та телеметрія інвертора'));
+      for(const [key,en,ua] of [['importToday','Grid import today','Імпорт мережі за добу'],['exportToday','Grid export today','Експорт мережі за добу'],['homeToday','Home energy today','Споживання будинку за добу'],['voltage','Inverter AC voltage','Напруга AC інвертора'],['current','Inverter AC current','Струм AC інвертора'],['frequency','AC frequency','Частота AC'],['acTemperature','AC temperature','Температура AC'],['dcTemperature','DC temperature','Температура DC'],['buyPrice','Purchase price per kWh','Ціна купівлі за кВт·год']])sensor(telemetry,tr(en,ua),c.telemetry,key,telemetryKinds[key]);
+      field(telemetry,tr('Currency label','Позначення валюти'),c,'currency');sensor(telemetry,tr('Inverter status','Стан інвертора'),c,'inverterStatus','status');field(telemetry,tr('Running states','Стани роботи'),c,'inverterOn');field(telemetry,tr('Off / standby states','Стани вимкнення / очікування'),c,'inverterOff');field(telemetry,tr('Fault states','Стани помилки'),c,'inverterFault');
       const aux=group('GEN / AUX');check(aux,tr('Show GEN / AUX','Показувати GEN / AUX'),c.aux,'visible');field(aux,tr('Port role','Роль порту'),c.aux,'role',[['micro',tr('Microinverter → input','Мікроінвертор → вхід')],['generator',tr('Generator → input','Генератор → вхід')],['load',tr('Smart load ← output','Кероване навантаження ← вихід')],['disabled',tr('Disabled','Вимкнено')]]);field(aux,tr('Microinverter connection','Підключення мікроінвертора'),c.aux,'connection',[['gen','GEN / AUX'],['backup',tr('Backup bus','Гарантована група')],['grid',tr('Grid-side bus','Сторона мережі')]]);field(aux,tr('GEN / AUX name','Назва GEN / AUX'),c.aux,'name');sensor(aux,tr('GEN / AUX power','Потужність GEN / AUX'),c.aux,'power');aux.append(el('small',tr('A source always feeds the selected connection. This setting only describes existing wiring; it does not configure the inverter port.','Джерело завжди подає енергію у вибране підключення. Це опис існуючої схеми, а не перемикання порту інвертора.')));
       const loads=group(tr('Load groups & appliances','Групи та споживачі'));check(loads,tr('Show backup group','Показувати гарантовану групу'),c,'showBackup');check(loads,tr('Show non-backup group','Показувати негарантовану групу'),c,'showNonBackup');check(loads,tr('Hide non-backup during outage (otherwise grey)','Ховати негарантовану без мережі (інакше сіра)'),c,'hideOffline');sensor(loads,tr('Backup total (or sum appliances)','Гарантоване разом (або сума приладів)'),c,'backupPower');sensor(loads,tr('Non-backup total (or sum appliances)','Негарантоване разом (або сума приладів)'),c,'nonBackupPower');
       c.loads.forEach((l,i)=>{const f=device(loads,l.name||tr('Appliance ','Прилад ')+(i+1));check(f,tr('Show appliance ','Показувати прилад ')+(i+1),l,'visible');field(f,tr('Appliance name ','Назва приладу ')+(i+1),l,'name');field(f,tr('Icon ','Піктограма ')+(i+1),l,'icon',[['ev',tr('EV','Авто')],['boiler',tr('Boiler','Бойлер')],['pump',tr('Heat pump','Тепловий насос')],['light',tr('Lighting','Освітлення')],['other',tr('Other','Інше')]]);field(f,tr('Group ','Група ')+(i+1),l,'group',[['backup',tr('Backup','Гарантована')],['grid',tr('Non-backup','Негарантована')],['aux','GEN / AUX']]);sensor(f,tr('Appliance power ','Потужність приладу ')+(i+1),l,'power');const del=el('button',tr('Remove appliance','Прибрати прилад'));del.type='button';del.onclick=()=>{c.loads.splice(i,1);commit();draw();};f.append(del);});
@@ -266,8 +307,9 @@ if (typeof window !== 'undefined' && !window.AnmaDashboard) {
     }
     draw();return box;
   }
-  const api={rowPosition,normalize,reading,calculate,render,update,editor};root.AnmaEnergyStation=api;if(typeof module!=='undefined'&&module.exports)module.exports=api;
+  const api={runtimeHours,rowPosition,normalize,reading,calculate,render,update,editor};root.AnmaEnergyStation=api;if(typeof module!=='undefined'&&module.exports)module.exports=api;
 })(typeof window!=='undefined'?window:globalThis);
+
 
 /* ANMA Power Flow: shared studio and Home Assistant renderer. */
 (function(root){
@@ -2467,7 +2509,7 @@ field(group,tr('Image URL (/local/… in HA)','URL зображення (/local/
 (() => {
   'use strict';
 
-  const CARD_VERSION = '0.4.1';
+  const CARD_VERSION = '0.5.0';
   const EN = {
     'Стан системи':'System status', 'Помилки':'Errors', 'Стан АКБ':'Battery status', 'Електромобіль — потужність':'EV — power', 'Генератор — потужність':'Generator — power', 'Мова картки': 'Card language', 'Сонце': 'Solar', 'Дім': 'Home', 'Самоспоживання': 'Self-consumption', 'АКБ': 'Battery', 'Прогноз на 7 днів': '7-day forecast', 'Середньодобово': 'Daily average', 'Найкращий день': 'Best day', 'Мікроінвертор': 'Microinverter', 'MPPT МАТРИЦЯ': 'MPPT MATRIX', '✓ Оптимально': '✓ Optimal', 'Автоматично (Home Assistant)': 'Automatic (Home Assistant)',
     'Імпортувати макет ANMA / Import ANMA layout (.json)': 'Import ANMA layout (.json)',
