@@ -1,5 +1,11 @@
 # Changelog
 
+## 0.6.8 — Slider, mobile inverter readings and system name
+
+Background opacity now uses a slider with percentage feedback. AC and DC temperatures each occupy one compact line. Phone inverter readings are centered below the inverter, ahead of the microinverter; auxiliary and battery paths bypass the text.
+
+General settings now expose the system name shown beneath the fixed ANMA ELECTRIC brand. The brand square uses an explicit lightning SVG instead of a platform emoji. Existing bindings and calculations are preserved. 19 tests and Django checks passed; desktop/mobile DOM placement was checked in a browser.
+
 ## 0.6.7 — Energy Station appearance controls
 
 Connections now includes a system name beside the orange Energy Station heading and background opacity from 0% (transparent) to 100% (opaque). Only the background fill fades; text, icons and flows remain opaque. The system name follows the foreground theme for readability. Removed the secondary heading and sensor-source subtitle.

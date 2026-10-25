@@ -178,7 +178,7 @@
       if(cfg.aux.visible&&cfg.aux.role!=='disabled'){
         node('aux',mobile?300:w/2+150,coreY+telemetryGap+190,cfg.aux.name||labels[cfg.aux.role],cfg.aux.role==='load'?'boiler':cfg.aux.role,color.aux);
         const source=cfg.aux.role!=='load',target=cfg.aux.role==='micro'?({gen:'inverter',backup:'backup',grid:'grid'})[cfg.aux.connection]:'inverter';
-        edge(source?'aux':target,source?target:'aux',color.aux,{out:source?'top':'bottom',into:source?'bottom':'top',key:'aux'});
+        edge(source?'aux':target,source?target:'aux',color.aux,{out:source?'top':'bottom',into:source?'bottom':'top',key:'aux',route:mobile?([sx,sy],[tx,ty])=>`M${sx} ${sy} V${sy-10} H440 V${ty+10} H${tx} V${ty}`:null});
       }
       for(const [group,parent,x] of [['backup','backup',mobile?490:w-130],['grid','nonbackup',mobile?110:130],['aux','aux',mobile?300:w/2+150]]){
         if(!nodes.has(parent)||group==='aux'&&cfg.aux.role!=='load')continue;
@@ -191,7 +191,7 @@
         });
       }
       if(cfg.showBatteries&&(visibleB.length||Object.values(cfg.master).some(Boolean))){
-        node('battery',w/2,batteryStart-150,tr('Main battery','Головна батарея'),'battery',color.battery);edge('inverter','battery',color.battery,{key:'battery',route:([sx,sy],[tx,ty])=>phone?`M${sx} ${sy} H${sx-85} V${ty-15} H${tx} V${ty}`:`M${sx} ${sy} V${ty}`});
+        node('battery',w/2,batteryStart-150,tr('Main battery','Головна батарея'),'battery',color.battery);edge('inverter','battery',color.battery,{key:'battery',route:([sx,sy],[tx,ty])=>phone?`M${sx} ${sy} H160 V${ty-15} H${tx} V${ty}`:`M${sx} ${sy} V${ty}`});
         visibleB.forEach((i,j)=>{node('bat'+i,rowPosition(j,visibleB.length,batCols,w/2,w/batCols),batteryStart+Math.floor(j/batCols)*145,cfg.batteries[i].name||tr('Battery ','Батарея ')+(i+1),'battery',color.battery);edge('battery','bat'+i,color.battery,{key:'bat'+i,route:([sx,sy],[tx,ty])=>{const gutter=j%2?w-20:20;return phone&&j>=2?`M${sx} ${sy} H${gutter} V${ty-10} H${tx} V${ty}`:`M${sx} ${sy} V${sy+10} H${tx} V${ty}`;}});});
       }
       updateValues();last=0;raf=requestAnimationFrame(animate);
@@ -244,10 +244,11 @@
       beside('battery',mainRows,'right',0);
       beside('grid',['importToday','exportToday'].filter(k=>isDemo||cfg.telemetry[k]).map(k=>[label[k],number(data.telemetry[k],unit[k])]),'above',-115);
       beside('backup',(isDemo||cfg.telemetry.homeToday)?[[label.homeToday,number(data.telemetry.homeToday,'kWh')]]:[],'above',-55);
-      beside('inverter',['acTemperature','dcTemperature'].filter(k=>isDemo||cfg.telemetry[k]).map(k=>[label[k],number(data.telemetry[k],unit[k])]),'left',phone?150:-70);
+      const temperatureRows=['acTemperature','dcTemperature'].filter(k=>isDemo||cfg.telemetry[k]).map(k=>['',label[k]+' — '+number(data.telemetry[k],unit[k])]);
+      if(!phone)beside('inverter',temperatureRows,'left',-55);
       const acRows=cfg.phases===3?cfg.phaseReadings.flatMap((p,i)=>phone?[[ '', 'L'+(i+1)+' · '+number(data.phaseReadings[i].voltage,'V')],['',number(data.phaseReadings[i].current,'A')]]:[['','L'+(i+1)+' · '+number(data.phaseReadings[i].voltage,'V')+' · '+number(data.phaseReadings[i].current,'A')]]):['voltage','current'].filter(k=>isDemo||cfg.telemetry[k]).map(k=>[label[k],number(data.telemetry[k],unit[k])]);
       if(isDemo||cfg.telemetry.frequency)acRows.push([label.frequency,number(data.telemetry.frequency,'Hz')]);
-      beside('inverter',acRows,'right',phone?150:-35);
+      beside('inverter',phone?[...temperatureRows,...acRows]:acRows,phone?'above':'right',phone?150:-35);
 
       foot.textContent=tr('Appliances detail their parent total. Visibility changes the diagram, not the electrical connection.','Прилади деталізують підсумок своєї групи. Видимість змінює схему, а не електричне підключення.');
       if(!isDemo&&data.gridState==='unknown')foot.textContent+=' '+tr('Grid status unknown: configure its status sensor.','Стан мережі невідомий: вкажіть датчик стану.');
@@ -299,7 +300,7 @@
       form.replaceChildren();const display=group(tr('Appearance & preview','Вигляд і перегляд'));check(display,tr('Fit diagram to screen (desktop/tablet)','Вписувати схему в екран (ПК/планшет)'),c,'fit');
       field(display,tr('Format','Формат'),c,'format',[['auto',tr('Adaptive','Адаптивний')],['wide',tr('Wide','Широкий')],['square',tr('Square','Квадратний')],['phone',tr('Phone','Телефон')]]);
       field(display,tr('System name beside Energy Station','Назва системи поруч з Energy Station'),c,'subtitle');
-      const opacity=field(display,tr('Background opacity (%) · 0 = transparent','Непрозорість фону (%) · 0 = прозорий'),c,'backgroundOpacity');opacity.type='number';opacity.min='0';opacity.max='100';opacity.step='5';
+      const opacity=field(display,tr('Background opacity (%) · 0 = transparent','Непрозорість фону (%) · 0 = прозорий'),c,'backgroundOpacity');opacity.type='range';opacity.min='0';opacity.max='100';opacity.step='1';const opacityValue=el('output',c.backgroundOpacity+'%');opacity.after(opacityValue);opacity.oninput=()=>{c.backgroundOpacity=Number(opacity.value);opacityValue.textContent=opacity.value+'%';};
       field(display,tr('Theme','Тема'),c,'theme',[['auto',tr('Site / dashboard','Сайт / дашборд')],['day',tr('Light','Світла')],['night',tr('Dark','Темна')]]);check(display,tr('Animated flows','Анімовані потоки'),c,'motion');
       field(display,tr('Demo scenario (preview only)','Демо-сценарій (лише перегляд)'),c,'demoScene',[['sun',tr('Solar / export','Сонце / експорт')],['import',tr('Import','Імпорт')],['night',tr('Night','Ніч')],['outage',tr('Grid outage','Немає мережі')]]);
       display.append(el('small',tr('Sensor IDs use live HA data; fixed numbers are manual values. Demo is never used in the installed HA card.','Сутності використовують живі дані HA; числа — ручні значення. У встановленій HA-картці демодані не використовуються.')));

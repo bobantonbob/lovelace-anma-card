@@ -4,7 +4,7 @@
 
 Build an energy dashboard around your existing Home Assistant sensors. Start with **Energy Station**, choose the components you want to see and connect their entities. Follow solar production, battery charging, grid imports and exports, and the loads that matter to you.
 
-**Latest release: 0.6.7** · [Download](https://github.com/bobantonbob/lovelace-anma-card/releases/latest) · [Configuration](docs/CONFIGURATION.md) · [Changelog](CHANGELOG.md)
+**Latest release: 0.6.8** · [Download](https://github.com/bobantonbob/lovelace-anma-card/releases/latest) · [Configuration](docs/CONFIGURATION.md) · [Changelog](CHANGELOG.md)
 
 ## Start with Energy Station
 
@@ -70,7 +70,7 @@ This repository is available through a custom repository; inclusion in the defau
 
 ### Manual installation
 
-Download **anma-card.js** from the latest release and copy it to `/config/www/anma-card.js`. Register `/local/anma-card.js?v=0.6.7` as a JavaScript module. Keep only one ANMA resource registered. When updating, replace the file and refresh your browser cache.
+Download **anma-card.js** from the latest release and copy it to `/config/www/anma-card.js`. Register `/local/anma-card.js?v=0.6.8` as a JavaScript module. Keep only one ANMA resource registered. When updating, replace the file and refresh your browser cache.
 
 ## Connect your readings
 
@@ -131,3 +131,9 @@ Telemetry labels and values use 20px SVG text; inverter temperature captions are
 Validation: 19 automated tests, Django system checks, desktop appearance and a 390px mobile viewport. Entity bindings and calculation logic are preserved.
 
 ![Energy Station appearance](docs/energy-station-appearance.png)
+
+## 0.6.8 — Slider, mobile inverter readings and system name
+
+Background opacity now uses a slider with percentage feedback. AC and DC temperatures each occupy one compact line. Phone inverter readings are centered below the inverter, ahead of the microinverter; auxiliary and battery paths bypass the text.
+
+General settings now expose the system name shown beneath the fixed ANMA ELECTRIC brand. The brand square uses an explicit lightning SVG instead of a platform emoji. Existing bindings and calculations are preserved. 19 tests and Django checks passed; desktop/mobile DOM placement was checked in a browser.
