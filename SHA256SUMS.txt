@@ -1,1 +1,1 @@
-81aecf5408ea3ee42be9e603294e2d054cf5f5ccfd35ef38b6ebfc7abda005c7  anma-card.js
+40905e1f833f8a9afac341a14656f1466b27069d7081b16900fde7c1f9ed73ec  anma-card.js

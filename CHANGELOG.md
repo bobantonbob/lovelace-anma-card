@@ -1,5 +1,11 @@
 # Changelog
 
+## 0.6.5 — Energy Station viewport sizing
+
+Removed the fixed 650px diagram limit. Fitted Energy Station cards now use the available viewport height below their position; fullscreen uses the full viewport with the diagram filling the space between its heading and footer. Resizing recalculates the available height. SVG proportions, entity bindings and the single custom:anma-card entry point are preserved.
+
+Validation: 17 automated tests and Django checks passed. Normal browser sizing was measured at 984px card height / 830px diagram height in a 1156px viewport. Native fullscreen activation was denied by the test browser and needs verification in Home Assistant.
+
 ## 0.6.4 — One ANMA card for all dashboards
 
 Install one HACS package and use `type: custom:anma-card` for every dashboard. The exported `layout.template` selects Energy Station, ANMA Power Flow, ANMA Cloud Flow, Energy flows, Compact metrics or Full System Analytics. No additional card installation or YAML type editing is required.
