@@ -45,6 +45,7 @@ if (typeof window !== 'undefined') {
       phases:Number(raw.phases)===3?3:1,phaseReadings:Array.from({length:3},(_,i)=>({voltage:str(raw.phaseReadings?.[i]?.voltage),current:str(raw.phaseReadings?.[i]?.current)})),colors:Object.fromEntries(Object.entries(defaultColors).map(([k,v])=>[k,/^#[0-9a-f]{6}$/i.test(raw.colors?.[k])?raw.colors[k]:v])),
       fit:raw.fit!==false,master:Object.fromEntries(['power','soc','voltage','current','capacity','chargeToday','dischargeToday'].map(k=>[k,str(raw.master?.[k])])),reserveSoc:str(raw.reserveSoc)||'20',telemetry:Object.fromEntries(['importToday','exportToday','homeToday','voltage','current','frequency','acTemperature','dcTemperature','buyPrice'].map(k=>[k,str(raw.telemetry?.[k])])),currency:str(raw.currency)||'UAH',inverterStatus:str(raw.inverterStatus),inverterOn:str(raw.inverterOn)||'on,online,running,normal',inverterOff:str(raw.inverterOff)||'off,offline,standby',inverterFault:str(raw.inverterFault)||'fault,error,alarm',
       format:choose(raw.format,['auto','wide','square','phone'],'auto'),
+      subtitle:str(raw.subtitle),backgroundOpacity:Number.isFinite(Number(raw.backgroundOpacity))?Math.max(0,Math.min(100,Number(raw.backgroundOpacity))):100,
       theme:choose(raw.theme,['auto','day','night'],'auto'),
       demoScene:choose(raw.demoScene,['sun','import','night','outage'],'sun'),
       motion:raw.motion!==false,showSolar:raw.showSolar!==false,showBatteries:raw.showBatteries!==false,
@@ -104,10 +105,10 @@ if (typeof window !== 'undefined') {
     return {availableEnergy,loadRuntime,phaseReadings,master,telemetry,runtime,inverterState,pv,solar,today:read(c.solarToday,48.6,'energy'),batteries,batteryTotal,grid,gridState,aux,loads,backup,nonBackup,inverter:read(c.inverterPower,night?3000:8000)};
   }
   const css=`
-    .energy-station{--es-bg:#0b1721;--es-panel:#122230;--es-text:#eaf2f8;--es-muted:#91a6b6;--es-line:#304655;--es-off:#78828b;container-type:inline-size;container-name:station;position:relative;isolation:isolate;background:var(--es-bg)!important;color:var(--es-text);border:1px solid var(--es-line);border-radius:18px;padding:16px;min-width:0;overflow:hidden;width:100%;box-sizing:border-box}
+    .energy-station{--es-bg:#0b1721;--es-panel:#122230;--es-text:#eaf2f8;--es-muted:#91a6b6;--es-line:#304655;--es-off:#78828b;container-type:inline-size;container-name:station;position:relative;isolation:isolate;background:color-mix(in srgb,var(--es-bg) var(--es-background-opacity,100%),transparent)!important;color:var(--es-text);border:1px solid var(--es-line);border-radius:18px;padding:16px;min-width:0;overflow:hidden;width:100%;box-sizing:border-box}
     .energy-station[data-es-theme=day],:root[data-theme=light] .energy-station[data-es-theme=auto],.db-preview[data-theme-mode^=light_] .energy-station[data-es-theme=auto],.anma-container[data-theme^=light_] .energy-station[data-es-theme=auto]{--es-bg:#f5f8fb;--es-panel:#fff;--es-text:#152b3c;--es-muted:#526677;--es-line:#c8d6df;--es-off:#78838c}
-    .energy-station .es-head{display:flex;align-items:center;justify-content:space-between;gap:12px}.energy-station h2{font:700 20px system-ui;margin:0;color:var(--es-text)}.energy-station .es-subtitle{font:11px system-ui;color:var(--es-muted);margin:5px 0}.energy-station .apf-tools{display:flex;gap:6px}.energy-station button{cursor:pointer;color:var(--es-text);background:var(--es-panel);border:1px solid var(--es-line);border-radius:8px;padding:8px;font:inherit}.energy-station .es-open{color:#f1873d}
-    .es-svg .es-reading{font-size:13px;fill:var(--reading-color);font-weight:500}.es-svg .es-reading-value{font-size:17px;fill:var(--reading-color);font-weight:700}.es-svg .es-reading text{text-anchor:inherit;fill:var(--reading-color)}
+    .energy-station .es-head{display:flex;align-items:center;justify-content:space-between;gap:12px}.energy-station h2{font:700 20px system-ui;margin:0;color:#f1873d;display:flex;flex-wrap:wrap;gap:8px 14px}.energy-station .es-system-name{color:var(--es-text);overflow-wrap:anywhere}.energy-station .es-subtitle{font:11px system-ui;color:var(--es-muted);margin:5px 0}.energy-station .apf-tools{display:flex;gap:6px}.energy-station button{cursor:pointer;color:var(--es-text);background:var(--es-panel);border:1px solid var(--es-line);border-radius:8px;padding:8px;font:inherit}.energy-station .es-open{color:#f1873d}
+    .es-svg .es-reading{font-size:20px;fill:var(--reading-color);font-weight:500}.es-svg .es-reading-value{font-size:20px;fill:var(--reading-color);font-weight:700}.es-svg .es-reading text{text-anchor:inherit;fill:var(--reading-color)}
     .energy-station.apf[data-fit=true]{display:flex;flex-direction:column;height:var(--es-available-height,calc(100dvh - 180px));min-height:300px;max-height:none;gap:12px}.energy-station[data-fit=true] .es-head,.energy-station[data-fit=true] .es-foot{flex:none}.energy-station[data-fit=true] .es-stage{flex:1;min-height:0;aspect-ratio:auto!important;position:relative}.energy-station[data-fit=true] .es-svg{position:absolute;inset:0;height:100%!important;width:100%;object-fit:contain}.energy-station.apf:fullscreen{display:flex;flex-direction:column;height:100dvh!important;max-height:none;min-height:0;border-radius:0;overflow:auto}.energy-station:fullscreen .es-stage{flex:1;min-height:0;position:relative;aspect-ratio:auto!important}.energy-station:fullscreen .es-svg{position:absolute;inset:0;width:100%;height:100%!important}.es-svg [data-state=fault]{--node-color:#ff6b64!important}
     .es-stage{width:100%;min-width:0}.es-svg{display:block;width:100%;height:auto;overflow:visible}.es-svg text{font-family:system-ui,sans-serif;text-anchor:middle;fill:var(--es-text);pointer-events:none}.es-svg .es-name{font-size:13px;font-weight:600;fill:var(--node-color)}.es-svg .es-value{font-size:20px;font-weight:750;fill:var(--node-color)}.es-svg .es-detail{font-size:11px;fill:var(--es-muted)}.es-svg .es-icon{color:var(--node-color)}.es-svg [data-state=idle],.es-svg [data-state=offline],.es-svg [data-state=unknown]{--node-color:var(--es-off)!important}.es-svg .es-wire{fill:none;stroke:var(--wire-color);stroke-width:1.8;stroke-dasharray:4 4;stroke-linecap:round}.es-svg .es-edge[data-active=true] .es-wire{animation:es-stream 1s linear infinite}.es-svg .es-edge[data-active=false]{opacity:.35}.es-svg .es-edge[data-reverse=true] .es-wire{animation-direction:reverse}.es-svg .es-dot{fill:var(--wire-color)}.es-svg .es-inverter-frame{fill:var(--es-panel);stroke:#f1873d;stroke-width:1.4}.es-svg .es-node{outline:none}.es-svg .es-node:focus{filter:drop-shadow(0 0 2px #ff8b32)}.es-svg .es-battery-fill{fill:var(--node-color);opacity:.55}.es-svg .es-edge[data-active=false] .es-dot{display:none}
     @keyframes es-stream{to{stroke-dashoffset:-16}}@media(prefers-reduced-motion:reduce){.energy-station .es-dot{display:none}.energy-station .es-wire{animation:none!important}}
@@ -121,8 +122,7 @@ if (typeof window !== 'undefined') {
     const tr=(en,ua)=>uk?ua:en,el=(tag,cls,txt)=>{const e=document.createElement(tag);if(cls)e.className=cls;if(txt!==undefined)e.textContent=txt;return e;};
     const card=el('section','energy-station apf db-widget-box');card.setAttribute('aria-label','ANMA Energy Station');
     card.append(el('style','',css));
-    const head=el('header','es-head'),brand=el('div'),tools=el('div','apf-tools');brand.append(el('h2','','Energy Station'),el('p','es-subtitle',tr('ANMA · live energy topology','ANMA · схема енергопотоків')));head.append(brand,tools);card.append(head);
-    const badge=el('small','es-subtitle');brand.append(badge);
+    const head=el('header','es-head'),brand=el('div'),tools=el('div','apf-tools');const title=el('h2','','Energy Station'),systemName=el('span','es-system-name');title.append(systemName);brand.append(title);head.append(brand,tools);card.append(head);
     const expand=el('button','', '⛶');expand.type='button';expand.setAttribute('aria-label',tr('Station fullscreen','Станція на весь екран'));expand.onclick=()=>{if(document.fullscreenElement)document.exitFullscreen();else card.requestFullscreen?.();};tools.append(expand);
     const stage=el('div','es-stage'),foot=el('div','es-foot');card.append(stage,foot);
     let cfg=normalize(layout.powerFlow?.station),data,live=hass,isDemo=demo,phone=false,nodes=new Map(),edges=[],svg,raf=0,observer,active=true,last=0;
@@ -159,7 +159,8 @@ if (typeof window !== 'undefined') {
       const w=mobile?600:wide?1400:1100,cols=mobile?2:wide?10:5,visiblePV=cfg.showSolar?cfg.pv.map((p,i)=>p.visible?i:-1).filter(i=>i>=0):[];
       const rows=Math.ceil(visiblePV.length/cols),pvTop=110,rowHeight=mobile?145:125;
       const totalY=cfg.showSolar?pvTop+rows*rowHeight+35:0,coreY=totalY+140;
-      let batteryStart=coreY+(mobile?780:wide?510:650);const batCols=mobile?2:5;
+      const telemetryGap=mobile?210:0;
+      let batteryStart=coreY+telemetryGap+(mobile?780:wide?510:650);const batCols=mobile?2:5;
       const loadRows=Math.max(...['backup','grid','aux'].map(group=>Math.ceil(cfg.loads.filter(l=>l.visible&&l.group===group).length/(wide?3:1))),1);
       batteryStart+=Math.max(0,loadRows-(wide?1:3))*145;
       const visibleB=cfg.showBatteries?cfg.batteries.map((b,i)=>b.visible?i:-1).filter(i=>i>=0):[];
@@ -177,11 +178,11 @@ if (typeof window !== 'undefined') {
       if(cfg.showGrid){node('grid',mobile?110:130,coreY,tr('Grid','Мережа'),'grid',color.grid);edge('grid','inverter',color.grid,{out:'right',into:'left',key:'grid'});}
       if(cfg.showBackup){node('backup',mobile?490:w-130,coreY,tr('Backup loads','Гарантоване'),'home',color.backup);edge('inverter','backup',color.backup,{out:'right',into:'left',key:'backup'});}
       if(cfg.showNonBackup&&!(cfg.hideOffline&&data.gridState==='offline')){
-        node('nonbackup',mobile?110:130,coreY+180,tr('Non-backup','Негарантоване'),'home',color.grid);
+        node('nonbackup',mobile?110:130,coreY+telemetryGap+180,tr('Non-backup','Негарантоване'),'home',color.grid);
         if(cfg.showGrid)edge('grid','nonbackup',color.grid,{key:'nonbackup'});
       }
       if(cfg.aux.visible&&cfg.aux.role!=='disabled'){
-        node('aux',mobile?300:w/2+150,coreY+190,cfg.aux.name||labels[cfg.aux.role],cfg.aux.role==='load'?'boiler':cfg.aux.role,color.aux);
+        node('aux',mobile?300:w/2+150,coreY+telemetryGap+190,cfg.aux.name||labels[cfg.aux.role],cfg.aux.role==='load'?'boiler':cfg.aux.role,color.aux);
         const source=cfg.aux.role!=='load',target=cfg.aux.role==='micro'?({gen:'inverter',backup:'backup',grid:'grid'})[cfg.aux.connection]:'inverter';
         edge(source?'aux':target,source?target:'aux',color.aux,{out:source?'top':'bottom',into:source?'bottom':'top',key:'aux'});
       }
@@ -190,7 +191,7 @@ if (typeof window !== 'undefined') {
         const children=cfg.loads.map((l,i)=>({l,i})).filter(({l})=>l.visible&&l.group===group);
         children.forEach(({l,i},j)=>{
           const row=wide?Math.floor(j/3):j;
-          const y=coreY+(group==='backup'?190:350)+row*(mobile?140:125),lx=wide?rowPosition(j,children.length,3,x,140,w):x;
+          const y=coreY+telemetryGap+(group==='backup'?190:350)+row*(mobile?140:125),lx=wide?rowPosition(j,children.length,3,x,140,w):x;
           node('load'+i,lx,y,l.name||labels[l.icon],l.icon,group==='backup'?color.backup:group==='grid'?color.grid:color.aux);
           edge(parent,'load'+i,group==='backup'?color.backup:group==='grid'?color.grid:color.aux,{key:'load'+i,out:wide?'bottom':'left',into:wide?'top':'left',route:([sx,sy],[tx,ty])=>wide?`M${sx} ${sy} V${ty-12} H${tx} V${ty}`:`M${sx} ${sy} H${Math.min(sx,tx)-12} V${ty} H${tx}`});
         });
@@ -239,21 +240,21 @@ if (typeof window !== 'undefined') {
         const g=svgEl('g',{'class':'es-reading','data-reading-for':id,transform:`translate(${n.x+x} ${n.y+dy})`});
         g.style.setProperty('--reading-color',id==='battery'?color.battery:id==='grid'?color.grid:id==='backup'?color.backup:color.inverter);
         g.style.textAnchor=side==='left'?'end':side==='right'?'start':'middle';
-        let y=0;rows.forEach(([name,value])=>{const text=svgEl('text',{y});if(name){const caption=svgEl('tspan',{x:0,dy:0});caption.textContent=name;text.append(caption);}const val=svgEl('tspan',{x:0,dy:name?18:0,'class':'es-reading-value'});val.textContent=value;text.append(val);g.append(text);y+=name?42:22;});svg.append(g);
+        let y=0;rows.forEach(([name,value])=>{const text=svgEl('text',{y});if(name){const caption=svgEl('tspan',{x:0,dy:0});caption.textContent=name;text.append(caption);}const val=svgEl('tspan',{x:0,dy:name?24:0,'class':'es-reading-value'});val.textContent=value;text.append(val);g.append(text);y+=name?54:27;});svg.append(g);
       };
-      const label={soc:'SOC',voltage:'',current:'',capacity:'',chargeToday:tr('Charge','Заряд'),dischargeToday:tr('Discharge','Розряд'),importToday:tr('Import','Імпорт'),exportToday:tr('Export','Експорт'),homeToday:tr('Home','Будинок'),frequency:'',acTemperature:tr('AC temperature','Температура AC'),dcTemperature:tr('DC temperature','Температура DC'),buyPrice:tr('Purchase price','Ціна купівлі')};
+      const label={soc:'SOC',voltage:'',current:'',capacity:'',chargeToday:tr('Charge','Заряд'),dischargeToday:tr('Discharge','Розряд'),importToday:tr('Import','Імпорт'),exportToday:tr('Export','Експорт'),homeToday:tr('Home','Будинок'),frequency:'',acTemperature:'AC',dcTemperature:'DC',buyPrice:tr('Purchase price','Ціна купівлі')};
       const unit={soc:'%',voltage:'V',current:'A',capacity:'kWh',chargeToday:'kWh',dischargeToday:'kWh',importToday:'kWh',exportToday:'kWh',homeToday:'kWh',frequency:'Hz',acTemperature:'°C',dcTemperature:'°C',buyPrice:cfg.currency+'/kWh'};
       beside('battery',['chargeToday','dischargeToday'].filter(k=>isDemo||cfg.master[k]).map(k=>[label[k],number(data.master[k],unit[k])]),'left',4);
       const mainRows=['voltage','current','capacity'].filter(k=>isDemo||cfg.master[k]).map(k=>[label[k],number(k==='capacity'?data.availableEnergy:data.master[k],unit[k])]);
-      if(isDemo||(cfg.master.capacity&&cfg.master.soc))mainRows.push([tr('Est. to reserve ','Оцінка до резерву ')+number(reading(cfg.reserveSoc,live?.states||{},'soc'),'%',0),data.runtime===null?'—':Math.floor(Math.round(data.runtime*60)/60)+' '+tr('h','год')+' '+(Math.round(data.runtime*60)%60)+' '+tr('min','хв')]);
+      if(isDemo||(cfg.master.capacity&&cfg.master.soc))mainRows.push([tr('To reserve ','До резерву ')+number(reading(cfg.reserveSoc,live?.states||{},'soc'),'%',0),data.runtime===null?'—':Math.floor(Math.round(data.runtime*60)/60)+' '+tr('h','год')+' '+(Math.round(data.runtime*60)%60)+' '+tr('min','хв')]);
       beside('battery',mainRows,'right',0);
-      beside('grid',['importToday','exportToday'].filter(k=>isDemo||cfg.telemetry[k]).map(k=>[label[k],number(data.telemetry[k],unit[k])]),'above',-90);
+      beside('grid',['importToday','exportToday'].filter(k=>isDemo||cfg.telemetry[k]).map(k=>[label[k],number(data.telemetry[k],unit[k])]),'above',-115);
       beside('backup',(isDemo||cfg.telemetry.homeToday)?[[label.homeToday,number(data.telemetry.homeToday,'kWh')]]:[],'above',-55);
-      beside('inverter',['acTemperature','dcTemperature'].filter(k=>isDemo||cfg.telemetry[k]).map(k=>[label[k],number(data.telemetry[k],unit[k])]),'left',phone?100:-70);
-      const acRows=cfg.phases===3?cfg.phaseReadings.map((p,i)=>['','L'+(i+1)+' · '+number(data.phaseReadings[i].voltage,'V')+' · '+number(data.phaseReadings[i].current,'A')]):['voltage','current'].filter(k=>isDemo||cfg.telemetry[k]).map(k=>[label[k],number(data.telemetry[k],unit[k])]);
+      beside('inverter',['acTemperature','dcTemperature'].filter(k=>isDemo||cfg.telemetry[k]).map(k=>[label[k],number(data.telemetry[k],unit[k])]),'left',phone?150:-70);
+      const acRows=cfg.phases===3?cfg.phaseReadings.flatMap((p,i)=>phone?[[ '', 'L'+(i+1)+' · '+number(data.phaseReadings[i].voltage,'V')],['',number(data.phaseReadings[i].current,'A')]]:[['','L'+(i+1)+' · '+number(data.phaseReadings[i].voltage,'V')+' · '+number(data.phaseReadings[i].current,'A')]]):['voltage','current'].filter(k=>isDemo||cfg.telemetry[k]).map(k=>[label[k],number(data.telemetry[k],unit[k])]);
       if(isDemo||cfg.telemetry.frequency)acRows.push([label.frequency,number(data.telemetry.frequency,'Hz')]);
-      beside('inverter',acRows,'right',phone?80:-35);
-      badge.textContent=isDemo?tr('DEMO · SIMULATED VALUES','ДЕМО · ЗМОДЕЛЬОВАНІ ДАНІ'):tr('HOME ASSISTANT · SENSOR VALUES','HOME ASSISTANT · ДАНІ ДАТЧИКІВ');
+      beside('inverter',acRows,'right',phone?150:-35);
+
       foot.textContent=tr('Appliances detail their parent total. Visibility changes the diagram, not the electrical connection.','Прилади деталізують підсумок своєї групи. Видимість змінює схему, а не електричне підключення.');
       if(!isDemo&&data.gridState==='unknown')foot.textContent+=' '+tr('Grid status unknown: configure its status sensor.','Стан мережі невідомий: вкажіть датчик стану.');
     }
@@ -266,7 +267,7 @@ if (typeof window !== 'undefined') {
       }
       raf=requestAnimationFrame(animate);
     }
-    const syncTheme=()=>{card.dataset.esTheme=cfg.theme==='auto'&&typeof live?.themes?.darkMode==='boolean'?(live.themes.darkMode?'night':'day'):cfg.theme;};
+    const syncTheme=()=>{systemName.textContent=cfg.subtitle;card.style.setProperty('--es-background-opacity',cfg.backgroundOpacity+'%');card.dataset.esTheme=cfg.theme==='auto'&&typeof live?.themes?.darkMode==='boolean'?(live.themes.darkMode?'night':'day'):cfg.theme;};
     card._stationRefresh=(options={})=>{live=options.hass??live;syncTheme();resize();isDemo=options.demo??isDemo;data=calculate(cfg,live?.states||{},isDemo);if(cfg.hideOffline&&Boolean(nodes.has('nonbackup'))!==(cfg.showNonBackup&&data.gridState!=='offline'))build();else updateValues();};
     const settings=el('div','es-settings');settings.hidden=true;
     if(change){const button=el('button','es-open',tr('⚙ Connections','⚙ З’єднання'));button.type='button';button.setAttribute('aria-expanded','false');button.onclick=()=>{settings.hidden=!settings.hidden;button.setAttribute('aria-expanded',String(!settings.hidden));};tools.append(button);
@@ -303,6 +304,8 @@ if (typeof window !== 'undefined') {
     function draw(){
       form.replaceChildren();const display=group(tr('Appearance & preview','Вигляд і перегляд'));check(display,tr('Fit diagram to screen (desktop/tablet)','Вписувати схему в екран (ПК/планшет)'),c,'fit');
       field(display,tr('Format','Формат'),c,'format',[['auto',tr('Adaptive','Адаптивний')],['wide',tr('Wide','Широкий')],['square',tr('Square','Квадратний')],['phone',tr('Phone','Телефон')]]);
+      field(display,tr('System name beside Energy Station','Назва системи поруч з Energy Station'),c,'subtitle');
+      const opacity=field(display,tr('Background opacity (%) · 0 = transparent','Непрозорість фону (%) · 0 = прозорий'),c,'backgroundOpacity');opacity.type='number';opacity.min='0';opacity.max='100';opacity.step='5';
       field(display,tr('Theme','Тема'),c,'theme',[['auto',tr('Site / dashboard','Сайт / дашборд')],['day',tr('Light','Світла')],['night',tr('Dark','Темна')]]);check(display,tr('Animated flows','Анімовані потоки'),c,'motion');
       field(display,tr('Demo scenario (preview only)','Демо-сценарій (лише перегляд)'),c,'demoScene',[['sun',tr('Solar / export','Сонце / експорт')],['import',tr('Import','Імпорт')],['night',tr('Night','Ніч')],['outage',tr('Grid outage','Немає мережі')]]);
       display.append(el('small',tr('Sensor IDs use live HA data; fixed numbers are manual values. Demo is never used in the installed HA card.','Сутності використовують живі дані HA; числа — ручні значення. У встановленій HA-картці демодані не використовуються.')));
@@ -2533,7 +2536,7 @@ field(group,tr('Image URL (/local/… in HA)','URL зображення (/local/
 (() => {
   'use strict';
 
-  const CARD_VERSION = '0.6.6';
+  const CARD_VERSION = '0.6.7';
   const EN = {
     'Стан системи':'System status', 'Помилки':'Errors', 'Стан АКБ':'Battery status', 'Електромобіль — потужність':'EV — power', 'Генератор — потужність':'Generator — power', 'Мова картки': 'Card language', 'Сонце': 'Solar', 'Дім': 'Home', 'Самоспоживання': 'Self-consumption', 'АКБ': 'Battery', 'Прогноз на 7 днів': '7-day forecast', 'Середньодобово': 'Daily average', 'Найкращий день': 'Best day', 'Мікроінвертор': 'Microinverter', 'MPPT МАТРИЦЯ': 'MPPT MATRIX', '✓ Оптимально': '✓ Optimal', 'Автоматично (Home Assistant)': 'Automatic (Home Assistant)',
     'Імпортувати макет ANMA / Import ANMA layout (.json)': 'Import ANMA layout (.json)',

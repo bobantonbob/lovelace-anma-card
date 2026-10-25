@@ -4,7 +4,7 @@
 
 Build an energy dashboard around your existing Home Assistant sensors. Start with **Energy Station**, choose the components you want to see and connect their entities. Follow solar production, battery charging, grid imports and exports, and the loads that matter to you.
 
-**Latest release: 0.6.6** · [Download](https://github.com/bobantonbob/lovelace-anma-card/releases/latest) · [Configuration](docs/CONFIGURATION.md) · [Changelog](CHANGELOG.md)
+**Latest release: 0.6.7** · [Download](https://github.com/bobantonbob/lovelace-anma-card/releases/latest) · [Configuration](docs/CONFIGURATION.md) · [Changelog](CHANGELOG.md)
 
 ## Start with Energy Station
 
@@ -70,7 +70,7 @@ This repository is available through a custom repository; inclusion in the defau
 
 ### Manual installation
 
-Download **anma-card.js** from the latest release and copy it to `/config/www/anma-card.js`. Register `/local/anma-card.js?v=0.6.6` as a JavaScript module. Keep only one ANMA resource registered. When updating, replace the file and refresh your browser cache.
+Download **anma-card.js** from the latest release and copy it to `/config/www/anma-card.js`. Register `/local/anma-card.js?v=0.6.7` as a JavaScript module. Keep only one ANMA resource registered. When updating, replace the file and refresh your browser cache.
 
 ## Connect your readings
 
@@ -121,3 +121,13 @@ Validation: 17 automated tests and Django checks passed. Normal browser sizing w
 The displayed reserve runtime now uses actual signed battery discharge power, rather than the backup-load total which may contain only a subset of appliances. Charging, idle and unavailable battery readings show no depletion estimate. Capacity and entity bindings are unchanged.
 
 Regression case: 18 kWh nominal capacity, 89% SOC, 10% reserve, 1.02 kW battery discharge and 233 W appliance load gives 14.22 kWh usable energy and approximately 13 h 56 min. 18 tests and Django system checks passed.
+
+## 0.6.7 — Energy Station appearance controls
+
+Connections now includes a system name beside the orange Energy Station heading and background opacity from 0% (transparent) to 100% (opaque). Only the background fill fades; text, icons and flows remain opaque. The system name follows the foreground theme for readability. Removed the secondary heading and sensor-source subtitle.
+
+Telemetry labels and values use 20px SVG text; inverter temperature captions are AC and DC. Expanded mobile spacing for inverter readings, including three-phase data. Settings survive website YAML export and the single custom:anma-card runtime.
+
+Validation: 19 automated tests, Django system checks, desktop appearance and a 390px mobile viewport. Entity bindings and calculation logic are preserved.
+
+![Energy Station appearance](docs/energy-station-appearance.png)

@@ -1,5 +1,13 @@
 # Changelog
 
+## 0.6.7 — Energy Station appearance controls
+
+Connections now includes a system name beside the orange Energy Station heading and background opacity from 0% (transparent) to 100% (opaque). Only the background fill fades; text, icons and flows remain opaque. The system name follows the foreground theme for readability. Removed the secondary heading and sensor-source subtitle.
+
+Telemetry labels and values use 20px SVG text; inverter temperature captions are AC and DC. Expanded mobile spacing for inverter readings, including three-phase data. Settings survive website YAML export and the single custom:anma-card runtime.
+
+Validation: 19 automated tests, Django system checks, desktop appearance and a 390px mobile viewport. Entity bindings and calculation logic are preserved.
+
 ## 0.6.6 — Battery reserve runtime
 
 The displayed reserve runtime now uses actual signed battery discharge power, rather than the backup-load total which may contain only a subset of appliances. Charging, idle and unavailable battery readings show no depletion estimate. Capacity and entity bindings are unchanged.
