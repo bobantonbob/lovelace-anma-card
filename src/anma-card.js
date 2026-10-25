@@ -1682,6 +1682,7 @@ field(group,tr('Image URL (/local/… in HA)','URL зображення (/local/
     const lines = [];
 
     const exportLayout = JSON.parse(JSON.stringify(l));
+    const cardType=l.template==='energy_station'?'custom:anma-energy-station':'custom:anma-card';
     const metricWidgets = (exportLayout.widgets || []).filter(w => {
       const bRole = typeof w === 'string' ? w.replace(/_\d+$/, '') : '';
       return ['solar', 'battery', 'load', 'grid', 'generator', 'ev', 'metric'].includes(bRole);
@@ -1711,7 +1712,7 @@ field(group,tr('Image URL (/local/… in HA)','URL зображення (/local/
     });
 
     if (target === 'custom_card' || target === 'card') {
-      return 'type: custom:anma-card\nlayout: ' + JSON.stringify(exportLayout);
+      return 'type: '+cardType+'\nlayout: ' + JSON.stringify(exportLayout);
     }
 
     if (target === 'dashboard') {
@@ -1747,7 +1748,7 @@ field(group,tr('Image URL (/local/… in HA)','URL зображення (/local/
       lines.push('    icon: "mdi:solar-power-variant"');
       lines.push('    panel: true # Full-width viewport without horizontal padding limits');
       lines.push('    cards:');
-      lines.push('      - type: custom:anma-card');
+      lines.push('      - type: '+cardType);
       lines.push('        layout: ' + JSON.stringify(exportLayout));
       return lines.join('\n');
     }
@@ -1778,7 +1779,7 @@ field(group,tr('Image URL (/local/… in HA)','URL зображення (/local/
       return lines.join('\n');
     }
 
-    return 'type: custom:anma-card\nlayout: ' + JSON.stringify(exportLayout);
+    return 'type: '+cardType+'\nlayout: ' + JSON.stringify(exportLayout);
   }
 
   async function prepareBackground(file) {
@@ -2528,7 +2529,7 @@ field(group,tr('Image URL (/local/… in HA)','URL зображення (/local/
 (() => {
   'use strict';
 
-  const CARD_VERSION = '0.6.2';
+  const CARD_VERSION = '0.6.3';
   const EN = {
     'Стан системи':'System status', 'Помилки':'Errors', 'Стан АКБ':'Battery status', 'Електромобіль — потужність':'EV — power', 'Генератор — потужність':'Generator — power', 'Мова картки': 'Card language', 'Сонце': 'Solar', 'Дім': 'Home', 'Самоспоживання': 'Self-consumption', 'АКБ': 'Battery', 'Прогноз на 7 днів': '7-day forecast', 'Середньодобово': 'Daily average', 'Найкращий день': 'Best day', 'Мікроінвертор': 'Microinverter', 'MPPT МАТРИЦЯ': 'MPPT MATRIX', '✓ Оптимально': '✓ Optimal', 'Автоматично (Home Assistant)': 'Automatic (Home Assistant)',
     'Імпортувати макет ANMA / Import ANMA layout (.json)': 'Import ANMA layout (.json)',
@@ -4503,6 +4504,16 @@ field(group,tr('Image URL (/local/… in HA)','URL зображення (/local/
       }
     }
   }
+
+  // Dedicated tag avoids a legacy anma-card constructor already registered by HA.
+  class AnmaEnergyStationCard extends AnmaCard {
+    setConfig(config) {
+      let layout=config?.layout||{};
+      if(typeof layout==='string')layout=JSON.parse(layout);
+      super.setConfig({...config,layout:{...layout,template:'energy_station',widgets:['power_flow']}});
+    }
+  }
+  if(!customElements.get('anma-energy-station'))customElements.define('anma-energy-station',AnmaEnergyStationCard);
 
   // Define Custom Element
   if (!customElements.get('anma-card')) {

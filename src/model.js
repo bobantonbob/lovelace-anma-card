@@ -984,6 +984,7 @@
     const lines = [];
 
     const exportLayout = JSON.parse(JSON.stringify(l));
+    const cardType=l.template==='energy_station'?'custom:anma-energy-station':'custom:anma-card';
     const metricWidgets = (exportLayout.widgets || []).filter(w => {
       const bRole = typeof w === 'string' ? w.replace(/_\d+$/, '') : '';
       return ['solar', 'battery', 'load', 'grid', 'generator', 'ev', 'metric'].includes(bRole);
@@ -1013,7 +1014,7 @@
     });
 
     if (target === 'custom_card' || target === 'card') {
-      return 'type: custom:anma-card\nlayout: ' + JSON.stringify(exportLayout);
+      return 'type: '+cardType+'\nlayout: ' + JSON.stringify(exportLayout);
     }
 
     if (target === 'dashboard') {
@@ -1049,7 +1050,7 @@
       lines.push('    icon: "mdi:solar-power-variant"');
       lines.push('    panel: true # Full-width viewport without horizontal padding limits');
       lines.push('    cards:');
-      lines.push('      - type: custom:anma-card');
+      lines.push('      - type: '+cardType);
       lines.push('        layout: ' + JSON.stringify(exportLayout));
       return lines.join('\n');
     }
@@ -1080,7 +1081,7 @@
       return lines.join('\n');
     }
 
-    return 'type: custom:anma-card\nlayout: ' + JSON.stringify(exportLayout);
+    return 'type: '+cardType+'\nlayout: ' + JSON.stringify(exportLayout);
   }
 
   async function prepareBackground(file) {

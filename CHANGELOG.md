@@ -1,5 +1,14 @@
 # Changelog
 
+## 0.6.3 — Dedicated Energy Station card element
+
+Energy Station now exports `type: custom:anma-energy-station`. This uses the current renderer even when an older `anma-card` custom element was registered first. The shared JavaScript resource is still `anma-card.js`.
+
+For existing Energy Station YAML, change only the first line from `type: custom:anma-card` to `type: custom:anma-energy-station`. Keep the complete layout and entity bindings. Other dashboard types keep `custom:anma-card`.
+
+Verified the main card rendering in a browser with a legacy card already registered; 16 runtime and Energy Station tests passed.
+
+
 ## 0.6.2 — Energy Station editor selection
 
 Use a versioned Home Assistant editor even if a legacy editor was previously registered. Route Energy Station settings directly by template and label its Connections section correctly. Existing entity bindings remain unchanged. Verified against pre-registered legacy card/editor constructors.
