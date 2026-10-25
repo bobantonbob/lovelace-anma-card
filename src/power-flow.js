@@ -40,6 +40,14 @@
   .apf-perimeter{position:absolute;inset:0;width:100%;height:100%;pointer-events:none;overflow:visible}.apf-perimeter rect{width:calc(100% - 5px);height:calc(100% - 5px);fill:none;stroke:var(--node);stroke-width:2.5;stroke-linecap:butt}.apf-perimeter-track{opacity:.12}.apf-perimeter-value{opacity:1}.apf-node[data-overload=true] .apf-perimeter-value{stroke:#ff827d}.apf-overload{position:absolute;right:5px;top:3px;font-size:11px;color:#ff827d;font-weight:800}
   .apf>.db-sector-tag{display:none}
   .apf-entity-menu{display:grid;gap:4px;max-height:220px;overflow:auto}.apf-entity-menu[hidden]{display:none}.apf-settings .apf-entity-menu button{background:var(--pf-panel,#15232f);color:var(--pf-ink,#eef5fa);border:1px solid #b8753e;text-align:left;font-size:11px;overflow-wrap:anywhere}
+  .apf .apf-config-button{color:#f1873d;border:1px solid #304655;border-radius:8px;padding:8px;background:var(--pf-panel)}
+  .apf .apf-connections{inset:65px 10px 10px auto;z-index:20;width:min(430px,calc(100% - 20px));padding:12px;box-sizing:border-box;background:var(--pf-panel);border:1px solid #b8753e;box-shadow:0 12px 32px #0005;overscroll-behavior:contain;touch-action:pan-y}
+  .apf .apf-connections>summary{position:static;background:transparent;border:1px solid #526677;border-radius:8px;color:var(--pf-ink);width:fit-content;list-style:none}
+  .apf .apf-connections>summary::-webkit-details-marker{display:none}
+  .apf .apf-connections .apf-settings{grid-template-columns:minmax(0,1fr);font-size:13px}
+  .apf .apf-connections fieldset{border-radius:8px;padding:10px;background:transparent}
+  .apf .apf-connections input,.apf .apf-connections select{box-sizing:border-box;background:var(--pf-bg);border-radius:6px;font:inherit}
+  @container powerflow (max-width:600px){.apf-head{flex-wrap:wrap}.apf-head .apf-tools{margin-left:auto}.apf .apf-config-button{font-size:12px;padding:7px}}
   .apf-config{position:absolute;z-index:10;inset:8px;overflow:auto;padding:16px;background:var(--pf-bg);border:1px solid #526677;border-radius:12px}.apf-config:not([open]){display:none}.apf-config summary{cursor:pointer;color:#f1873d;position:sticky;top:0;background:var(--pf-bg);padding:8px;z-index:1}.apf-settings{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(220px,100%),1fr));gap:12px;margin-top:12px}.apf-settings label{display:flex;flex-direction:column;gap:5px;font-size:12px;color:var(--pf-muted)}.apf-settings input,.apf-settings select{width:100%;min-width:0;background:var(--pf-panel);color:var(--pf-ink);padding:8px;border:1px solid #526677;border-radius:7px}.apf-settings input[type=checkbox]{width:auto;align-self:start}.apf-settings{align-items:start}.apf-settings fieldset{min-width:0;border:1px solid #b8753e;border-radius:10px;display:grid;align-content:start;gap:10px;padding:12px;background:color-mix(in srgb,var(--pf-panel,#15232f) 94%,white)}.apf-settings fieldset legend{color:#f1873d;font-weight:700;padding:0 5px}.apf-settings fieldset:focus-within{border-color:#ff9b4b;box-shadow:0 0 0 1px #f1873d55}.apf-settings fieldset fieldset{background:transparent;border-color:#815638}.apf-capacity{border-left:3px solid #f1873d;padding:9px;background:#f1873d12;border-radius:6px}.apf-capacity small{line-height:1.5;color:var(--pf-muted)}.apf-settings button{background:#f1873d;color:#101b25;border:0;border-radius:7px;padding:8px}
   .apf-node{isolation:isolate;background:transparent!important}.apf-node::before{content:"";position:absolute;inset:0;z-index:-2;pointer-events:none;background:var(--pf-panel);opacity:var(--node-background-opacity,.4);border-radius:inherit}.apf-node-photo{position:absolute;inset:0;z-index:-1;pointer-events:none;background-size:cover;background-position:center;background-repeat:no-repeat;border-radius:inherit}
   @keyframes apf-current{to{stroke-dashoffset:-26}}@keyframes apf-strip{to{background-position:36px 0}}@media(prefers-reduced-motion:reduce){.apf *{animation:none!important}}
@@ -117,6 +125,24 @@
     });
     if(c.batteries.length)wire('inverter-battery','M150 52V200',batteryKnown?batteryTotal:null,batteryTotal>0,batteryTotal>0?'#51d7a0':sourceColors[chargingSources.size===1?[...chargingSources][0]:chargingSources.has('unknown')?'unknown':'mixed'],true,c.batteries.every(b=>b.capacityKw)?c.batteries.reduce((sum,b)=>sum+b.capacityKw,0):null);
     if(c.batteries.length)body.append(n('div','apf-caption',tr('BATTERIES · ','АКУМУЛЯТОРИ · ')+fmt(batteryKnown?batteryTotal:null)),batteries);
+    if(layout.template!=='cloud_flow'){
+      const refresh=()=>{
+        const bounds=svg.getBoundingClientRect();if(!bounds.width||!bounds.height)return;
+        const box=element=>{const r=element.getBoundingClientRect();return {l:(r.left-bounds.left)*300/bounds.width,r:(r.right-bounds.left)*300/bounds.width,t:(r.top-bounds.top)*200/bounds.height,b:(r.bottom-bounds.top)*200/bounds.height,x:(r.left+r.width/2-bounds.left)*300/bounds.width,y:(r.top+r.height/2-bounds.top)*200/bounds.height};};
+        const g=box(gridNode),i=box(inv),b=box(backed),n=box(non),car=core.querySelector('.apf-ev');
+        const routes={
+          'grid-inverter':`M${g.r} ${g.y}L${i.l} ${i.y}`,
+          'inverter-backup':`M${i.r} ${i.y}L${b.l} ${b.y}`,
+          'grid-nonbackup':`M${g.x} ${g.b}L${n.x} ${n.t}`,
+          'solar-inverter':`M${i.x} -8V${i.t}`,
+          'inverter-battery':`M${i.x} ${i.b}V200`
+        };
+        if(car){const e=box(car);routes['backup-ev']=`M${b.x} ${b.b}L${e.x} ${e.t}`;}
+        svg.querySelectorAll('.apf-wire').forEach(path=>{if(routes[path.dataset.branch])path.setAttribute('d',routes[path.dataset.branch]);});
+      };
+      card._refreshPowerPaths=refresh;
+      requestAnimationFrame(()=>{if(!card.isConnected)return;refresh();const observer=new ResizeObserver(()=>{if(!card.isConnected){observer.disconnect();return;}refresh();});observer.observe(core);[gridNode,inv,backed,non].forEach(e=>observer.observe(e));});
+    }
     if(layout.template==='cloud_flow'){
       card.classList.add('apf-cloud');card.setAttribute('aria-label','ANMA Cloud Flow');head.querySelector('h2').textContent='Cloud Flow';
       const sun=node(tr('Solar','Сонце'),'☀','#f6ae49',fmt(known?total:null));sun.classList.add('cloud-solar');
@@ -229,7 +255,15 @@
     [...solar.querySelectorAll('.apf-node')].forEach((el,i)=>decorate(el,c.strings[i]));
     [...batteries.querySelectorAll('.apf-node')].forEach((el,i)=>decorate(el,c.batteries[i]));
     for(const [selector,key] of [['.apf-grid','grid'],['.apf-backup','load'],['.apf-nonbackup','nonBackup'],['.apf-ev','ev'],['.cloud-solar','solar'],['.cloud-battery','battery']])decorate(body.querySelector(selector),c.nodeAppearance[key]);
-    if(change){const settings=editor(c,uk,(next,redraw=true)=>{layout.powerFlow=normalize(next);change(redraw);},{legacyBackground:layout.background});settings.querySelector('summary').textContent=tr('✕ Close settings','✕ Закрити налаштування');const toggle=n('button','apf-config-button','⚙');toggle.type='button';toggle.setAttribute('aria-label',tr('Configure Power Flow','Налаштувати Power Flow'));toggle.onclick=()=>{settings.open=!settings.open;};tools.append(toggle);card.append(settings);}
+    if(change){
+      const settings=editor(c,uk,(next,redraw=true)=>{layout.powerFlow=normalize(next);change(redraw);},{legacyBackground:layout.background,getStates:()=>hass?.states||null});
+      settings.classList.add('apf-connections');settings.querySelector('summary').textContent=tr('✕ Close','✕ Закрити');
+      const toggle=n('button','apf-config-button',tr('⚙ Connections','⚙ З’єднання'));toggle.type='button';toggle.setAttribute('aria-expanded','false');
+      toggle.onclick=()=>{settings.open=!settings.open;toggle.setAttribute('aria-expanded',String(settings.open));};
+      settings.addEventListener('toggle',()=>toggle.setAttribute('aria-expanded',String(settings.open)));
+      card.addEventListener('keydown',e=>{if(e.key==='Escape'&&settings.open){settings.open=false;toggle.focus();}});
+      tools.append(toggle);card.append(settings);
+    }
     return card;
   }
   // Keep live nodes (and their animation timelines) across HA state updates.
@@ -253,7 +287,7 @@
       children.forEach((child,i)=>{if(target.childNodes[i])sync(target.childNodes[i],child);else target.append(child);});
       while(target.childNodes.length>children.length)target.lastChild.remove();
     }
-    sync(current,next);current._refreshCloudPaths?.();return current;
+    sync(current,next);current._refreshCloudPaths?.();current._refreshPowerPaths?.();return current;
   }
   function editor(raw,uk,onchange,{getStates=()=>null,legacyBackground=null,template=null}={}){
     if(template==='energy_station')return Station.editor(raw?.station,uk,(station,redraw)=>onchange({...normalize(raw),station},redraw),{getStates});

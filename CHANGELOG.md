@@ -1,5 +1,14 @@
 # Changelog
 
+## 0.4.1 — refreshed connections and Energy Station gallery
+
+- Power Flow connections now meet measured node boundaries, including after resizing.
+- Power Flow and Cloud Flow use matching Connections buttons and compact scrolling settings panels in the web editor.
+- Energy Station leads the dashboard documentation with current desktop and phone captures.
+- Refreshed Power Flow, Cloud Flow and analytics screenshots, installation instructions and feature guide.
+- Existing entity bindings and layouts retained.
+
+
 ## 0.4.0 — Energy Station
 
 - New Energy Station template: up to 10 PV fields and 5 batteries, daily solar energy and PV totals.
