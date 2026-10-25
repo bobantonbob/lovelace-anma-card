@@ -1,5 +1,15 @@
 # Changelog
 
+## 0.6.4 — One ANMA card for all dashboards
+
+Install one HACS package and use `type: custom:anma-card` for every dashboard. The exported `layout.template` selects Energy Station, ANMA Power Flow, ANMA Cloud Flow, Energy flows, Compact metrics or Full System Analytics. No additional card installation or YAML type editing is required.
+
+The shared card now forwards configuration and live Home Assistant states to the current renderer even when a legacy card element was registered first. Energy Station settings remain selected by template. Responsive sizing is rechecked when the card becomes visible or its container changes size.
+
+This supersedes the separate-type recommendation in 0.6.3. Previously exported Energy Station aliases remain supported for compatibility. Entity bindings are preserved.
+
+Validation: 17 automated runtime and Energy Station tests passed; Django system checks passed. Browser verification used an intentionally pre-registered legacy card and the public `anma-card` element.
+
 ## 0.6.3 — Dedicated Energy Station card element
 
 Energy Station now exports `type: custom:anma-energy-station`. This uses the current renderer even when an older `anma-card` custom element was registered first. The shared JavaScript resource is still `anma-card.js`.

@@ -258,7 +258,7 @@ if (typeof window !== 'undefined') {
       if(!isDemo&&data.gridState==='unknown')foot.textContent+=' '+tr('Grid status unknown: configure its status sensor.','Стан мережі невідомий: вкажіть датчик стану.');
     }
     function animate(now){
-      if(!card.isConnected){observer?.disconnect();return;}
+      if(!card.isConnected)return;
       const dt=last?Math.min(.1,(now-last)/1000):0;last=now;
       if(active&&!document.hidden&&!matchMedia('(prefers-reduced-motion: reduce)').matches){
         for(const e of edges){if(e.g.dataset.active!=='true')continue;const length=e.length||(e.length=e.path.getTotalLength());if(!length)continue;e.phase=(e.phase+dt/(6-4.8*Math.min(1,Math.abs(e.power)/10000)))%1;
@@ -267,7 +267,7 @@ if (typeof window !== 'undefined') {
       raf=requestAnimationFrame(animate);
     }
     const syncTheme=()=>{card.dataset.esTheme=cfg.theme==='auto'&&typeof live?.themes?.darkMode==='boolean'?(live.themes.darkMode?'night':'day'):cfg.theme;};
-    card._stationRefresh=(options={})=>{live=options.hass??live;syncTheme();isDemo=options.demo??isDemo;data=calculate(cfg,live?.states||{},isDemo);if(cfg.hideOffline&&Boolean(nodes.has('nonbackup'))!==(cfg.showNonBackup&&data.gridState!=='offline'))build();else updateValues();};
+    card._stationRefresh=(options={})=>{live=options.hass??live;syncTheme();resize();isDemo=options.demo??isDemo;data=calculate(cfg,live?.states||{},isDemo);if(cfg.hideOffline&&Boolean(nodes.has('nonbackup'))!==(cfg.showNonBackup&&data.gridState!=='offline'))build();else updateValues();};
     const settings=el('div','es-settings');settings.hidden=true;
     if(change){const button=el('button','es-open',tr('⚙ Connections','⚙ З’єднання'));button.type='button';button.setAttribute('aria-expanded','false');button.onclick=()=>{settings.hidden=!settings.hidden;button.setAttribute('aria-expanded',String(!settings.hidden));};tools.append(button);
       const close=el('button','',tr('✕ Close','✕ Закрити'));close.type='button';close.onclick=()=>{settings.hidden=true;button.setAttribute('aria-expanded','false');button.focus();};settings.append(close);
@@ -275,7 +275,9 @@ if (typeof window !== 'undefined') {
       card.addEventListener('keydown',e=>{if(e.key==='Escape'&&!settings.hidden){settings.hidden=true;button.setAttribute('aria-expanded','false');button.focus();}});
     }
     syncTheme();data=calculate(cfg,live?.states||{},isDemo);build();
-    requestAnimationFrame(()=>{if(!card.isConnected)return;build();observer=new ResizeObserver(()=>{if(!card.isConnected){observer.disconnect();return;}const next=cfg.format==='phone'||cfg.format!=='wide'&&stage.getBoundingClientRect().width<600;const nextWide=!next&&(cfg.format==='wide'||cfg.format==='auto'&&stage.getBoundingClientRect().width>=950);if(next!==phone||(!next&&svg.getAttribute('viewBox').split(' ')[2]!==String(nextWide?1400:1100)))build();});observer.observe(stage);});
+    const resize=()=>{if(!card.isConnected||stage.getBoundingClientRect().width<=0)return;const next=cfg.format==='phone'||cfg.format!=='wide'&&stage.getBoundingClientRect().width<600;const nextWide=!next&&(cfg.format==='wide'||cfg.format==='auto'&&stage.getBoundingClientRect().width>=950);if(next!==phone||svg.getAttribute('viewBox').split(' ')[2]!==String(next?600:nextWide?1400:1100))build();};
+    observer=new ResizeObserver(resize);observer.observe(stage);
+    requestAnimationFrame(resize);
     card._stationKey=JSON.stringify([layout.powerFlow?.station,layout.theme,layout.motion,uk]);return card;
   }
   function update(host,layout,options){
@@ -1682,7 +1684,7 @@ field(group,tr('Image URL (/local/… in HA)','URL зображення (/local/
     const lines = [];
 
     const exportLayout = JSON.parse(JSON.stringify(l));
-    const cardType=l.template==='energy_station'?'custom:anma-energy-station':'custom:anma-card';
+    const cardType='custom:anma-card';
     const metricWidgets = (exportLayout.widgets || []).filter(w => {
       const bRole = typeof w === 'string' ? w.replace(/_\d+$/, '') : '';
       return ['solar', 'battery', 'load', 'grid', 'generator', 'ev', 'metric'].includes(bRole);
@@ -2529,7 +2531,7 @@ field(group,tr('Image URL (/local/… in HA)','URL зображення (/local/
 (() => {
   'use strict';
 
-  const CARD_VERSION = '0.6.3';
+  const CARD_VERSION = '0.6.4';
   const EN = {
     'Стан системи':'System status', 'Помилки':'Errors', 'Стан АКБ':'Battery status', 'Електромобіль — потужність':'EV — power', 'Генератор — потужність':'Generator — power', 'Мова картки': 'Card language', 'Сонце': 'Solar', 'Дім': 'Home', 'Самоспоживання': 'Self-consumption', 'АКБ': 'Battery', 'Прогноз на 7 днів': '7-day forecast', 'Середньодобово': 'Daily average', 'Найкращий день': 'Best day', 'Мікроінвертор': 'Microinverter', 'MPPT МАТРИЦЯ': 'MPPT MATRIX', '✓ Оптимально': '✓ Optimal', 'Автоматично (Home Assistant)': 'Automatic (Home Assistant)',
     'Імпортувати макет ANMA / Import ANMA layout (.json)': 'Import ANMA layout (.json)',
@@ -4505,23 +4507,38 @@ field(group,tr('Image URL (/local/… in HA)','URL зображення (/local/
     }
   }
 
-  // Dedicated tag avoids a legacy anma-card constructor already registered by HA.
-  class AnmaEnergyStationCard extends AnmaCard {
-    setConfig(config) {
-      let layout=config?.layout||{};
-      if(typeof layout==='string')layout=JSON.parse(layout);
-      super.setConfig({...config,layout:{...layout,template:'energy_station',widgets:['power_flow']}});
-    }
+  // One public card for every template. A private versioned renderer also lets
+  // an already-registered legacy element forward to this bundle safely.
+  const rendererTag='anma-card-runtime-'+CARD_VERSION.replaceAll('.','-');
+  if(!customElements.get(rendererTag))customElements.define(rendererTag,AnmaCard);
+  const existingCard=customElements.get('anma-card');
+  if(!existingCard){
+    customElements.define('anma-card',class extends AnmaCard {});
+  }else{
+    const mount=function(){
+      if(this._anmaCurrentRenderer?.localName===rendererTag)return this._anmaCurrentRenderer;
+      const child=document.createElement(rendererTag);
+      const host=this.shadowRoot||this.attachShadow({mode:'open'});
+      host.replaceChildren(child);this._anmaCurrentRenderer=child;
+      return child;
+    };
+    Object.defineProperty(existingCard.prototype,'setConfig',{configurable:true,value:function(config){
+      this._config=config;const child=mount.call(this);child.setConfig(config);
+      if(this._hass)child.hass=this._hass;
+    }});
+    Object.defineProperty(existingCard.prototype,'hass',{configurable:true,get(){return this._hass;},set(value){
+      this._hass=value;const child=mount.call(this);
+      if(!child._config&&this._config)child.setConfig(this._config);
+      child.hass=value;
+    }});
+    Object.defineProperty(existingCard.prototype,'connectedCallback',{configurable:true,value:function(){
+      if(this._config)this.setConfig(this._config);
+    }});
+    Object.defineProperty(existingCard.prototype,'disconnectedCallback',{configurable:true,value:function(){}});
   }
-  if(!customElements.get('anma-energy-station'))customElements.define('anma-energy-station',AnmaEnergyStationCard);
-
-  // Define Custom Element
-  if (!customElements.get('anma-card')) {
-    customElements.define('anma-card', AnmaCard);
-  }
-  if (!customElements.get('anma-dashboard-card')) {
-    customElements.define('anma-dashboard-card', class extends AnmaCard {});
-  }
+  if(!customElements.get('anma-dashboard-card'))customElements.define('anma-dashboard-card',class extends AnmaCard {});
+  // Compatibility only for YAML exported by 0.6.3; never exported or advertised.
+  if(!customElements.get('anma-energy-station'))customElements.define('anma-energy-station',class extends AnmaCard {});
 
   class AnmaCardEditor extends HTMLElement {
     _t(text) { return translate(languageOf(this._config?.layout, this._hass), text); }

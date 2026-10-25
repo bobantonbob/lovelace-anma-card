@@ -4,7 +4,7 @@
 
 Build an energy dashboard around your existing Home Assistant sensors. Start with **Energy Station**, choose the components you want to see and connect their entities. Follow solar production, battery charging, grid imports and exports, and the loads that matter to you.
 
-**Latest release: 0.6.3** · [Download](https://github.com/bobantonbob/lovelace-anma-card/releases/latest) · [Configuration](docs/CONFIGURATION.md) · [Changelog](CHANGELOG.md)
+**Latest release: 0.6.4** · [Download](https://github.com/bobantonbob/lovelace-anma-card/releases/latest) · [Configuration](docs/CONFIGURATION.md) · [Changelog](CHANGELOG.md)
 
 ## Start with Energy Station
 
@@ -70,7 +70,7 @@ This repository is available through a custom repository; inclusion in the defau
 
 ### Manual installation
 
-Download **anma-card.js** from the latest release and copy it to `/config/www/anma-card.js`. Register `/local/anma-card.js?v=0.6.3` as a JavaScript module. Keep only one ANMA resource registered. When updating, replace the file and refresh your browser cache.
+Download **anma-card.js** from the latest release and copy it to `/config/www/anma-card.js`. Register `/local/anma-card.js?v=0.6.4` as a JavaScript module. Keep only one ANMA resource registered. When updating, replace the file and refresh your browser cache.
 
 ## Connect your readings
 
@@ -100,10 +100,12 @@ Measurements are displayed beside their devices: individual battery SOC and deci
 
 Choose single-phase or three-phase inverter readings and customize flow colors, including separate battery charge/discharge colors. The diagram shows compact device-colored readings, usable energy above your reserve SOC and estimated battery-only autonomy at the current backup load. Demo mode reveals all available telemetry before you connect entities.
 
-## 0.6.3 — Dedicated Energy Station card element
+## 0.6.4 — One ANMA card for all dashboards
 
-Energy Station now exports `type: custom:anma-energy-station`. This uses the current renderer even when an older `anma-card` custom element was registered first. The shared JavaScript resource is still `anma-card.js`.
+Install one HACS package and use `type: custom:anma-card` for every dashboard. The exported `layout.template` selects Energy Station, ANMA Power Flow, ANMA Cloud Flow, Energy flows, Compact metrics or Full System Analytics. No additional card installation or YAML type editing is required.
 
-For existing Energy Station YAML, change only the first line from `type: custom:anma-card` to `type: custom:anma-energy-station`. Keep the complete layout and entity bindings. Other dashboard types keep `custom:anma-card`.
+The shared card now forwards configuration and live Home Assistant states to the current renderer even when a legacy card element was registered first. Energy Station settings remain selected by template. Responsive sizing is rechecked when the card becomes visible or its container changes size.
 
-Verified the main card rendering in a browser with a legacy card already registered; 16 runtime and Energy Station tests passed.
+This supersedes the separate-type recommendation in 0.6.3. Previously exported Energy Station aliases remain supported for compatibility. Entity bindings are preserved.
+
+Validation: 17 automated runtime and Energy Station tests passed; Django system checks passed. Browser verification used an intentionally pre-registered legacy card and the public `anma-card` element.

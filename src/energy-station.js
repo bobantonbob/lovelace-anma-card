@@ -252,7 +252,7 @@
       if(!isDemo&&data.gridState==='unknown')foot.textContent+=' '+tr('Grid status unknown: configure its status sensor.','Стан мережі невідомий: вкажіть датчик стану.');
     }
     function animate(now){
-      if(!card.isConnected){observer?.disconnect();return;}
+      if(!card.isConnected)return;
       const dt=last?Math.min(.1,(now-last)/1000):0;last=now;
       if(active&&!document.hidden&&!matchMedia('(prefers-reduced-motion: reduce)').matches){
         for(const e of edges){if(e.g.dataset.active!=='true')continue;const length=e.length||(e.length=e.path.getTotalLength());if(!length)continue;e.phase=(e.phase+dt/(6-4.8*Math.min(1,Math.abs(e.power)/10000)))%1;
@@ -261,7 +261,7 @@
       raf=requestAnimationFrame(animate);
     }
     const syncTheme=()=>{card.dataset.esTheme=cfg.theme==='auto'&&typeof live?.themes?.darkMode==='boolean'?(live.themes.darkMode?'night':'day'):cfg.theme;};
-    card._stationRefresh=(options={})=>{live=options.hass??live;syncTheme();isDemo=options.demo??isDemo;data=calculate(cfg,live?.states||{},isDemo);if(cfg.hideOffline&&Boolean(nodes.has('nonbackup'))!==(cfg.showNonBackup&&data.gridState!=='offline'))build();else updateValues();};
+    card._stationRefresh=(options={})=>{live=options.hass??live;syncTheme();resize();isDemo=options.demo??isDemo;data=calculate(cfg,live?.states||{},isDemo);if(cfg.hideOffline&&Boolean(nodes.has('nonbackup'))!==(cfg.showNonBackup&&data.gridState!=='offline'))build();else updateValues();};
     const settings=el('div','es-settings');settings.hidden=true;
     if(change){const button=el('button','es-open',tr('⚙ Connections','⚙ З’єднання'));button.type='button';button.setAttribute('aria-expanded','false');button.onclick=()=>{settings.hidden=!settings.hidden;button.setAttribute('aria-expanded',String(!settings.hidden));};tools.append(button);
       const close=el('button','',tr('✕ Close','✕ Закрити'));close.type='button';close.onclick=()=>{settings.hidden=true;button.setAttribute('aria-expanded','false');button.focus();};settings.append(close);
@@ -269,7 +269,9 @@
       card.addEventListener('keydown',e=>{if(e.key==='Escape'&&!settings.hidden){settings.hidden=true;button.setAttribute('aria-expanded','false');button.focus();}});
     }
     syncTheme();data=calculate(cfg,live?.states||{},isDemo);build();
-    requestAnimationFrame(()=>{if(!card.isConnected)return;build();observer=new ResizeObserver(()=>{if(!card.isConnected){observer.disconnect();return;}const next=cfg.format==='phone'||cfg.format!=='wide'&&stage.getBoundingClientRect().width<600;const nextWide=!next&&(cfg.format==='wide'||cfg.format==='auto'&&stage.getBoundingClientRect().width>=950);if(next!==phone||(!next&&svg.getAttribute('viewBox').split(' ')[2]!==String(nextWide?1400:1100)))build();});observer.observe(stage);});
+    const resize=()=>{if(!card.isConnected||stage.getBoundingClientRect().width<=0)return;const next=cfg.format==='phone'||cfg.format!=='wide'&&stage.getBoundingClientRect().width<600;const nextWide=!next&&(cfg.format==='wide'||cfg.format==='auto'&&stage.getBoundingClientRect().width>=950);if(next!==phone||svg.getAttribute('viewBox').split(' ')[2]!==String(next?600:nextWide?1400:1100))build();};
+    observer=new ResizeObserver(resize);observer.observe(stage);
+    requestAnimationFrame(resize);
     card._stationKey=JSON.stringify([layout.powerFlow?.station,layout.theme,layout.motion,uk]);return card;
   }
   function update(host,layout,options){

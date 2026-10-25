@@ -984,7 +984,7 @@
     const lines = [];
 
     const exportLayout = JSON.parse(JSON.stringify(l));
-    const cardType=l.template==='energy_station'?'custom:anma-energy-station':'custom:anma-card';
+    const cardType='custom:anma-card';
     const metricWidgets = (exportLayout.widgets || []).filter(w => {
       const bRole = typeof w === 'string' ? w.replace(/_\d+$/, '') : '';
       return ['solar', 'battery', 'load', 'grid', 'generator', 'ev', 'metric'].includes(bRole);
