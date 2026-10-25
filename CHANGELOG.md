@@ -1,5 +1,10 @@
 # Changelog
 
+## 0.6.2 — Energy Station editor selection
+
+Use a versioned Home Assistant editor even if a legacy editor was previously registered. Route Energy Station settings directly by template and label its Connections section correctly. Existing entity bindings remain unchanged. Verified against pre-registered legacy card/editor constructors.
+
+
 ## 0.6.1 — Refresh stale shared runtime
 
 Always initialize the bundled Energy Station renderer even when an older ANMA resource has already initialized global helpers. Verified Energy Station YAML retains its template with a preloaded legacy model. Existing entity mappings remain unchanged.

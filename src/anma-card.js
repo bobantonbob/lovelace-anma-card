@@ -2528,7 +2528,7 @@ field(group,tr('Image URL (/local/… in HA)','URL зображення (/local/
 (() => {
   'use strict';
 
-  const CARD_VERSION = '0.6.1';
+  const CARD_VERSION = '0.6.2';
   const EN = {
     'Стан системи':'System status', 'Помилки':'Errors', 'Стан АКБ':'Battery status', 'Електромобіль — потужність':'EV — power', 'Генератор — потужність':'Generator — power', 'Мова картки': 'Card language', 'Сонце': 'Solar', 'Дім': 'Home', 'Самоспоживання': 'Self-consumption', 'АКБ': 'Battery', 'Прогноз на 7 днів': '7-day forecast', 'Середньодобово': 'Daily average', 'Найкращий день': 'Best day', 'Мікроінвертор': 'Microinverter', 'MPPT МАТРИЦЯ': 'MPPT MATRIX', '✓ Оптимально': '✓ Optimal', 'Автоматично (Home Assistant)': 'Automatic (Home Assistant)',
     'Імпортувати макет ANMA / Import ANMA layout (.json)': 'Import ANMA layout (.json)',
@@ -3509,7 +3509,7 @@ field(group,tr('Image URL (/local/… in HA)','URL зображення (/local/
 
   class AnmaCard extends HTMLElement {
     _t(text) { return translate(languageOf(this._layout,this._hass),text); }
-    static getConfigElement() { return document.createElement('anma-card-editor'); }
+    static getConfigElement() { return document.createElement('anma-card-editor-'+CARD_VERSION.replaceAll('.','-')); }
     static getStubConfig() {
       return {
         type: 'custom:anma-card',
@@ -5361,7 +5361,7 @@ field(group,tr('Image URL (/local/… in HA)','URL зображення (/local/
       nav.replaceChildren();
       this._node('option', uk ? 'Загальні · мова, імпорт, фото' : 'General · language, import, photo', nav).value = 'general';
       this._node('option', uk ? '🧱 Віджети та розмітка' : '🧱 Widgets & Layout', nav).value = 'widgets';
-      this._node('option', uk ? '⚡ Обладнання · інвертори, АКБ, PV' : '⚡ Equipment · inverters, batteries, PV', nav).value = 'equipment';
+      this._node('option', layout.template==='energy_station'?'⚡ Energy Station · Connections':(uk ? '⚡ Обладнання · інвертори, АКБ, PV' : '⚡ Equipment · inverters, batteries, PV'), nav).value = 'equipment';
       [...this._fields.children].forEach((section, i) => {
         section.dataset.section = String(i);
         this._node('option', section.querySelector('summary').textContent, nav).value = String(i);
@@ -5384,7 +5384,7 @@ field(group,tr('Image URL (/local/… in HA)','URL зображення (/local/
       const uk = languageOf(layout, this._hass) === 'uk';
 
       if ((layout.widgets || []).includes('power_flow')) {
-        const openEquipment=this._node('button',uk?'Налаштувати Power Flow: сутності, потужність і рамки':'Configure Power Flow: entities, power and borders',parent);
+        const openEquipment=this._node('button',layout.template==='energy_station'?'Energy Station · Connections':(uk?'Налаштувати Power Flow: сутності, потужність і рамки':'Configure Power Flow: entities, power and borders'),parent);
         openEquipment.type='button';openEquipment.onclick=()=>{this._activeSection='equipment';this._rows();};
       }
       // 1. Dashboard Layout Settings (Grid Columns & Metrics Grouping)
@@ -5638,6 +5638,12 @@ field(group,tr('Image URL (/local/… in HA)','URL зображення (/local/
       const layout = this._config?.layout || {};
       const uk = languageOf(layout, this._hass) === 'uk';
 
+      if(layout.template==='energy_station'){
+        const editor=window.AnmaEnergyStation.editor(layout.powerFlow?.station,uk,station=>{
+          this._emit({...this._config.layout,powerFlow:{...this._config.layout.powerFlow,station}});
+        },{getStates:()=>this._hass?.states||{}});
+        editor.open=true;parent.append(editor);return;
+      }
       if((layout.widgets||[]).includes('power_flow')){
         const style=this._node('style','',parent);
         style.textContent='.apf-config{position:static;display:block}.apf-settings{display:grid;gap:12px}.apf-settings fieldset{min-width:0;border:1px solid #b8753e;border-radius:10px;padding:12px;display:grid;gap:10px;background:#ffffff05}.apf-settings legend{color:#f1873d}.apf-settings label{display:grid;gap:5px}.apf-settings input,.apf-settings select{box-sizing:border-box;width:100%;min-width:0}.apf-settings input[type=checkbox]{width:auto;justify-self:start}.apf-entity-menu{display:grid;gap:4px;max-height:220px;overflow:auto}.apf-entity-menu[hidden]{display:none}.apf-entity-menu button{text-align:left;overflow-wrap:anywhere;white-space:normal}.apf-capacity{border-left:3px solid #f1873d;padding:8px}.apf-settings small{opacity:.8}';
@@ -5982,7 +5988,11 @@ field(group,tr('Image URL (/local/… in HA)','URL зображення (/local/
       this._status.textContent = count + ' · ' + this._t('Перевірте запропоновані відповідності та збережіть картку.');
     }
   }
-  if (!customElements.get('anma-card-editor')) customElements.define('anma-card-editor', AnmaCardEditor);
+  const editorTag='anma-card-editor-'+CARD_VERSION.replaceAll('.','-');
+  if (!customElements.get(editorTag)) customElements.define(editorTag, AnmaCardEditor);
+  if (!customElements.get('anma-card-editor')) customElements.define('anma-card-editor', class extends AnmaCardEditor {});
+  // HA may retain an older registered card constructor until a full reload.
+  customElements.get('anma-card').getConfigElement=()=>document.createElement(editorTag);
 
   window.customCards = window.customCards || [];
   if (!window.customCards.some(c => c.type === 'anma-card')) {
