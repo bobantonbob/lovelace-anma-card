@@ -68,3 +68,11 @@ Under `layout.powerFlow.station`, individual `batteries` accept `soc` and `volta
 `master` accepts `power`, `soc`, `voltage`, `current`, `capacity`, `chargeToday`, and `dischargeToday`. Capacity is energy in kWh (not Ah). Set `reserveSoc` to the desired minimum percentage. Runtime uses current discharge power and available capacity above reserve; it is an estimate, not a guarantee.
 
 `telemetry` accepts `importToday`, `exportToday`, `homeToday`, `voltage`, `current`, `frequency`, `acTemperature`, `dcTemperature`, and `buyPrice`. Set `currency` for the purchase price label. Configure `inverterStatus` and the `inverterOn`, `inverterOff`, `inverterFault` state lists for status indication. Optional measurements appear beside their matching diagram node. `fit: true` enables desktop/tablet viewport fitting.
+
+## Phases, colors and reserve energy (0.6.0)
+
+Set `station.phases` to `1` (default) or `3`. Three-phase systems use `phaseReadings`, an array of three objects with `voltage` and `current` entity IDs. `telemetry.frequency` is shared. Existing single-phase `telemetry.voltage` and `telemetry.current` bindings remain stored.
+
+`station.colors` supports six-digit hex values for `solar`, `grid`, `backup`, `battery`, `charge`, `discharge`, `aux`, and `inverter`. Configure these in Connections → Flow colors.
+
+The displayed battery kWh is now usable energy above `reserveSoc`: total capacity × max(0, SOC − reserve) / 100. Estimated runtime divides that energy by the current backup load, assuming battery-only supply; losses and future load changes are not included. Missing required readings produce a dash. The purchase price is no longer displayed on the diagram; saved bindings are retained.

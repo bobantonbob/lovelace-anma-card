@@ -25,6 +25,7 @@
     const anchor=width===null?center:Math.max(70+half,Math.min(width-70-half,center));
     return anchor+(index-start-(n-1)/2)*spacing;
   }
+  const defaultColors={solar:'#e9a526',grid:'#55a8ef',backup:'#32b6ca',battery:'#36c989',charge:'#36c989',discharge:'#56b8ed',aux:'#b38ae8',inverter:'#f1873d'};
   const telemetryKinds={soc:'soc',voltage:'voltage',current:'current',capacity:'energy',chargeToday:'energy',dischargeToday:'energy',importToday:'energy',exportToday:'energy',homeToday:'energy',frequency:'frequency',acTemperature:'temperature',dcTemperature:'temperature',buyPrice:'price'};
   function runtimeHours(soc,capacity,power,reserve){
     if(![soc,capacity,power,reserve].every(Number.isFinite)||soc<0||soc>100||capacity<=0||power<10||reserve<0||reserve>100)return null;
@@ -35,6 +36,7 @@
     const device=(d={},i)=>({name:str(d.name),power:str(d.power),soc:str(d.soc),voltage:str(d.voltage),temperature:str(d.temperature),capacity:str(d.capacity),visible:d.visible!==false});
     const list=(v,n,max)=> (Array.isArray(v)?v:Array.from({length:n},()=>({}))).slice(0,max).map(device);
     return {
+      phases:Number(raw.phases)===3?3:1,phaseReadings:Array.from({length:3},(_,i)=>({voltage:str(raw.phaseReadings?.[i]?.voltage),current:str(raw.phaseReadings?.[i]?.current)})),colors:Object.fromEntries(Object.entries(defaultColors).map(([k,v])=>[k,/^#[0-9a-f]{6}$/i.test(raw.colors?.[k])?raw.colors[k]:v])),
       fit:raw.fit!==false,master:Object.fromEntries(['power','soc','voltage','current','capacity','chargeToday','dischargeToday'].map(k=>[k,str(raw.master?.[k])])),reserveSoc:str(raw.reserveSoc)||'20',telemetry:Object.fromEntries(['importToday','exportToday','homeToday','voltage','current','frequency','acTemperature','dcTemperature','buyPrice'].map(k=>[k,str(raw.telemetry?.[k])])),currency:str(raw.currency)||'UAH',inverterStatus:str(raw.inverterStatus),inverterOn:str(raw.inverterOn)||'on,online,running,normal',inverterOff:str(raw.inverterOff)||'off,offline,standby',inverterFault:str(raw.inverterFault)||'fault,error,alarm',
       format:choose(raw.format,['auto','wide','square','phone'],'auto'),
       theme:choose(raw.theme,['auto','day','night'],'auto'),
@@ -80,22 +82,28 @@
     // Child appliances describe their parent total; never add both to the same total.
     const backup=c.backupPower?read(c.backupPower,null):sum(loads.filter((_,i)=>c.loads[i].group==='backup'));
     const nonBackup=gridState==='offline'?0:c.nonBackupPower?read(c.nonBackupPower,null):sum(loads.filter((_,i)=>c.loads[i].group==='grid'));
-    const master=Object.fromEntries(Object.entries(c.master).map(([k,id])=>[k,read(id,null,telemetryKinds[k]||'power')]));
+    const demoMaster={soc:80,voltage:53.24,current:night?18.8:-56.3,capacity:15,chargeToday:4.3,dischargeToday:6.1};
+    const demoTelemetry={importToday:3.1,exportToday:4.8,homeToday:12.4,voltage:231.45,current:8.6,frequency:50.01,acTemperature:41.2,dcTemperature:38.4,buyPrice:4.32};
+    const master=Object.fromEntries(Object.entries(c.master).map(([k,id])=>[k,read(id,demoMaster[k]??null,telemetryKinds[k]||'power')]));
     const batteryTotal=c.master.power?(master.power===null?null:master.power*sign):sum(batteries.map(b=>b.power));
-    const telemetry=Object.fromEntries(Object.entries(c.telemetry).map(([k,id])=>[k,read(id,null,telemetryKinds[k])]));
+    const telemetry=Object.fromEntries(Object.entries(c.telemetry).map(([k,id])=>[k,read(id,demoTelemetry[k]??null,telemetryKinds[k])]));
     const status=String(states?.[c.inverterStatus]?.state??'').toLowerCase().trim();
     const inList=list=>list.split(',').map(v=>v.trim().toLowerCase()).includes(status);
-    const inverterState=!status?'unknown':inList(c.inverterFault)?'fault':inList(c.inverterOff)?'offline':inList(c.inverterOn)?'online':'unknown';
+    const inverterState=demo&&!c.inverterStatus?'online':!status?'unknown':inList(c.inverterFault)?'fault':inList(c.inverterOff)?'offline':inList(c.inverterOn)?'online':'unknown';
     const runtime=runtimeHours(master.soc,master.capacity,batteryTotal,reading(c.reserveSoc,states,'soc'));
-    return {master,telemetry,runtime,inverterState,pv,solar,today:read(c.solarToday,48.6,'energy'),batteries,batteryTotal,grid,gridState,aux,loads,backup,nonBackup,inverter:read(c.inverterPower,night?3000:8000)};
+    const phaseReadings=c.phaseReadings.map((p,i)=>({voltage:read(p.voltage,231.45+i*.8,'voltage'),current:read(p.current,8.6+i*.3,'current')}));
+    const reserve=reading(c.reserveSoc,states,'soc');
+    const availableEnergy=runtimeHours(master.soc,master.capacity,1000,reserve);
+    const loadRuntime=runtimeHours(master.soc,master.capacity,backup,reserve);
+    return {availableEnergy,loadRuntime,phaseReadings,master,telemetry,runtime,inverterState,pv,solar,today:read(c.solarToday,48.6,'energy'),batteries,batteryTotal,grid,gridState,aux,loads,backup,nonBackup,inverter:read(c.inverterPower,night?3000:8000)};
   }
   const css=`
     .energy-station{--es-bg:#0b1721;--es-panel:#122230;--es-text:#eaf2f8;--es-muted:#91a6b6;--es-line:#304655;--es-off:#78828b;container-type:inline-size;container-name:station;position:relative;isolation:isolate;background:var(--es-bg)!important;color:var(--es-text);border:1px solid var(--es-line);border-radius:18px;padding:16px;min-width:0;overflow:hidden;width:100%;box-sizing:border-box}
     .energy-station[data-es-theme=day],:root[data-theme=light] .energy-station[data-es-theme=auto],.db-preview[data-theme-mode^=light_] .energy-station[data-es-theme=auto],.anma-container[data-theme^=light_] .energy-station[data-es-theme=auto]{--es-bg:#f5f8fb;--es-panel:#fff;--es-text:#152b3c;--es-muted:#526677;--es-line:#c8d6df;--es-off:#78838c}
     .energy-station .es-head{display:flex;align-items:center;justify-content:space-between;gap:12px}.energy-station h2{font:700 20px system-ui;margin:0;color:var(--es-text)}.energy-station .es-subtitle{font:11px system-ui;color:var(--es-muted);margin:5px 0}.energy-station .apf-tools{display:flex;gap:6px}.energy-station button{cursor:pointer;color:var(--es-text);background:var(--es-panel);border:1px solid var(--es-line);border-radius:8px;padding:8px;font:inherit}.energy-station .es-open{color:#f1873d}
-    .es-svg .es-reading{font-size:12px;fill:var(--es-muted)}.es-svg .es-reading-value{fill:var(--es-text);font-weight:600}.es-svg .es-reading text{text-anchor:inherit}
+    .es-svg .es-reading{font-size:13px;fill:var(--reading-color);font-weight:500}.es-svg .es-reading-value{font-size:17px;fill:var(--reading-color);font-weight:700}.es-svg .es-reading text{text-anchor:inherit;fill:var(--reading-color)}
     .energy-station[data-fit=true] .es-svg{height:clamp(260px,calc(100dvh - 230px),650px)!important;object-fit:contain}.energy-station[data-fit=true] .es-stage{aspect-ratio:auto!important}.energy-station:fullscreen{overflow:auto}.es-svg [data-state=fault]{--node-color:#ff6b64!important}
-    .es-stage{width:100%;min-width:0}.es-svg{display:block;width:100%;height:auto;overflow:visible}.es-svg text{font-family:system-ui,sans-serif;text-anchor:middle;fill:var(--es-text);pointer-events:none}.es-svg .es-name{font-size:13px;font-weight:600}.es-svg .es-value{font-size:20px;font-weight:750;fill:var(--node-color)}.es-svg .es-detail{font-size:11px;fill:var(--es-muted)}.es-svg .es-icon{color:var(--node-color)}.es-svg [data-state=idle],.es-svg [data-state=offline],.es-svg [data-state=unknown]{--node-color:var(--es-off)!important}.es-svg .es-wire{fill:none;stroke:var(--wire-color);stroke-width:1.8;stroke-dasharray:4 4;stroke-linecap:round}.es-svg .es-edge[data-active=true] .es-wire{animation:es-stream 1s linear infinite}.es-svg .es-edge[data-active=false]{opacity:.35}.es-svg .es-edge[data-reverse=true] .es-wire{animation-direction:reverse}.es-svg .es-dot{fill:var(--wire-color)}.es-svg .es-inverter-frame{fill:var(--es-panel);stroke:#f1873d;stroke-width:1.4}.es-svg .es-node{outline:none}.es-svg .es-node:focus{filter:drop-shadow(0 0 2px #ff8b32)}.es-svg .es-battery-fill{fill:var(--node-color);opacity:.55}.es-svg .es-edge[data-active=false] .es-dot{display:none}
+    .es-stage{width:100%;min-width:0}.es-svg{display:block;width:100%;height:auto;overflow:visible}.es-svg text{font-family:system-ui,sans-serif;text-anchor:middle;fill:var(--es-text);pointer-events:none}.es-svg .es-name{font-size:13px;font-weight:600;fill:var(--node-color)}.es-svg .es-value{font-size:20px;font-weight:750;fill:var(--node-color)}.es-svg .es-detail{font-size:11px;fill:var(--es-muted)}.es-svg .es-icon{color:var(--node-color)}.es-svg [data-state=idle],.es-svg [data-state=offline],.es-svg [data-state=unknown]{--node-color:var(--es-off)!important}.es-svg .es-wire{fill:none;stroke:var(--wire-color);stroke-width:1.8;stroke-dasharray:4 4;stroke-linecap:round}.es-svg .es-edge[data-active=true] .es-wire{animation:es-stream 1s linear infinite}.es-svg .es-edge[data-active=false]{opacity:.35}.es-svg .es-edge[data-reverse=true] .es-wire{animation-direction:reverse}.es-svg .es-dot{fill:var(--wire-color)}.es-svg .es-inverter-frame{fill:var(--es-panel);stroke:#f1873d;stroke-width:1.4}.es-svg .es-node{outline:none}.es-svg .es-node:focus{filter:drop-shadow(0 0 2px #ff8b32)}.es-svg .es-battery-fill{fill:var(--node-color);opacity:.55}.es-svg .es-edge[data-active=false] .es-dot{display:none}
     @keyframes es-stream{to{stroke-dashoffset:-16}}@media(prefers-reduced-motion:reduce){.energy-station .es-dot{display:none}.energy-station .es-wire{animation:none!important}}
     .energy-station .es-settings{position:absolute;z-index:20;top:65px;right:10px;bottom:10px;width:min(430px,calc(100% - 20px));overflow:auto;overscroll-behavior:contain;touch-action:pan-y;background:var(--es-panel);border:1px solid #b8753e;border-radius:12px;padding:12px;box-sizing:border-box;box-shadow:0 12px 32px #0005}.energy-station .es-settings[hidden]{display:none}
     .es-config{font:13px system-ui;color:inherit}.es-config summary{cursor:pointer;font-weight:700;padding:10px}.es-config .es-form{display:grid;gap:12px}.es-config fieldset{min-width:0;border:1px solid #b8753e;border-radius:8px;display:grid;gap:10px;padding:10px}.es-config legend{color:#f1873d;font-weight:700}.es-config label{display:grid;gap:4px}.es-config input,.es-config select{min-width:0;width:100%;box-sizing:border-box;padding:8px;color:inherit;background:var(--es-bg,var(--surface,#122230));border:1px solid #657789;border-radius:6px;font:inherit}.es-config input[type=checkbox]{width:18px;height:18px;accent-color:#f1873d}.es-config .es-check{display:flex;align-items:center;gap:8px}.es-config small{color:var(--es-muted,inherit);line-height:1.5}.es-config button{padding:7px;border:1px solid #657789;border-radius:6px;background:transparent;color:inherit;cursor:pointer}.es-config .es-device{border:1px solid #65778955;border-radius:7px}.es-config .es-device>div{padding:8px;display:grid;gap:8px}.es-config select option{background:var(--es-panel,#122230);color:var(--es-text,#eaf2f8)}
@@ -115,7 +123,7 @@
     const svgEl=(tag,attrs={})=>{const e=document.createElementNS(svgNS,tag);Object.entries(attrs).forEach(([k,v])=>e.setAttribute(k,v));return e;};
     const power=v=>v===null?'—':Math.abs(v)>=1000?(Math.abs(v)/1000).toLocaleString(uk?'uk':'en',{minimumFractionDigits:3,maximumFractionDigits:3})+' '+tr('kW','кВт'):Math.round(Math.abs(v))+' '+tr('W','Вт');
     const labels={ev:tr('EV','Авто'),boiler:tr('Boiler','Бойлер'),pump:tr('Heat pump','Тепловий насос'),light:tr('Lighting','Освітлення'),other:tr('Other','Інше'),micro:tr('Microinverter','Мікроінвертор'),generator:tr('Generator','Генератор'),load:tr('Smart load','Кероване навантаження')};
-    const color={solar:'#e9a526',grid:'#55a8ef',backup:'#32b6ca',battery:'#36c989',aux:'#b38ae8',inverter:'#f1873d'};
+    const color={...cfg.colors};
     function node(id,x,y,name,icon,tint,small=false){
       const g=svgEl('g',{'class':'es-node','transform':`translate(${x} ${y})`,'data-node':id,'tabindex':'0','role':'img'});g.style.setProperty('--node-color',tint);
       const title=svgEl('title');g.append(title);
@@ -137,6 +145,7 @@
       svg.prepend(g);edges.push({g,path,dots,key,markerId,phase:Math.random(),reverse,power:null});
     }
     function build(){
+      Object.assign(color,cfg.colors);
       cancelAnimationFrame(raf);edges=[];nodes=new Map();
       const mobile=cfg.format==='phone'||(cfg.format!=='wide'&&stage.getBoundingClientRect().width<600);phone=mobile;
       const wide=!mobile&&(cfg.format==='wide'||cfg.format==='auto'&&stage.getBoundingClientRect().width>=950);
@@ -152,7 +161,7 @@
       const h=batteryStart+Math.ceil(visibleB.length/batCols)*145+30+(maxLoads>3?(maxLoads-3)*55:0);
       svg=svgEl('svg',{viewBox:`0 0 ${w} ${h}`,'class':'es-svg',role:'group','aria-label':tr('Energy connections','З’єднання енергосистеми')});stage.replaceChildren(svg);stage.style.aspectRatio=cfg.format==='square'?'1':'';svg.style.height=cfg.format==='square'?'100%':'';
       if(cfg.showSolar){
-        node('today',w/2,0,tr('Solar today','Вироблено сьогодні'),'sun',color.solar);
+        node('today',w/2,0,'','sun',color.solar);
         visiblePV.forEach((i,j)=>{const x=rowPosition(j,visiblePV.length,cols,w/2,w/cols),y=pvTop+Math.floor(j/cols)*rowHeight;node('pv'+i,x,y,cfg.pv[i].name||'PV '+String(i+1).padStart(2,'0'),'solar',color.solar);});
         node('solar',w/2,totalY,tr('Total PV','Сумарно PV'),'sun',color.solar);
         visiblePV.forEach((i,j)=>edge('pv'+i,'solar',color.solar,{key:'pv'+i,route:([x,y],[tx,ty])=>{if(Math.floor(j/cols)===rows-1)return `M${x} ${y} V${ty-22} H${tx} V${ty}`;const gutter=j%2? w-20:20;return `M${x} ${y} V${y+5} H${gutter} V${ty-22} H${tx} V${ty}`;}}));
@@ -210,29 +219,34 @@
         else if(e.key.startsWith('pv'))p=data.pv[Number(e.key.slice(2))];
         else if(e.key.startsWith('load')){const i=Number(e.key.slice(4));p=cfg.loads[i].group==='grid'&&data.gridState==='offline'?0:data.loads[i];}
         else {p=({solar:data.solar,backup:data.backup,nonbackup:data.nonBackup,aux:data.aux})[e.key];if(e.key==='backup')reverse=p<0;}
+        if(e.key==='battery'||/^bat\d+$/.test(e.key)){const tint=p>10?color.discharge:p< -10?color.charge:color.battery;e.g.style.setProperty('--wire-color',tint);e.g.querySelector('marker path')?.setAttribute('fill',tint);}
         if(e.key==='aux'&&cfg.aux.connection==='grid'&&cfg.aux.role==='micro'&&data.gridState==='offline')p=0;
         e.power=p;e.reverse=reverse;e.g.dataset.active=String(cfg.motion&&layout.motion!==false&&Number.isFinite(p)&&Math.abs(p)>=10);e.g.dataset.reverse=String(reverse);
         e.path.removeAttribute(reverse?'marker-end':'marker-start');e.path.setAttribute(reverse?'marker-start':'marker-end',`url(#${e.markerId})`);
       }
+      for(const [id,n] of nodes){if(id==='battery'||/^bat\d+$/.test(id)){const p=id==='battery'?data.batteryTotal:data.batteries[Number(id.slice(3))]?.power;n.g.style.setProperty('--node-color',p>10?color.discharge:p< -10?color.charge:color.battery);}}
       svg.querySelectorAll('.es-reading').forEach(e=>e.remove());
       const number=(v,unit,digits=2)=>v===null?'—':v.toLocaleString(uk?'uk':'en',{minimumFractionDigits:digits,maximumFractionDigits:digits})+' '+unit;
       const beside=(id,rows,side='right',dy=0)=>{
         const n=nodes.get(id);if(!n||!rows.length)return;
         const x=side==='left'?-95:side==='right'?95:0;
         const g=svgEl('g',{'class':'es-reading','data-reading-for':id,transform:`translate(${n.x+x} ${n.y+dy})`});
+        g.style.setProperty('--reading-color',id==='battery'?color.battery:id==='grid'?color.grid:id==='backup'?color.backup:color.inverter);
         g.style.textAnchor=side==='left'?'end':side==='right'?'start':'middle';
-        rows.forEach(([name,value],i)=>{const text=svgEl('text',{y:i*26});const caption=svgEl('tspan',{x:0,dy:0});caption.textContent=name;const val=svgEl('tspan',{x:0,dy:13,'class':'es-reading-value'});val.textContent=value;text.append(caption,val);g.append(text);});svg.append(g);
+        let y=0;rows.forEach(([name,value])=>{const text=svgEl('text',{y});if(name){const caption=svgEl('tspan',{x:0,dy:0});caption.textContent=name;text.append(caption);}const val=svgEl('tspan',{x:0,dy:name?18:0,'class':'es-reading-value'});val.textContent=value;text.append(val);g.append(text);y+=name?42:22;});svg.append(g);
       };
-      const label={soc:'SOC',voltage:tr('Voltage','Напруга'),current:tr('Current','Струм'),capacity:tr('Capacity','Ємність'),chargeToday:tr('Charged today','Заряд за добу'),dischargeToday:tr('Discharged today','Розряд за добу'),importToday:tr('Import today','Імпорт за добу'),exportToday:tr('Export today','Експорт за добу'),homeToday:tr('Home today','Будинок за добу'),frequency:tr('Frequency','Частота'),acTemperature:tr('AC temperature','Температура AC'),dcTemperature:tr('DC temperature','Температура DC'),buyPrice:tr('Purchase price','Ціна купівлі')};
+      const label={soc:'SOC',voltage:'',current:'',capacity:'',chargeToday:tr('Charge','Заряд'),dischargeToday:tr('Discharge','Розряд'),importToday:tr('Import','Імпорт'),exportToday:tr('Export','Експорт'),homeToday:tr('Home','Будинок'),frequency:'',acTemperature:tr('AC temperature','Температура AC'),dcTemperature:tr('DC temperature','Температура DC'),buyPrice:tr('Purchase price','Ціна купівлі')};
       const unit={soc:'%',voltage:'V',current:'A',capacity:'kWh',chargeToday:'kWh',dischargeToday:'kWh',importToday:'kWh',exportToday:'kWh',homeToday:'kWh',frequency:'Hz',acTemperature:'°C',dcTemperature:'°C',buyPrice:cfg.currency+'/kWh'};
-      beside('battery',['chargeToday','dischargeToday'].filter(k=>cfg.master[k]).map(k=>[label[k],number(data.master[k],unit[k])]),'left',4);
-      const mainRows=['voltage','current','capacity'].filter(k=>cfg.master[k]).map(k=>[label[k],number(data.master[k],unit[k])]);
-      if(cfg.master.capacity&&cfg.master.soc)mainRows.push([tr('Est. to reserve ','Оцінка до резерву ')+number(reading(cfg.reserveSoc,live?.states||{},'soc'),'%',0),data.runtime===null?'—':Math.floor(Math.round(data.runtime*60)/60)+' '+tr('h','год')+' '+(Math.round(data.runtime*60)%60)+' '+tr('min','хв')]);
+      beside('battery',['chargeToday','dischargeToday'].filter(k=>isDemo||cfg.master[k]).map(k=>[label[k],number(data.master[k],unit[k])]),'left',4);
+      const mainRows=['voltage','current','capacity'].filter(k=>isDemo||cfg.master[k]).map(k=>[label[k],number(k==='capacity'?data.availableEnergy:data.master[k],unit[k])]);
+      if(isDemo||(cfg.master.capacity&&cfg.master.soc))mainRows.push([tr('Est. to reserve ','Оцінка до резерву ')+number(reading(cfg.reserveSoc,live?.states||{},'soc'),'%',0),data.loadRuntime===null?'—':Math.floor(Math.round(data.loadRuntime*60)/60)+' '+tr('h','год')+' '+(Math.round(data.loadRuntime*60)%60)+' '+tr('min','хв')]);
       beside('battery',mainRows,'right',0);
-      beside('grid',['importToday','exportToday','buyPrice'].filter(k=>cfg.telemetry[k]).map(k=>[label[k],number(data.telemetry[k],unit[k])]),'above',-90);
-      beside('backup',cfg.telemetry.homeToday?[[label.homeToday,number(data.telemetry.homeToday,'kWh')]]:[],'above',-45);
-      beside('inverter',['acTemperature','dcTemperature'].filter(k=>cfg.telemetry[k]).map(k=>[label[k],number(data.telemetry[k],unit[k])]),'left',phone?100:-70);
-      beside('inverter',['voltage','current','frequency'].filter(k=>cfg.telemetry[k]).map(k=>[label[k],number(data.telemetry[k],unit[k])]),'right',phone?100:-85);
+      beside('grid',['importToday','exportToday'].filter(k=>isDemo||cfg.telemetry[k]).map(k=>[label[k],number(data.telemetry[k],unit[k])]),'above',-90);
+      beside('backup',(isDemo||cfg.telemetry.homeToday)?[[label.homeToday,number(data.telemetry.homeToday,'kWh')]]:[],'above',-55);
+      beside('inverter',['acTemperature','dcTemperature'].filter(k=>isDemo||cfg.telemetry[k]).map(k=>[label[k],number(data.telemetry[k],unit[k])]),'left',phone?100:-70);
+      const acRows=cfg.phases===3?cfg.phaseReadings.map((p,i)=>['','L'+(i+1)+' · '+number(data.phaseReadings[i].voltage,'V')+' · '+number(data.phaseReadings[i].current,'A')]):['voltage','current'].filter(k=>isDemo||cfg.telemetry[k]).map(k=>[label[k],number(data.telemetry[k],unit[k])]);
+      if(isDemo||cfg.telemetry.frequency)acRows.push([label.frequency,number(data.telemetry.frequency,'Hz')]);
+      beside('inverter',acRows,'right',phone?80:-35);
       badge.textContent=isDemo?tr('DEMO · SIMULATED VALUES','ДЕМО · ЗМОДЕЛЬОВАНІ ДАНІ'):tr('HOME ASSISTANT · SENSOR VALUES','HOME ASSISTANT · ДАНІ ДАТЧИКІВ');
       foot.textContent=tr('Appliances detail their parent total. Visibility changes the diagram, not the electrical connection.','Прилади деталізують підсумок своєї групи. Видимість змінює схему, а не електричне підключення.');
       if(!isDemo&&data.gridState==='unknown')foot.textContent+=' '+tr('Grid status unknown: configure its status sensor.','Стан мережі невідомий: вкажіть датчик стану.');
@@ -282,6 +296,8 @@
       field(display,tr('Theme','Тема'),c,'theme',[['auto',tr('Site / dashboard','Сайт / дашборд')],['day',tr('Light','Світла')],['night',tr('Dark','Темна')]]);check(display,tr('Animated flows','Анімовані потоки'),c,'motion');
       field(display,tr('Demo scenario (preview only)','Демо-сценарій (лише перегляд)'),c,'demoScene',[['sun',tr('Solar / export','Сонце / експорт')],['import',tr('Import','Імпорт')],['night',tr('Night','Ніч')],['outage',tr('Grid outage','Немає мережі')]]);
       display.append(el('small',tr('Sensor IDs use live HA data; fixed numbers are manual values. Demo is never used in the installed HA card.','Сутності використовують живі дані HA; числа — ручні значення. У встановленій HA-картці демодані не використовуються.')));
+      const palette=group(tr('Flow colors','Кольори потоків'));
+      for(const [key,en,ua] of [['solar','Solar','Сонце'],['grid','Grid','Мережа'],['backup','Backup loads','Гарантоване навантаження'],['battery','Battery labels','Підписи батареї'],['charge','Battery charging','Заряд батареї'],['discharge','Battery discharging','Розряд батареї'],['aux','GEN / AUX','GEN / AUX'],['inverter','Inverter','Інвертор']]){const input=field(palette,tr(en,ua),c.colors,key);input.type='color';}
       const solar=group(tr('Solar · up to 10 fields','Сонце · до 10 полів'));check(solar,tr('Show solar','Показувати сонце'),c,'showSolar');sensor(solar,tr('Solar energy today (kWh)','Генерація сьогодні (кВт·год)'),c,'solarToday','energy');sensor(solar,tr('PV total (optional; otherwise sum fields)','Сумарна PV (або сума полів)'),c,'pvTotal');
       const count=(parent,key,max,title)=>{const input=field(parent,title,{count:String(c[key].length)},'count',Array.from({length:max+1},(_,i)=>[String(i),String(i)]));input.onchange=()=>{const n=Number(input.value);while(c[key].length<n)c[key].push({visible:true,name:'',power:'',soc:'',voltage:'',temperature:''});c[key]=c[key].slice(0,n);commit();draw();};};
       count(solar,'pv',10,tr('PV field count','Кількість PV-полів'));
@@ -290,8 +306,10 @@
       c.batteries.forEach((b,i)=>{const f=device(batteries,b.name||tr('Battery ','Батарея ')+(i+1));check(f,tr('Show battery ','Показувати батарею ')+(i+1),b,'visible');field(f,tr('Battery name ','Назва батареї ')+(i+1),b,'name');sensor(f,tr('Battery power ','Потужність батареї ')+(i+1),b,'power');sensor(f,'SOC % · '+(i+1),b,'soc','soc');sensor(f,tr('Voltage ','Напруга ')+(i+1),b,'voltage','voltage');sensor(f,tr('Temperature ','Температура ')+(i+1),b,'temperature','temperature');sensor(f,tr('Capacity kWh ','Ємність кВт·год ')+(i+1),b,'capacity','energy');});
       const grid=group(tr('Grid & inverter','Мережа та інвертор'));check(grid,tr('Show grid','Показувати мережу'),c,'showGrid');sensor(grid,tr('Signed grid power','Знакова потужність мережі'),c,'gridPower');field(grid,tr('Positive grid power means','Плюс потужності мережі означає'),c,'gridPositive',[['import',tr('Import','Імпорт')],['export',tr('Export','Експорт')]]);sensor(grid,tr('Grid status entity','Сутність стану мережі'),c,'gridStatus','status');field(grid,tr('Connected states, comma separated','Стани підключення через кому'),c,'gridOn');field(grid,tr('Disconnected states','Стани відключення'),c,'gridOff');field(grid,tr('Inverter name','Назва інвертора'),c,'inverterName');sensor(grid,tr('Inverter power','Потужність інвертора'),c,'inverterPower');
       const master=group(tr('Main battery · inverter totals','Головна батарея · дані інвертора'));
-      for(const [key,en,ua] of [['power','Signed total power','Загальна знакова потужність'],['soc','Main SOC','Головний SOC'],['voltage','Main voltage','Загальна напруга'],['current','Main current','Загальний струм'],['capacity','Total capacity (kWh)','Загальна ємність (кВт·год)'],['chargeToday','Charged today','Заряд за добу'],['dischargeToday','Discharged today','Розряд за добу']])sensor(master,tr(en,ua),c.master,key,telemetryKinds[key]||'power');
-      sensor(master,tr('Reserve SOC (% or entity)','Резервний SOC (% або сутність)'),c,'reserveSoc','soc');master.append(el('small',tr('Runtime estimate uses remaining capacity above reserve and current battery discharge. Unavailable while charging or when inputs are missing. Capacity is kWh, not Ah; daily counters must come from daily energy sensors.','Оцінка часу: залишок ємності вище резерву / поточний розряд батареї. Під час заряду або без даних оцінка недоступна. Ємність — кВт·год, не А·год; добові лічильники — з відповідних датчиків енергії.')));
+      for(const [key,en,ua] of [['power','Signed total power','Загальна знакова потужність'],['soc','Main SOC','Головний SOC'],['voltage','Main voltage','Загальна напруга'],['current','Main current','Загальний струм'],['capacity','Total capacity (kWh)','Загальна ємність (кВт·год)'],['chargeToday','Charged today','Заряд'],['dischargeToday','Discharged today','Розряд']])sensor(master,tr(en,ua),c.master,key,telemetryKinds[key]||'power');
+      sensor(master,tr('Reserve SOC (% or entity)','Резервний SOC (% або сутність)'),c,'reserveSoc','soc');master.append(el('small',tr('Runtime estimate uses remaining capacity above reserve and current backup load, assuming battery-only supply. Unavailable when required inputs are missing. Capacity is kWh, not Ah; daily counters must come from daily energy sensors.','Оцінка часу: залишок ємності вище резерву / поточне гарантоване навантаження, за умови живлення лише від батареї. Без необхідних даних оцінка недоступна. Ємність — кВт·год, не А·год; добові лічильники — з відповідних датчиків енергії.')));
+      const phases=group(tr('Inverter phases','Фази інвертора'));const phaseSelect=field(phases,tr('Phase configuration','Кількість фаз'),c,'phases',[['1',tr('Single phase','Однофазний')],['3',tr('Three phase','Трифазний')]]);phaseSelect.onchange=()=>{c.phases=Number(phaseSelect.value);commit();draw();};
+      if(c.phases===3)c.phaseReadings.forEach((p,i)=>{sensor(phases,'L'+(i+1)+' · '+tr('Voltage','Напруга'),p,'voltage','voltage');sensor(phases,'L'+(i+1)+' · '+tr('Current','Струм'),p,'current','current');});
       const telemetry=group(tr('Daily counters & inverter telemetry','Добові лічильники та телеметрія інвертора'));
       for(const [key,en,ua] of [['importToday','Grid import today','Імпорт мережі за добу'],['exportToday','Grid export today','Експорт мережі за добу'],['homeToday','Home energy today','Споживання будинку за добу'],['voltage','Inverter AC voltage','Напруга AC інвертора'],['current','Inverter AC current','Струм AC інвертора'],['frequency','AC frequency','Частота AC'],['acTemperature','AC temperature','Температура AC'],['dcTemperature','DC temperature','Температура DC'],['buyPrice','Purchase price per kWh','Ціна купівлі за кВт·год']])sensor(telemetry,tr(en,ua),c.telemetry,key,telemetryKinds[key]);
       field(telemetry,tr('Currency label','Позначення валюти'),c,'currency');sensor(telemetry,tr('Inverter status','Стан інвертора'),c,'inverterStatus','status');field(telemetry,tr('Running states','Стани роботи'),c,'inverterOn');field(telemetry,tr('Off / standby states','Стани вимкнення / очікування'),c,'inverterOff');field(telemetry,tr('Fault states','Стани помилки'),c,'inverterFault');

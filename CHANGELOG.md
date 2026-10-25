@@ -1,5 +1,19 @@
 # Changelog
 
+## 0.6.0 — Three-phase telemetry and configurable flow colors
+
+- Select single-phase or three-phase inverter telemetry, with separate L1/L2/L3 voltage and current entities and shared frequency.
+- Customize solar, grid, inverter, load, GEN/AUX and battery colors, including separate charging/discharging colors.
+- Device-colored labels, larger readings and compact units beside the corresponding node; remove redundant labels and purchase price from the diagram.
+- Show usable battery energy above reserve SOC and estimated autonomy at the current backup load, assuming battery-only supply. Capacity inputs remain total kWh; estimates exclude conversion losses and future load changes.
+- Demo mode exposes optional telemetry without requiring entity bindings. Live missing data remains unknown.
+- Existing layouts and single-phase bindings remain supported.
+
+Validation: 14 Energy Station tests passed; JavaScript syntax and package validation passed.
+
+![Updated Energy Station with demonstration readings](https://raw.githubusercontent.com/bobantonbob/lovelace-anma-card/v0.6.0/docs/energy-station-telemetry.png)
+
+
 ## 0.5.0 — Energy Station telemetry beside devices
 
 - Read individual battery SOC and decimal voltage directly beside each battery.
