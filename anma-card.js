@@ -53,7 +53,7 @@ if (typeof window !== 'undefined') {
       hideOffline:raw.hideOffline===true,gridPower:str(raw.gridPower),gridStatus:str(raw.gridStatus),
       gridOn:str(raw.gridOn)||'on,online,connected,1',gridOff:str(raw.gridOff)||'off,offline,disconnected,0',
       gridPositive:choose(raw.gridPositive,['import','export'],'import'),batteryPositive:choose(raw.batteryPositive,['discharge','charge'],'discharge'),
-      pvTotal:str(raw.pvTotal),solarToday:str(raw.solarToday),backupPower:str(raw.backupPower),nonBackupPower:str(raw.nonBackupPower),
+      pvTotal:str(raw.pvTotal),solarToday:str(raw.solarToday),solarForecast:str(raw.solarForecast),backupPower:str(raw.backupPower),nonBackupPower:str(raw.nonBackupPower),
       inverterName:str(raw.inverterName),inverterPower:str(raw.inverterPower),
       pv:list(raw.pv,10,10),batteries:list(raw.batteries,5,5),
       aux:{visible:raw.aux?.visible!==false,role:choose(raw.aux?.role,['micro','generator','load','disabled'],'micro'),
@@ -102,7 +102,7 @@ if (typeof window !== 'undefined') {
     const reserve=reading(c.reserveSoc,states,'soc');
     const availableEnergy=runtimeHours(master.soc,master.capacity,1000,reserve);
     const loadRuntime=runtimeHours(master.soc,master.capacity,backup,reserve);
-    return {availableEnergy,loadRuntime,phaseReadings,master,telemetry,runtime,inverterState,pv,solar,today:read(c.solarToday,48.6,'energy'),batteries,batteryTotal,grid,gridState,aux,loads,backup,nonBackup,inverter:read(c.inverterPower,night?3000:8000)};
+    return {availableEnergy,loadRuntime,phaseReadings,master,telemetry,runtime,inverterState,pv,solar,today:read(c.solarToday,48.6,'energy'),forecast:read(c.solarForecast,55,'energy'),batteries,batteryTotal,grid,gridState,aux,loads,backup,nonBackup,inverter:read(c.inverterPower,night?3000:8000)};
   }
   const css=`
     .energy-station{--es-bg:#0b1721;--es-panel:#122230;--es-text:#eaf2f8;--es-muted:#91a6b6;--es-line:#304655;--es-off:#78828b;container-type:inline-size;container-name:station;position:relative;isolation:isolate;background:color-mix(in srgb,var(--es-bg) var(--es-background-opacity,100%),transparent)!important;color:var(--es-text);border:1px solid var(--es-line);border-radius:18px;padding:16px;min-width:0;overflow:hidden;width:100%;box-sizing:border-box}
@@ -115,6 +115,10 @@ if (typeof window !== 'undefined') {
     .energy-station .es-settings{position:absolute;z-index:20;top:65px;right:10px;bottom:10px;width:min(430px,calc(100% - 20px));overflow:auto;overscroll-behavior:contain;touch-action:pan-y;background:var(--es-panel);border:1px solid #b8753e;border-radius:12px;padding:12px;box-sizing:border-box;box-shadow:0 12px 32px #0005}.energy-station .es-settings[hidden]{display:none}
     .es-config{font:13px system-ui;color:inherit}.es-config summary{cursor:pointer;font-weight:700;padding:10px}.es-config .es-form{display:grid;gap:12px}.es-config fieldset{min-width:0;border:1px solid #b8753e;border-radius:8px;display:grid;gap:10px;padding:10px}.es-config legend{color:#f1873d;font-weight:700}.es-config label{display:grid;gap:4px}.es-config input,.es-config select{min-width:0;width:100%;box-sizing:border-box;padding:8px;color:inherit;background:var(--es-bg,var(--surface,#122230));border:1px solid #657789;border-radius:6px;font:inherit}.es-config input[type=checkbox]{width:18px;height:18px;accent-color:#f1873d}.es-config .es-check{display:flex;align-items:center;gap:8px}.es-config small{color:var(--es-muted,inherit);line-height:1.5}.es-config button{padding:7px;border:1px solid #657789;border-radius:6px;background:transparent;color:inherit;cursor:pointer}.es-config .es-device{border:1px solid #65778955;border-radius:7px}.es-config .es-device>div{padding:8px;display:grid;gap:8px}.es-config select option{background:var(--es-panel,#122230);color:var(--es-text,#eaf2f8)}
     .energy-station .es-foot{font:11px system-ui;color:var(--es-muted);border-top:1px solid var(--es-line);padding-top:10px}
+    .energy-station[data-phone=false] h2{font-size:22px}.energy-station[data-phone=false] .es-foot{font-size:13px}
+    .energy-station[data-phone=false] .es-svg .es-name{font-size:15px}.energy-station[data-phone=false] .es-svg .es-value{font-size:22px}.energy-station[data-phone=false] .es-svg .es-detail{font-size:13px}
+    .energy-station[data-phone=false] .es-svg .es-reading,.energy-station[data-phone=false] .es-svg .es-reading-value{font-size:22px}
+    .es-svg .es-frequency{font-size:13px;text-anchor:end;fill:var(--node-color);font-weight:600}
     @container station (max-width:600px){.energy-station .es-subtitle{font-size:10px}.energy-station h2{font-size:16px}.energy-station .es-svg .es-name{font-size:20px}.energy-station .es-svg .es-value{font-size:28px}.energy-station .es-svg .es-detail{font-size:16px}.energy-station .es-head{gap:8px;flex-wrap:wrap}.energy-station .apf-tools{margin-left:auto}.energy-station .es-open{font-size:12px;padding:7px}.energy-station .es-settings{top:55px}}
   `;
   const svgNS='http://www.w3.org/2000/svg';let serial=0;
@@ -155,7 +159,7 @@ if (typeof window !== 'undefined') {
       cancelAnimationFrame(raf);edges=[];nodes=new Map();
       const mobile=cfg.format==='phone'||(cfg.format!=='wide'&&stage.getBoundingClientRect().width<600);phone=mobile;
       const wide=!mobile&&(cfg.format==='wide'||cfg.format==='auto'&&stage.getBoundingClientRect().width>=950);
-      card.dataset.fit=String(cfg.fit&&!mobile);
+      card.dataset.fit=String(cfg.fit&&!mobile);card.dataset.phone=String(mobile);
       const w=mobile?600:wide?1400:1100,cols=mobile?2:wide?10:5,visiblePV=cfg.showSolar?cfg.pv.map((p,i)=>p.visible?i:-1).filter(i=>i>=0):[];
       const rows=Math.ceil(visiblePV.length/cols),pvTop=110,rowHeight=mobile?145:125;
       const totalY=cfg.showSolar?pvTop+rows*rowHeight+35:0,coreY=totalY+140;
@@ -250,11 +254,28 @@ if (typeof window !== 'undefined') {
       beside('battery',mainRows,'right',0);
       beside('grid',['importToday','exportToday'].filter(k=>isDemo||cfg.telemetry[k]).map(k=>[label[k],number(data.telemetry[k],unit[k])]),'above',-115);
       beside('backup',(isDemo||cfg.telemetry.homeToday)?[[label.homeToday,number(data.telemetry.homeToday,'kWh')]]:[],'above',-55);
-      const temperatureRows=['acTemperature','dcTemperature'].filter(k=>isDemo||cfg.telemetry[k]).map(k=>['',label[k]+' — '+number(data.telemetry[k],unit[k])]);
-      if(!phone)beside('inverter',temperatureRows,'left',-55);
+      const todayNode=nodes.get('today');
+      if(todayNode&&(isDemo||cfg.solarForecast)){
+        todayNode.val.replaceChildren();
+        for(const [x,anchor,value] of [[-14,'end',number(data.today,'kWh',1)],[0,'middle','/'],[14,'start',number(data.forecast,'kWh',1)]]){
+          const part=svgEl('tspan',{x,'text-anchor':anchor});part.style.textAnchor=anchor;part.textContent=value;todayNode.val.append(part);
+        }
+        todayNode.g.setAttribute('aria-label',tr('Generated today / forecast today: ','Вироблено сьогодні / прогноз на сьогодні: ')+number(data.today,'kWh',1)+' / '+number(data.forecast,'kWh',1));
+      }
+      const temperatureRows=['acTemperature','dcTemperature'].filter(k=>isDemo||cfg.telemetry[k]).map(k=>['',label[k]+' '+number(data.telemetry[k],unit[k])]);
+      const inverterReadingY=cfg.phases===3?-12:10;
+      if(!phone)beside('inverter',temperatureRows,'left',inverterReadingY);
       const acRows=cfg.phases===3?cfg.phaseReadings.flatMap((p,i)=>phone?[[ '', 'L'+(i+1)+' · '+number(data.phaseReadings[i].voltage,'V')],['',number(data.phaseReadings[i].current,'A')]]:[['','L'+(i+1)+' · '+number(data.phaseReadings[i].voltage,'V')+' · '+number(data.phaseReadings[i].current,'A')]]):['voltage','current'].filter(k=>isDemo||cfg.telemetry[k]).map(k=>[label[k],number(data.telemetry[k],unit[k])]);
-      if(isDemo||cfg.telemetry.frequency)acRows.push([label.frequency,number(data.telemetry.frequency,'Hz')]);
-      beside('inverter',phone?[...temperatureRows,...acRows]:acRows,phone?'above':'right',phone?150:-35);
+      const inverterNode=nodes.get('inverter');
+      inverterNode?.g.querySelector('.es-frequency')?.remove();
+      if(isDemo||cfg.telemetry.frequency){
+        if(phone)acRows.push([label.frequency,number(data.telemetry.frequency,'Hz')]);
+        else if(inverterNode){
+          inverterNode.g.querySelector('.es-icon').setAttribute('x',-52);
+          const hz=svgEl('text',{x:58,y:20,'class':'es-frequency'});hz.textContent=number(data.telemetry.frequency,'Hz');inverterNode.g.append(hz);
+        }
+      }
+      beside('inverter',phone?[...temperatureRows,...acRows]:acRows,phone?'above':'right',phone?150:inverterReadingY);
 
       foot.textContent=tr('Appliances detail their parent total. Visibility changes the diagram, not the electrical connection.','Прилади деталізують підсумок своєї групи. Видимість змінює схему, а не електричне підключення.');
       if(!isDemo&&data.gridState==='unknown')foot.textContent+=' '+tr('Grid status unknown: configure its status sensor.','Стан мережі невідомий: вкажіть датчик стану.');
@@ -312,7 +333,7 @@ if (typeof window !== 'undefined') {
       display.append(el('small',tr('Sensor IDs use live HA data; fixed numbers are manual values. Demo is never used in the installed HA card.','Сутності використовують живі дані HA; числа — ручні значення. У встановленій HA-картці демодані не використовуються.')));
       const palette=group(tr('Flow colors','Кольори потоків'));
       for(const [key,en,ua] of [['solar','Solar','Сонце'],['grid','Grid','Мережа'],['backup','Backup loads','Гарантоване навантаження'],['battery','Battery labels','Підписи батареї'],['charge','Battery charging','Заряд батареї'],['discharge','Battery discharging','Розряд батареї'],['aux','GEN / AUX','GEN / AUX'],['inverter','Inverter','Інвертор']]){const input=field(palette,tr(en,ua),c.colors,key);input.type='color';}
-      const solar=group(tr('Solar · up to 10 fields','Сонце · до 10 полів'));check(solar,tr('Show solar','Показувати сонце'),c,'showSolar');sensor(solar,tr('Solar energy today (kWh)','Генерація сьогодні (кВт·год)'),c,'solarToday','energy');sensor(solar,tr('PV total (optional; otherwise sum fields)','Сумарна PV (або сума полів)'),c,'pvTotal');
+      const solar=group(tr('Solar · up to 10 fields','Сонце · до 10 полів'));check(solar,tr('Show solar','Показувати сонце'),c,'showSolar');sensor(solar,tr('Solar energy today (kWh)','Генерація сьогодні (кВт·год)'),c,'solarToday','energy');sensor(solar,tr('Solar forecast today (kWh)','Прогноз генерації на сьогодні (кВт·год)'),c,'solarForecast','energy');sensor(solar,tr('PV total (optional; otherwise sum fields)','Сумарна PV (або сума полів)'),c,'pvTotal');
       const count=(parent,key,max,title)=>{const input=field(parent,title,{count:String(c[key].length)},'count',Array.from({length:max+1},(_,i)=>[String(i),String(i)]));input.onchange=()=>{const n=Number(input.value);while(c[key].length<n)c[key].push({visible:true,name:'',power:'',soc:'',voltage:'',temperature:''});c[key]=c[key].slice(0,n);commit();draw();};};
       count(solar,'pv',10,tr('PV field count','Кількість PV-полів'));
       c.pv.forEach((p,i)=>{const f=device(solar,p.name||'PV '+(i+1));check(f,tr('Show PV ','Показувати PV ')+(i+1),p,'visible');field(f,tr('PV name ','Назва PV ')+(i+1),p,'name');sensor(f,tr('PV power ','Потужність PV ')+(i+1),p,'power');});
@@ -2537,7 +2558,7 @@ field(group,tr('Image URL (/local/… in HA)','URL зображення (/local/
 (() => {
   'use strict';
 
-  const CARD_VERSION = '0.6.8';
+  const CARD_VERSION = '0.6.9';
   const EN = {
     'Стан системи':'System status', 'Помилки':'Errors', 'Стан АКБ':'Battery status', 'Електромобіль — потужність':'EV — power', 'Генератор — потужність':'Generator — power', 'Мова картки': 'Card language', 'Сонце': 'Solar', 'Дім': 'Home', 'Самоспоживання': 'Self-consumption', 'АКБ': 'Battery', 'Прогноз на 7 днів': '7-day forecast', 'Середньодобово': 'Daily average', 'Найкращий день': 'Best day', 'Мікроінвертор': 'Microinverter', 'MPPT МАТРИЦЯ': 'MPPT MATRIX', '✓ Оптимально': '✓ Optimal', 'Автоматично (Home Assistant)': 'Automatic (Home Assistant)',
     'Імпортувати макет ANMA / Import ANMA layout (.json)': 'Import ANMA layout (.json)',

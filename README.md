@@ -4,7 +4,7 @@
 
 Build an energy dashboard around your existing Home Assistant sensors. Start with **Energy Station**, choose the components you want to see and connect their entities. Follow solar production, battery charging, grid imports and exports, and the loads that matter to you.
 
-**Latest release: 0.6.8** · [Download](https://github.com/bobantonbob/lovelace-anma-card/releases/latest) · [Configuration](docs/CONFIGURATION.md) · [Changelog](CHANGELOG.md)
+**Latest release: 0.6.9** · [Download](https://github.com/bobantonbob/lovelace-anma-card/releases/latest) · [Configuration](docs/CONFIGURATION.md) · [Changelog](CHANGELOG.md)
 
 ## Start with Energy Station
 
@@ -70,7 +70,7 @@ This repository is available through a custom repository; inclusion in the defau
 
 ### Manual installation
 
-Download **anma-card.js** from the latest release and copy it to `/config/www/anma-card.js`. Register `/local/anma-card.js?v=0.6.8` as a JavaScript module. Keep only one ANMA resource registered. When updating, replace the file and refresh your browser cache.
+Download **anma-card.js** from the latest release and copy it to `/config/www/anma-card.js`. Register `/local/anma-card.js?v=0.6.9` as a JavaScript module. Keep only one ANMA resource registered. When updating, replace the file and refresh your browser cache.
 
 ## Connect your readings
 
@@ -137,3 +137,13 @@ Validation: 19 automated tests, Django system checks, desktop appearance and a 3
 Background opacity now uses a slider with percentage feedback. AC and DC temperatures each occupy one compact line. Phone inverter readings are centered below the inverter, ahead of the microinverter; auxiliary and battery paths bypass the text.
 
 General settings now expose the system name shown beneath the fixed ANMA ELECTRIC brand. The brand square uses an explicit lightning SVG instead of a platform emoji. Existing bindings and calculations are preserved. 19 tests and Django checks passed; desktop/mobile DOM placement was checked in a browser.
+
+# 0.6.9 — Solar forecast and desktop telemetry
+
+Energy Station accepts a daily solar forecast entity in Connections → Solar. Below the sun, actual production is shown to the left of a centered slash and the daily forecast to the right. Energy entities are converted from Wh, kWh or MWh; an unavailable forecast remains unknown. Existing layouts without a forecast retain their production reading.
+
+Desktop temperature captions now read `AC 46 °C` and `DC 41 °C`. Temperature readings sit to the left of the inverter, voltage/current to the right at the same height, and frequency inside its upper corner. Diagram text is increased by 2px on desktop; phone text sizes and inverter telemetry placement remain unchanged.
+
+The single `custom:anma-card` entry point, entity bindings and battery calculations are preserved. Website YAML exports retain the forecast setting.
+
+Validation: 20 automated tests and Django system checks passed. Browser checks covered centered forecast values, desktop 22px readings, and phone 20px readings with three phases and no horizontal overflow.
