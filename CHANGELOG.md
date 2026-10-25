@@ -1,5 +1,11 @@
 # Changelog
 
+## 0.6.6 — Battery reserve runtime
+
+The displayed reserve runtime now uses actual signed battery discharge power, rather than the backup-load total which may contain only a subset of appliances. Charging, idle and unavailable battery readings show no depletion estimate. Capacity and entity bindings are unchanged.
+
+Regression case: 18 kWh nominal capacity, 89% SOC, 10% reserve, 1.02 kW battery discharge and 233 W appliance load gives 14.22 kWh usable energy and approximately 13 h 56 min. 18 tests and Django system checks passed.
+
 ## 0.6.5 — Energy Station viewport sizing
 
 Removed the fixed 650px diagram limit. Fitted Energy Station cards now use the available viewport height below their position; fullscreen uses the full viewport with the diagram filling the space between its heading and footer. Resizing recalculates the available height. SVG proportions, entity bindings and the single custom:anma-card entry point are preserved.

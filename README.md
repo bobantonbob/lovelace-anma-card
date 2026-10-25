@@ -4,7 +4,7 @@
 
 Build an energy dashboard around your existing Home Assistant sensors. Start with **Energy Station**, choose the components you want to see and connect their entities. Follow solar production, battery charging, grid imports and exports, and the loads that matter to you.
 
-**Latest release: 0.6.5** · [Download](https://github.com/bobantonbob/lovelace-anma-card/releases/latest) · [Configuration](docs/CONFIGURATION.md) · [Changelog](CHANGELOG.md)
+**Latest release: 0.6.6** · [Download](https://github.com/bobantonbob/lovelace-anma-card/releases/latest) · [Configuration](docs/CONFIGURATION.md) · [Changelog](CHANGELOG.md)
 
 ## Start with Energy Station
 
@@ -70,7 +70,7 @@ This repository is available through a custom repository; inclusion in the defau
 
 ### Manual installation
 
-Download **anma-card.js** from the latest release and copy it to `/config/www/anma-card.js`. Register `/local/anma-card.js?v=0.6.5` as a JavaScript module. Keep only one ANMA resource registered. When updating, replace the file and refresh your browser cache.
+Download **anma-card.js** from the latest release and copy it to `/config/www/anma-card.js`. Register `/local/anma-card.js?v=0.6.6` as a JavaScript module. Keep only one ANMA resource registered. When updating, replace the file and refresh your browser cache.
 
 ## Connect your readings
 
@@ -115,3 +115,9 @@ Validation: 17 automated runtime and Energy Station tests passed; Django system 
 Removed the fixed 650px diagram limit. Fitted Energy Station cards now use the available viewport height below their position; fullscreen uses the full viewport with the diagram filling the space between its heading and footer. Resizing recalculates the available height. SVG proportions, entity bindings and the single custom:anma-card entry point are preserved.
 
 Validation: 17 automated tests and Django checks passed. Normal browser sizing was measured at 984px card height / 830px diagram height in a 1156px viewport. Native fullscreen activation was denied by the test browser and needs verification in Home Assistant.
+
+## 0.6.6 — Battery reserve runtime
+
+The displayed reserve runtime now uses actual signed battery discharge power, rather than the backup-load total which may contain only a subset of appliances. Charging, idle and unavailable battery readings show no depletion estimate. Capacity and entity bindings are unchanged.
+
+Regression case: 18 kWh nominal capacity, 89% SOC, 10% reserve, 1.02 kW battery discharge and 233 W appliance load gives 14.22 kWh usable energy and approximately 13 h 56 min. 18 tests and Django system checks passed.
