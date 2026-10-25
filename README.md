@@ -116,3 +116,7 @@ Project website: [ANMA Energy Platform](https://app.anma-electric.com.ua/).
 ## New in 0.3.0
 
 Every Power Flow and Cloud Flow node supports its own background photo. Panel opacity defaults to 40% and can be adjusted independently from photo visibility. PV entity pickers are beside the PV equipment; bindings survive later edits. Signed grid power selects import/export direction automatically in single-sensor mode. See [the changelog](CHANGELOG.md) for full release notes.
+
+## Energy Station (0.4.0)
+
+Configure up to 10 PV fields and 5 batteries, optional load groups and GEN/AUX roles. The editor supports entity bindings, signed power conventions, light/dark appearance and responsive layouts. See [Energy Station example](examples/energy-station.yaml). Replace all example entities with your own. Demo values are not used in Home Assistant.

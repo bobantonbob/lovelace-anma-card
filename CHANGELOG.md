@@ -1,10 +1,23 @@
 # Changelog
 
-## 0.3.0 — node backgrounds and reliable flow bindings (2026-10-16)
+## 0.4.0 — Energy Station
+
+- New Energy Station template: up to 10 PV fields and 5 batteries, daily solar energy and PV totals.
+- Optional backup/non-backup groups, appliance icons and group assignment, GEN/AUX generator, microinverter or smart-load roles.
+- Signed grid and battery readings, grid-outage states, unit conversion and explicit missing-data states.
+- Responsive wide, square and phone layouts with light/dark themes.
+- Visible PV, battery and appliance rows recenter when their count or visibility changes.
+- Shared website and Home Assistant renderer, entity configuration and export support.
+- Existing templates and entity bindings preserved.
+
+Validation: 9 Energy Station tests, 19 platform dashboard tests, Django checks and JavaScript syntax checks passed. Live hardware validation remains installation-specific. Replace example entity IDs with your own entities.
+
+
+## 0.3.0 â€” node backgrounds and reliable flow bindings (2026-10-16)
 
 ### Added
 - Individual background photos for every Power Flow and Cloud Flow node: PV strings, inverter, batteries, grid, guaranteed and non-guaranteed loads, EV, and Cloud Flow totals.
-- Independent panel opacity (40% by default, 0–100%) and photo visibility. Icons and readings remain opaque. Set both to zero for a background-free node.
+- Independent panel opacity (40% by default, 0â€“100%) and photo visibility. Icons and readings remain opaque. Set both to zero for a background-free node.
 - Photos use centered cover cropping without stretching or changing node geometry.
 - Visible PV entity pickers next to each PV array in the Home Assistant equipment editor; expanded PV entity settings on the website.
 - Explicit signed or split power meter selection for grid and battery in the Home Assistant editor.
@@ -24,26 +37,26 @@
 Update ANMA Card through HACS after it detects this release, or replace anma-card.js manually and refresh the Home Assistant browser cache. Existing configurations remain usable. The new default panel opacity is 40%; set it to 100% for solid panels.
 
 
-## 0.2.0 — stable release
+## 0.2.0 â€” stable release
 
 - Promote the current card to the stable release channel.
 - Include independent card backgrounds, opacity controls, balanced PV rows and the Home Assistant background positioning fix.
 - Refresh desktop and iPhone 16-sized browser screenshots and explain compact mobile behavior.
 - Preserve existing layouts and sensor bindings; no migration is needed.
 
-## 0.2.0-beta.6 — background geometry fix
+## 0.2.0-beta.6 â€” background geometry fix
 
 - Prevent Home Assistant widget styles from placing the background photo in the content flow.
 - Cover cropping preserves image proportions and fills the card without moving its contents.
 - Station, inverter and battery photos passed 48 geometry assertions across both flow templates and three viewport widths.
 - Keep sensor bindings, device icons and opacity controls unchanged.
 
-## 0.2.0-beta.5 — card backgrounds and balanced PV rows
+## 0.2.0-beta.5 â€” card backgrounds and balanced PV rows
 
 - Fix Home Assistant widget CSS overriding background positioning: photos no longer shift content or consume layout space. Verified identical geometry before/after station and device photos with 48 additional assertions.
-- Add independent whole-card background photos to Power Flow and Cloud Flow, with upload/URL, cover/contain, position and 0–100% visibility controls.
+- Add independent whole-card background photos to Power Flow and Cloud Flow, with upload/URL, cover/contain, position and 0â€“100% visibility controls.
 - Preserve existing device photos, sensor bindings and saved layouts.
-- Balance 2–10 PV groups across two full-width rows: 3 = 2+1, 7 = 4+3, 8 = 4+4, 10 = 5+5. A single group fills the solar area.
+- Balance 2â€“10 PV groups across two full-width rows: 3 = 2+1, 7 = 4+3, 8 = 4+4, 10 = 5+5. A single group fills the solar area.
 - Validate 239 browser assertions across 360/768/1440px containers, five model tests and Django system checks.
 - Update the installed card's console version to 0.2.0-beta.5.
 
@@ -54,21 +67,21 @@ Update ANMA Card through HACS after it detects this release, or replace anma-car
 - Publish beta.4 on GitHub; default HACS catalog review and clean-install testing remain pending.
 
 
-## 0.2.0-beta.4 — block background photos
+## 0.2.0-beta.4 â€” block background photos
 
 - Inverter and battery photos fill their blocks using centered cover cropping without changing aspect ratio.
 - Keep the equipment icon over the background photo in desktop layouts.
-- Add Photo visibility (0–100%) to the shared website/Home Assistant editor; existing photos default to 25% visibility.
+- Add Photo visibility (0â€“100%) to the shared website/Home Assistant editor; existing photos default to 25% visibility.
 - Preserve visibility, including zero, through layout normalization and export.
 
-## 0.2.0-beta.3 — sensor input and immediate configuration updates
+## 0.2.0-beta.3 â€” sensor input and immediate configuration updates
 
 - Switching from manual watts to an HA sensor immediately creates a text entity input without relying on a parent editor redraw.
 - Entity selection/input updates the preview immediately and shows the current HA state or a missing-entity message.
 - Configuration events contain independent snapshots, preventing later edits from mutating earlier saved values.
 - Regression checked: manual-to-sensor switch, immediate reading, consecutive battery edits, immutable events and saved JSON reload.
 
-## 0.2.0-beta.2 — Home Assistant editor and continuous flows
+## 0.2.0-beta.2 â€” Home Assistant editor and continuous flows
 
 - Power Flow and Cloud Flow open their complete equipment editor directly in Home Assistant: live entity search, manual watts, maximum-power border scales, battery SOC/voltage/temperature, charging source and MPPT grouping.
 - Removed the unrelated legacy battery/PV list editor from these two card templates.
@@ -76,7 +89,7 @@ Update ANMA Card through HACS after it detects this release, or replace anma-car
 - Preserve flow DOM nodes and animation timelines on telemetry updates instead of restarting them.
 - Verified entity selection, manual 4500 W against a 9 kW scale (50%), and animation identity across repeated state updates in a local browser harness.
 
-## 0.2.0-beta.1 — public distribution candidate
+## 0.2.0-beta.1 â€” public distribution candidate
 
 - ANMA Power Flow with individual PV/battery groups and screen-fitting layouts.
 - ANMA Cloud Flow six-node directional diagram.

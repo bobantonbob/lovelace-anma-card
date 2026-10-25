@@ -1,6 +1,7 @@
 /* ANMA Power Flow: shared studio and Home Assistant renderer. */
 (function(root){
   'use strict';
+  const Station=root.AnmaEnergyStation||(typeof require==='function'?require('./energy-station.js'):null);
   const text=v=>typeof v==='string'?v.slice(0,200):'';
   const image=v=>typeof v==='string' && v.length<750000 && /^(https?:\/\/|\/(?!\/)|data:image\/(png|jpeg|webp);base64,)/.test(v)?v:'';
   const isManual=v=>typeof v==='string'&&/^[+-]?(?:\d+(?:\.\d*)?|\.\d+)$/.test(v.trim())&&Number.isFinite(Number(v));
@@ -21,12 +22,14 @@
   function normalize(raw={}) {
     raw=raw&&typeof raw==='object'?raw:{};
     const unit=(v,i,prefix)=>({chargeSource:['solar','grid','mixed','sensor'].includes(v?.chargeSource)?v.chargeSource:'sensor',chargeSourceEntity:text(v?.chargeSourceEntity),backgroundOpacity:opacity(v?.backgroundOpacity),capacityKw:rating(v?.capacityKw),name:text(v?.name)||`${prefix} ${i+1}`,image:image(v?.image),imageOpacity:v?.imageOpacity!=null&&Number.isFinite(Number(v.imageOpacity))?Math.max(0,Math.min(100,Number(v.imageOpacity))):25,power:powerValue(v?.power),soc:text(v?.soc),voltage:text(v?.voltage),temperature:text(v?.temperature),mppts:Array.isArray(v?.mppts)?v.mppts.slice(0,2).map(x=>({name:text(x?.name),power:powerValue(x?.power)})):[]});
-    return {nodeAppearance:Object.fromEntries(['grid','load','nonBackup','ev','solar','battery'].map(k=>[k,appearance(raw.nodeAppearance?.[k])])),background:raw.background&&typeof raw.background==='object'?background(raw.background):null,gridCapacityKw:rating(raw.gridCapacityKw),fit:raw.fit!==false,gridStatus:text(raw.gridStatus),gridOn:text(raw.gridOn)||'on,connected,online,1',gridOff:text(raw.gridOff)||'off,disconnected,offline,0',inverterStatus:text(raw.inverterStatus),inverterOn:text(raw.inverterOn)||'on,running,normal,online',inverterOff:text(raw.inverterOff)||'off,standby,offline',inverterFault:text(raw.inverterFault)||'error,fault,alarm',nonBackup:powerValue(raw.nonBackup),backupName:text(raw.backupName)||'EPS / Backup',nonBackupName:text(raw.nonBackupName)||'Grid / Non-backup',mode:['auto','day','night'].includes(raw.mode)?raw.mode:'auto',profile:['auto','desktop','tablet','mobile'].includes(raw.profile)?raw.profile:'auto',hideDetails:raw.hideDetails!==false,showEv:raw.showEv!==false,invertGrid:raw.invertGrid===true,invertBattery:raw.invertBattery===true,inverter:unit(raw.inverter,0,'Inverter'),batteries:(Array.isArray(raw.batteries)?raw.batteries:[{},{}]).slice(0,5).map((v,i)=>unit(v,i,'Battery')),strings:(Array.isArray(raw.strings)?raw.strings:[{},{}]).slice(0,10).map((v,i)=>unit(v,i,'PV')),grid:powerValue(raw.grid),load:powerValue(raw.load),ev:powerValue(raw.ev)};
+    return {station:Station.normalize(raw.station),nodeAppearance:Object.fromEntries(['grid','load','nonBackup','ev','solar','battery'].map(k=>[k,appearance(raw.nodeAppearance?.[k])])),background:raw.background&&typeof raw.background==='object'?background(raw.background):null,gridCapacityKw:rating(raw.gridCapacityKw),fit:raw.fit!==false,gridStatus:text(raw.gridStatus),gridOn:text(raw.gridOn)||'on,connected,online,1',gridOff:text(raw.gridOff)||'off,disconnected,offline,0',inverterStatus:text(raw.inverterStatus),inverterOn:text(raw.inverterOn)||'on,running,normal,online',inverterOff:text(raw.inverterOff)||'off,standby,offline',inverterFault:text(raw.inverterFault)||'error,fault,alarm',nonBackup:powerValue(raw.nonBackup),backupName:text(raw.backupName)||'EPS / Backup',nonBackupName:text(raw.nonBackupName)||'Grid / Non-backup',mode:['auto','day','night'].includes(raw.mode)?raw.mode:'auto',profile:['auto','desktop','tablet','mobile'].includes(raw.profile)?raw.profile:'auto',hideDetails:raw.hideDetails!==false,showEv:raw.showEv!==false,invertGrid:raw.invertGrid===true,invertBattery:raw.invertBattery===true,inverter:unit(raw.inverter,0,'Inverter'),batteries:(Array.isArray(raw.batteries)?raw.batteries:[{},{}]).slice(0,5).map((v,i)=>unit(v,i,'Battery')),strings:(Array.isArray(raw.strings)?raw.strings:[{},{}]).slice(0,10).map((v,i)=>unit(v,i,'PV')),grid:powerValue(raw.grid),load:powerValue(raw.load),ev:powerValue(raw.ev)};
   }
   const css=`
   .apf{--pf-bg:#101b25;--pf-panel:#15232f;--pf-ink:#eef5fa;--pf-muted:#9eb1c0;container-type:inline-size;container-name:powerflow;position:relative;isolation:isolate;box-sizing:border-box;width:100%;min-width:0;border:1px solid #334655;border-radius:18px;background:var(--pf-bg);color:var(--pf-ink);padding:16px;overflow:hidden;font:14px system-ui,sans-serif;grid-column:1/-1;display:flex;flex-direction:column;gap:10px}
   .apf[data-fit=true]{height:var(--apf-height,calc(100svh - 72px));min-height:300px;max-height:900px}.apf:fullscreen{height:100dvh;max-height:none;min-height:0;width:100%;border-radius:0;--apf-height:100dvh}
   :host(:fullscreen) .apf{height:100dvh;max-height:none;border-radius:0;--apf-height:100dvh}.anma-container[data-power-flow-only=true]{padding:0!important}.anma-container[data-power-flow-only=true]>.db-preview-head{display:none}.anma-container[data-power-flow-only=true]>.db-canvas{display:block}.anma-container[data-power-flow-only=true]>.db-canvas>div:empty{display:none}
+  :root[data-theme=light] .apf[data-auto-theme=true],.db-preview[data-theme-mode^="light_"] .apf[data-auto-theme=true]{--pf-bg:#f4f7fa;--pf-panel:#fff;--pf-ink:#152735;--pf-muted:#526677}
+  .apf .apf-name,.apf h2{color:var(--pf-ink)}
   .apf[data-mode=day]{--pf-bg:#f4f7fa;--pf-panel:#fff;--pf-ink:#152735;--pf-muted:#526677}.apf *{box-sizing:border-box}.apf-bg{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;z-index:-1}
   .apf-head{display:flex;justify-content:space-between;align-items:center;gap:8px;flex:none}.apf-head h2{font-size:20px;margin:2px 0}.apf-kicker{color:#f1873d;font-size:9px;letter-spacing:1.5px;font-weight:800}.apf-tools{display:flex;gap:6px;align-items:center}.apf-badge{font-size:10px;color:var(--pf-muted)}.apf button{cursor:pointer;font:inherit}.apf-expand,.apf-config-button{border:1px solid #526677;background:var(--pf-panel);color:var(--pf-ink);border-radius:8px;padding:6px 9px}
   .apf-body{display:flex;flex-direction:column;gap:10px;min-height:0;flex:1}.apf-solar,.apf-batteries{display:grid;grid-template-columns:repeat(var(--cols),minmax(0,1fr));gap:8px;min-height:0}.apf-solar{flex:1.2;display:flex;flex-direction:column}.apf-solar-row{display:grid;grid-template-columns:repeat(var(--row-cols),minmax(0,1fr));gap:inherit;flex:1;min-height:0}.apf-batteries{flex:1.3}.apf-node{position:relative;display:flex;flex-direction:column;justify-content:center;align-items:center;gap:5px;background:var(--pf-panel);border:1px solid color-mix(in srgb,var(--node) 45%,transparent);border-radius:12px;padding:10px;min-width:0;min-height:0;text-align:center;overflow:hidden}
@@ -46,8 +49,9 @@
   @media(max-height:500px){.apf-body .apf-core{flex:2.8}.apf-body .apf-solar,.apf-body .apf-batteries{flex:1}.apf-solar{grid-template-columns:repeat(var(--total),minmax(0,1fr))}.apf{padding:8px;gap:5px}.apf-head h2{font-size:14px}.apf-kicker,.apf-icon,.apf-node img,.apf-detail,.apf-energy,.apf-charge{display:none!important}.apf-body{gap:4px}.apf-core{row-gap:8px}.apf-node{gap:1px!important;padding:3px!important}.apf-node b{font-size:16px}.apf-node .apf-name{font-size:9px;line-height:12px}.apf-node .apf-state{font-size:8px!important;line-height:10px}.apf-caption{font-size:8px}}
   `;
   function render(layout,{uk=false,demo=false,hass=null,change=null}={}){
+    if(layout.template==='energy_station')return Station.render(layout,{uk,demo,hass,change});
     const c=normalize(layout.powerFlow),n=(tag,cls,txt)=>{const e=document.createElement(tag);e.className=cls||'';if(txt!==undefined)e.textContent=txt;return e;},tr=(en,ua)=>uk?ua:en;
-    const card=n('section','apf db-widget-box');card.dataset.mode=c.mode==='auto'?(String(layout.theme?.mode).startsWith('light')||layout.theme?.mode==='nordic'?'day':'night'):c.mode;card.dataset.profile=c.profile;card.setAttribute('aria-label','ANMA Power Flow');
+    const card=n('section','apf db-widget-box');card.dataset.mode=c.mode==='auto'?(String(layout.theme?.mode).startsWith('light')||layout.theme?.mode==='nordic'?'day':'night'):c.mode;card.dataset.autoTheme=String(c.mode==='auto');card.dataset.profile=c.profile;card.setAttribute('aria-label','ANMA Power Flow');
     card.append(n('style','',css));const sceneBackground=background(c.background||layout.background);if(sceneBackground.image){const bg=n('img','apf-bg');bg.src=sceneBackground.image;bg.alt='';bg.style.cssText='position:absolute;inset:0;width:100%;height:100%;max-width:none;max-height:none;z-index:-1;pointer-events:none';bg.style.opacity=sceneBackground.opacity/100;bg.style.objectFit=sceneBackground.fit;bg.style.objectPosition=sceneBackground.position;card.append(bg);}
     const head=n('header','apf-head'),brand=n('div');brand.append(n('span','apf-kicker','ANMA ELECTRIC / ENERGY SYSTEM'),n('h2','','Power Flow'));head.append(brand,n('span','apf-badge',demo?tr('DEMO · PREVIEW','ДЕМО · ПЕРЕГЛЯД'):tr('HOME ASSISTANT','HOME ASSISTANT')));card.append(head);
     const manualValues=[c.grid,c.load,c.ev,c.nonBackup,c.inverter.power,...c.batteries.map(b=>b.power),...c.strings.flatMap(s=>s.mppts.length?s.mppts.map(m=>m.power):[s.power])].some(isManual);
@@ -129,12 +133,73 @@
       };
       svg.querySelectorAll('path').forEach(path=>{const d=paths[path.dataset.branch];if(d)path.setAttribute('d',d);else path.remove();});
       const defs=document.createElementNS(svg.namespaceURI,'defs');const marker=document.createElementNS(svg.namespaceURI,'marker');
-      const markerId='cloud-arrow-'+Math.random().toString(36).slice(2);marker.id=markerId;marker.setAttribute('viewBox','0 0 10 10');marker.setAttribute('refX','9');marker.setAttribute('refY','5');marker.setAttribute('markerWidth','5');marker.setAttribute('markerHeight','5');marker.setAttribute('orient','auto-start-reverse');
+      const markerId='cloud-arrow-'+Math.random().toString(36).slice(2);marker.id=markerId;marker.setAttribute('viewBox','0 0 10 10');marker.setAttribute('refX','10');marker.setAttribute('refY','5');marker.setAttribute('markerWidth','5');marker.setAttribute('markerHeight','5');marker.setAttribute('orient','auto-start-reverse');
       const arrow=document.createElementNS(svg.namespaceURI,'path');arrow.setAttribute('d','M0 0L10 5L0 10Z');arrow.setAttribute('fill','#83b4ff');marker.append(arrow);defs.append(marker);svg.prepend(defs);
       svg.querySelectorAll('.apf-wire').forEach(path=>{if(path.dataset.active==='true')path.setAttribute(path.dataset.reverse==='true'?'marker-start':'marker-end','url(#'+markerId+')');});
+      const particles=[];
       svg.querySelectorAll('.apf-wire[data-active=true]').forEach(path=>{
-        const dot=document.createElementNS(svg.namespaceURI,'circle');dot.classList.add('cloud-flow-dot');dot.setAttribute('r','1.8');dot.setAttribute('fill','#54a9ff');dot.setAttribute('stroke','#d7edff');dot.setAttribute('stroke-width','.7');
-        const motion=document.createElementNS(svg.namespaceURI,'animateMotion');motion.setAttribute('path',path.getAttribute('d'));motion.setAttribute('dur',path.style.getPropertyValue('--flow-duration')||'2s');motion.setAttribute('repeatCount','indefinite');motion.setAttribute('calcMode','linear');motion.setAttribute('keyPoints',path.dataset.reverse==='true'?'1;0':'0;1');motion.setAttribute('keyTimes','0;1');dot.append(motion);svg.append(dot);
+        for(let tail=4;tail>=0;tail--){
+          const dot=document.createElementNS(svg.namespaceURI,'circle');
+          dot.classList.add('cloud-flow-dot');
+          dot.setAttribute('r',tail?String(1.8-tail*.32):'1.8');
+          dot.setAttribute('fill','#54a9ff');
+          dot.setAttribute('opacity',tail?String([1,.65,.4,.22,.1][tail]):'1');
+          if(!tail){dot.setAttribute('stroke','#d7edff');dot.setAttribute('stroke-width','.7');}
+          const motion=document.createElementNS(svg.namespaceURI,'animateMotion');
+          motion.setAttribute('dur',path.style.getPropertyValue('--flow-duration')||'2s');
+          motion.setAttribute('repeatCount','indefinite');motion.setAttribute('calcMode','linear');
+          motion.setAttribute('keyPoints',path.dataset.reverse==='true'?'1;0':'0;1');motion.setAttribute('keyTimes','0;1');
+          svg.append(dot);particles.push({path,dot,motion,tail});
+        }
+      });
+      const updateCloudPaths=()=>{
+        const bounds=body.getBoundingClientRect();if(!bounds.width||!bounds.height)return;
+        const box=el=>{const r=el.getBoundingClientRect();return {l:(r.left-bounds.left)*300/bounds.width,r:(r.right-bounds.left)*300/bounds.width,t:(r.top-bounds.top)*200/bounds.height,b:(r.bottom-bounds.top)*200/bounds.height,x:(r.left+r.width/2-bounds.left)*300/bounds.width,y:(r.top+r.height/2-bounds.top)*200/bounds.height};};
+        const a=box(sun),g=box(gridNode),i=box(inv),b=box(bat),l=box(backed),n=box(non);
+        const elbow=(x1,y1,x2,y2)=>{const mid=(x1+x2)/2,sx=Math.sign(x2-x1),sy=Math.sign(y2-y1),r=Math.min(8,Math.abs(x2-x1)/4,Math.abs(y2-y1)/4);return `M${x1} ${y1}H${mid-sx*r}Q${mid} ${y1} ${mid} ${y1+sy*r}V${y2-sy*r}Q${mid} ${y2} ${mid+sx*r} ${y2}H${x2}`;};
+        const routes={
+          'solar-inverter':elbow(a.r,a.y,i.l,i.y),
+          'grid-inverter':elbow(g.l,g.y,i.r,i.y),
+          'inverter-backup':`M${i.x} ${i.b}L${l.x} ${l.t}`,
+          'grid-nonbackup':`M${g.x} ${g.b}L${n.x} ${n.t}`,
+          'inverter-battery':elbow(i.l,i.y,b.r,b.y)
+        };
+        svg.querySelectorAll('.apf-wire').forEach(path=>path.setAttribute('d',routes[path.dataset.branch]));
+        particles.forEach(({path,motion,tail})=>{
+          motion.setAttribute('path',path.getAttribute('d'));
+          // Separate the fading samples so the trail remains visible behind the head.
+          const length=path.getTotalLength()*bounds.width/300;
+          const seconds=parseFloat(motion.getAttribute('dur'))||2;
+          if(!motion.dataset.started){
+            // The shared frame loop below positions the head and its trail.
+            motion.dataset.started='true';
+          }
+        });
+      };
+      card._refreshCloudPaths=updateCloudPaths;
+      requestAnimationFrame(()=>{
+        if(!card.isConnected)return;
+        updateCloudPaths();
+        let last=performance.now();const phases=new Map();
+        const animate=now=>{
+          if(!card.isConnected)return;
+          const elapsed=(now-last)/1000;last=now;
+          const width=body.getBoundingClientRect().width;
+          svg.querySelectorAll('.apf-wire[data-active=true]').forEach(path=>{
+            const duration=parseFloat(path.style.getPropertyValue('--flow-duration'))||2;
+            phases.set(path,((phases.get(path)||0)+elapsed/duration)%1);
+          });
+          particles.forEach(({path,dot,tail})=>{
+            const length=path.getTotalLength();if(!length||!width)return;
+            const phase=((phases.get(path)||0)-tail*7*300/width/length+1)%1;
+            const point=path.getPointAtLength((path.dataset.reverse==='true'?1-phase:phase)*length);
+            dot.setAttribute('cx',point.x);dot.setAttribute('cy',point.y);
+          });
+          requestAnimationFrame(animate);
+        };
+        requestAnimationFrame(animate);
+        const resize=new ResizeObserver(()=>{if(!card.isConnected){resize.disconnect();return;}updateCloudPaths();});
+        resize.observe(body);[sun,gridNode,inv,bat,backed,non].forEach(el=>resize.observe(el));
       });
       body.replaceChildren(svg,sun,gridNode,inv,bat,backed,non);
       card.append(n('style','',`
@@ -142,7 +207,10 @@
         .apf-cloud .apf-body>.apf-node{position:absolute;transform:translate(-50%,-50%);width:clamp(66px,19%,150px);min-height:64px;padding:8px 4px;gap:4px;background:var(--pf-panel);border-color:color-mix(in srgb,var(--node) 30%,transparent);box-shadow:0 3px 12px #0002;z-index:1}
         .apf-cloud .cloud-solar{left:12%;top:15%}.apf-cloud .apf-grid{left:88%;top:15%}.apf-cloud .apf-inverter{left:50%;top:47%}.apf-cloud .cloud-battery{left:12%;top:85%}.apf-cloud .apf-backup{left:50%;top:85%}.apf-cloud .apf-nonbackup{left:88%;top:85%}
         .apf-cloud .apf-wires{position:absolute;inset:0;width:100%;height:100%;overflow:visible}
-        .apf-cloud .apf-wire{stroke-width:2;stroke-dasharray:4 6;stroke-linecap:round}
+        .apf-cloud .apf-wire{stroke-width:2;stroke-dasharray:4 6;stroke-linecap:round;animation-name:cloud-current;animation-duration:1s}
+        @keyframes cloud-current{to{stroke-dashoffset:-20}}
+        
+        .apf-cloud .apf-name,.apf-cloud h2{color:var(--pf-ink)}
         .apf-cloud .apf-perimeter,.apf-cloud .apf-marker{display:none}
         @media(prefers-reduced-motion:reduce){.cloud-flow-dot{display:none}}
         .apf-cloud .apf-node b{font-size:clamp(12px,2.7cqw,24px)}
@@ -166,6 +234,7 @@
   }
   // Keep live nodes (and their animation timelines) across HA state updates.
   function update(host,layout,options={}){
+    if(layout.template==='energy_station')return Station.update(host,layout,options);
     const next=render(layout,options),current=host.firstElementChild;
     if(!current||current.className!==next.className){host.replaceChildren(next);return next;}
     function sync(target,source){
@@ -173,8 +242,9 @@
       if(target.nodeType===3){if(target.data!==source.data)target.data=source.data;return;}
       if(target.nodeType!==1)return;
       const animations=target.getAnimations?.().map(a=>({animation:a,time:a.currentTime,duration:a.effect?.getTiming().duration}))||[];
-      for(const attr of [...target.attributes])if(!source.hasAttribute(attr.name))target.removeAttribute(attr.name);
-      for(const attr of source.attributes)if(target.getAttribute(attr.name)!==attr.value)target.setAttribute(attr.name,attr.value);
+      const keep=new Set(target.closest?.('.apf-cloud')?(target.tagName==='animateMotion'?['path','begin','data-started']:target.classList?.contains('apf-wire')?['d']:[]):[]);
+      for(const attr of [...target.attributes])if(!keep.has(attr.name)&&!source.hasAttribute(attr.name))target.removeAttribute(attr.name);
+      for(const attr of source.attributes)if(!keep.has(attr.name)&&target.getAttribute(attr.name)!==attr.value)target.setAttribute(attr.name,attr.value);
       for(const saved of animations){
         const duration=saved.animation.effect?.getTiming().duration;
         if(typeof saved.time==='number'&&typeof duration==='number'&&typeof saved.duration==='number'&&saved.duration>0&&duration!==saved.duration)saved.animation.currentTime=saved.time/saved.duration*duration;
@@ -183,9 +253,10 @@
       children.forEach((child,i)=>{if(target.childNodes[i])sync(target.childNodes[i],child);else target.append(child);});
       while(target.childNodes.length>children.length)target.lastChild.remove();
     }
-    sync(current,next);return current;
+    sync(current,next);current._refreshCloudPaths?.();return current;
   }
-  function editor(raw,uk,onchange,{getStates=()=>null,legacyBackground=null}={}){
+  function editor(raw,uk,onchange,{getStates=()=>null,legacyBackground=null,template=null}={}){
+    if(template==='energy_station')return Station.editor(raw?.station,uk,(station,redraw)=>onchange({...normalize(raw),station},redraw),{getStates});
     const c=normalize(raw),n=(tag,txt)=>{const e=document.createElement(tag);if(txt)e.textContent=txt;return e;},tr=(en,ua)=>uk?ua:en;
     const box=n('details'),summary=n('summary',tr('Configure Power Flow','Налаштувати Power Flow')),form=n('div');form.className='apf-settings';box.className='apf-config';box.append(summary,form);const commit=(redraw=true)=>{const host=box.getRootNode();onchange(c,redraw);host.querySelectorAll('.apf-config').forEach(e=>e.open=true);};box.addEventListener('click',e=>e.stopPropagation());
     function suggest(input,kind){

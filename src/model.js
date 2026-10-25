@@ -29,6 +29,7 @@
   const templates = {
     power_flow: ['power_flow'],
     cloud_flow: ['power_flow'],
+    energy_station: ['power_flow'],
     overview: ['flow', 'solar', 'battery', 'load', 'grid', 'weather', 'chart'],
     compact: ['solar', 'battery', 'load', 'grid'],
     full: ['flow', 'solar', 'battery', 'load', 'grid', 'weather', 'solar_forecast', 'chart']

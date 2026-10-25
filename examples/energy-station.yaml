@@ -1,0 +1,943 @@
+{
+  "type": "custom:anma-card",
+  "layout": {
+    "version": 1,
+    "id": "db-1792947154052-vsf4ui",
+    "name": "PIVDENNE ENERGY · DA6K",
+    "brandTitle": "ANMA ELECTRIC",
+    "origin": "standalone",
+    "template": "energy_station",
+    "powerFlow": {
+      "station": {
+        "format": "auto",
+        "theme": "auto",
+        "demoScene": "sun",
+        "motion": true,
+        "showSolar": true,
+        "showBatteries": true,
+        "showGrid": true,
+        "showBackup": true,
+        "showNonBackup": true,
+        "hideOffline": false,
+        "gridPower": "sensor.grid_power",
+        "gridStatus": "binary_sensor.grid_connected",
+        "gridOn": "on,online,connected,1",
+        "gridOff": "off,offline,disconnected,0",
+        "gridPositive": "import",
+        "batteryPositive": "discharge",
+        "pvTotal": "",
+        "solarToday": "",
+        "backupPower": "",
+        "nonBackupPower": "",
+        "inverterName": "",
+        "inverterPower": "",
+        "pv": [
+          {
+            "name": "",
+            "power": "sensor.pv_1_power",
+            "soc": "",
+            "voltage": "",
+            "temperature": "",
+            "visible": true
+          },
+          {
+            "name": "",
+            "power": "sensor.pv_2_power",
+            "soc": "",
+            "voltage": "",
+            "temperature": "",
+            "visible": true
+          },
+          {
+            "name": "",
+            "power": "sensor.pv_3_power",
+            "soc": "",
+            "voltage": "",
+            "temperature": "",
+            "visible": true
+          },
+          {
+            "name": "",
+            "power": "sensor.pv_4_power",
+            "soc": "",
+            "voltage": "",
+            "temperature": "",
+            "visible": true
+          },
+          {
+            "name": "",
+            "power": "sensor.pv_5_power",
+            "soc": "",
+            "voltage": "",
+            "temperature": "",
+            "visible": true
+          },
+          {
+            "name": "",
+            "power": "sensor.pv_6_power",
+            "soc": "",
+            "voltage": "",
+            "temperature": "",
+            "visible": true
+          },
+          {
+            "name": "",
+            "power": "sensor.pv_7_power",
+            "soc": "",
+            "voltage": "",
+            "temperature": "",
+            "visible": true
+          },
+          {
+            "name": "",
+            "power": "sensor.pv_8_power",
+            "soc": "",
+            "voltage": "",
+            "temperature": "",
+            "visible": true
+          },
+          {
+            "name": "",
+            "power": "sensor.pv_9_power",
+            "soc": "",
+            "voltage": "",
+            "temperature": "",
+            "visible": true
+          },
+          {
+            "name": "",
+            "power": "sensor.pv_10_power",
+            "soc": "",
+            "voltage": "",
+            "temperature": "",
+            "visible": true
+          }
+        ],
+        "batteries": [
+          {
+            "name": "",
+            "power": "sensor.battery_1_power",
+            "soc": "sensor.battery_1_soc",
+            "voltage": "",
+            "temperature": "",
+            "visible": true
+          },
+          {
+            "name": "",
+            "power": "sensor.battery_2_power",
+            "soc": "sensor.battery_2_soc",
+            "voltage": "",
+            "temperature": "",
+            "visible": true
+          },
+          {
+            "name": "",
+            "power": "sensor.battery_3_power",
+            "soc": "sensor.battery_3_soc",
+            "voltage": "",
+            "temperature": "",
+            "visible": true
+          },
+          {
+            "name": "",
+            "power": "sensor.battery_4_power",
+            "soc": "sensor.battery_4_soc",
+            "voltage": "",
+            "temperature": "",
+            "visible": true
+          },
+          {
+            "name": "",
+            "power": "sensor.battery_5_power",
+            "soc": "sensor.battery_5_soc",
+            "voltage": "",
+            "temperature": "",
+            "visible": true
+          }
+        ],
+        "aux": {
+          "visible": true,
+          "role": "micro",
+          "connection": "gen",
+          "name": "",
+          "power": ""
+        },
+        "loads": [
+          {
+            "name": "",
+            "icon": "boiler",
+            "group": "backup",
+            "power": "",
+            "visible": true
+          },
+          {
+            "name": "",
+            "icon": "pump",
+            "group": "backup",
+            "power": "",
+            "visible": true
+          },
+          {
+            "name": "",
+            "icon": "other",
+            "group": "backup",
+            "power": "",
+            "visible": true
+          },
+          {
+            "name": "",
+            "icon": "ev",
+            "group": "grid",
+            "power": "",
+            "visible": true
+          }
+        ]
+      },
+      "nodeAppearance": {
+        "grid": {
+          "image": "",
+          "imageOpacity": 25,
+          "backgroundOpacity": 40
+        },
+        "load": {
+          "image": "",
+          "imageOpacity": 25,
+          "backgroundOpacity": 40
+        },
+        "nonBackup": {
+          "image": "",
+          "imageOpacity": 25,
+          "backgroundOpacity": 40
+        },
+        "ev": {
+          "image": "",
+          "imageOpacity": 25,
+          "backgroundOpacity": 40
+        },
+        "solar": {
+          "image": "",
+          "imageOpacity": 25,
+          "backgroundOpacity": 40
+        },
+        "battery": {
+          "image": "",
+          "imageOpacity": 25,
+          "backgroundOpacity": 40
+        }
+      },
+      "background": null,
+      "gridCapacityKw": null,
+      "fit": true,
+      "gridStatus": "",
+      "gridOn": "on,connected,online,1",
+      "gridOff": "off,disconnected,offline,0",
+      "inverterStatus": "",
+      "inverterOn": "on,running,normal,online",
+      "inverterOff": "off,standby,offline",
+      "inverterFault": "error,fault,alarm",
+      "nonBackup": "",
+      "backupName": "EPS / Backup",
+      "nonBackupName": "Grid / Non-backup",
+      "mode": "auto",
+      "profile": "auto",
+      "hideDetails": true,
+      "showEv": true,
+      "invertGrid": false,
+      "invertBattery": false,
+      "inverter": {
+        "chargeSource": "sensor",
+        "chargeSourceEntity": "",
+        "backgroundOpacity": 40,
+        "capacityKw": null,
+        "name": "Inverter 1",
+        "image": "",
+        "imageOpacity": 25,
+        "power": "",
+        "soc": "",
+        "voltage": "",
+        "temperature": "",
+        "mppts": []
+      },
+      "batteries": [
+        {
+          "chargeSource": "sensor",
+          "chargeSourceEntity": "",
+          "backgroundOpacity": 40,
+          "capacityKw": null,
+          "name": "Battery 1",
+          "image": "",
+          "imageOpacity": 25,
+          "power": "",
+          "soc": "",
+          "voltage": "",
+          "temperature": "",
+          "mppts": []
+        },
+        {
+          "chargeSource": "sensor",
+          "chargeSourceEntity": "",
+          "backgroundOpacity": 40,
+          "capacityKw": null,
+          "name": "Battery 2",
+          "image": "",
+          "imageOpacity": 25,
+          "power": "",
+          "soc": "",
+          "voltage": "",
+          "temperature": "",
+          "mppts": []
+        }
+      ],
+      "strings": [
+        {
+          "chargeSource": "sensor",
+          "chargeSourceEntity": "",
+          "backgroundOpacity": 40,
+          "capacityKw": null,
+          "name": "PV 1",
+          "image": "",
+          "imageOpacity": 25,
+          "power": "",
+          "soc": "",
+          "voltage": "",
+          "temperature": "",
+          "mppts": []
+        },
+        {
+          "chargeSource": "sensor",
+          "chargeSourceEntity": "",
+          "backgroundOpacity": 40,
+          "capacityKw": null,
+          "name": "PV 2",
+          "image": "",
+          "imageOpacity": 25,
+          "power": "",
+          "soc": "",
+          "voltage": "",
+          "temperature": "",
+          "mppts": []
+        }
+      ],
+      "grid": "",
+      "load": "",
+      "ev": ""
+    },
+    "accent": "#f1873d",
+    "font": "system",
+    "logo": "",
+    "language": "auto",
+    "background": {
+      "image": "",
+      "opacity": 15
+    },
+    "glow": true,
+    "motion": true,
+    "flowStyle": "traffic",
+    "flowColors": {
+      "solar": "#f59e0b",
+      "battery": "#37c98b",
+      "grid": "#a855f7",
+      "load": "#38bdf8",
+      "ev": "#10b981",
+      "generator": "#f97316",
+      "inverter": "#f1873d"
+    },
+    "gridColumns": 2,
+    "ratedPower": 6000,
+    "flowSpeedMultiplier": 100,
+    "flowInverted": {
+      "grid": false,
+      "battery": false,
+      "solar": false,
+      "inverter": false,
+      "generator": false,
+      "ev": false,
+      "load": false
+    },
+    "canBridgeEnabled": false,
+    "haFullscreen": true,
+    "photoOpacity": 20,
+    "groupMetrics": true,
+    "widgets": [
+      "power_flow"
+    ],
+    "devices": [],
+    "connections": [],
+    "pvFields": [],
+    "batteryStack": [
+      {
+        "id": "bat-1",
+        "name": "Deye Pro 5.12kWh #1 (Master)",
+        "position": null,
+        "soc": 88,
+        "voltage": "53.2",
+        "current": "1.06",
+        "temp": 24,
+        "status": "Master · OK"
+      }
+    ],
+    "inverterStack": [
+      {
+        "id": "inv-1",
+        "name": "Гібридний інвертор Deye",
+        "type": "hybrid",
+        "phase": "Фаза A (Master)",
+        "power": 3200,
+        "status": "В СИСТЕМІ",
+        "ip": "192.168.10.85",
+        "powerSensor": "",
+        "statusSensor": "",
+        "sensor": ""
+      }
+    ],
+    "deviceImages": {},
+    "provider": "home_assistant",
+    "bindings": {
+      "solar_power": "sensor.solar_power",
+      "solar_daily_energy": "sensor.solar_energy_daily",
+      "battery_soc": "sensor.battery_state_of_charge",
+      "battery_power": "sensor.battery_power",
+      "battery_voltage": "sensor.battery_voltage",
+      "battery_current": "sensor.battery_current",
+      "battery_temp": "sensor.battery_temperature",
+      "grid_power": "sensor.grid_active_power",
+      "grid_voltage": "sensor.grid_voltage",
+      "grid_frequency": "sensor.grid_frequency",
+      "grid_daily_import": "sensor.grid_import_daily",
+      "grid_daily_export": "sensor.grid_export_daily",
+      "load_power": "sensor.home_consumption_power",
+      "load_daily_energy": "sensor.home_consumption_daily",
+      "inverter_power": "sensor.inverter_active_power",
+      "inverter_temp": "sensor.inverter_temperature",
+      "inverter_mode": "sensor.inverter_status",
+      "weather_condition": "weather.forecast_home",
+      "rain_rate": "sensor.weather_rain_rate",
+      "sun_elevation": "sensor.sun_solar_elevation",
+      "daylight_hours": "sensor.daylight",
+      "server_cpu": "sensor.processor_use",
+      "server_ram": "sensor.memory_use_percent",
+      "server_disk": "sensor.disk_use_percent",
+      "ev_power": "sensor.ev_charger_power",
+      "generator_power": "sensor.generator_power",
+      "pv1_power": "sensor.pv_string_1_power",
+      "pv1_voltage": "sensor.pv_string_1_voltage",
+      "pv1_current": "sensor.pv_string_1_current",
+      "pv2_power": "sensor.pv_string_2_power",
+      "pv2_voltage": "sensor.pv_string_2_voltage",
+      "pv2_current": "sensor.pv_string_2_current"
+    },
+    "theme": {
+      "mode": "anma_dark",
+      "shape": "rounded",
+      "accent": "#f1873d"
+    },
+    "viewMode": "desktop",
+    "devicePreset": "responsive",
+    "deviceOrientation": "portrait",
+    "widgetConfigs": {
+      "power_flow": {
+        "size": "full",
+        "shape": "rounded",
+        "accent": "",
+        "title": "ANMA Power Flow",
+        "range": "24h",
+        "forecastDays": 7,
+        "showBatteries": true,
+        "showPv": true,
+        "subFields": 1,
+        "subLayout": "auto",
+        "autoFit": false,
+        "customWidth": null,
+        "customHeight": null,
+        "scale": 1,
+        "activeSeries": {
+          "solar": true,
+          "battery": true,
+          "load": true,
+          "self": true
+        }
+      },
+      "flow": {
+        "size": "full",
+        "shape": "rounded",
+        "accent": "#f1873d",
+        "title": "",
+        "range": "24h",
+        "forecastDays": 7,
+        "showBatteries": true,
+        "showPv": true,
+        "subFields": 1,
+        "subLayout": "auto",
+        "autoFit": false,
+        "customWidth": null,
+        "customHeight": null,
+        "scale": 1,
+        "activeSeries": {
+          "solar": true,
+          "battery": true,
+          "load": true,
+          "self": true
+        }
+      },
+      "solar": {
+        "size": "1x1",
+        "shape": "rounded",
+        "accent": "#f59e0b",
+        "title": "",
+        "range": "24h",
+        "forecastDays": 7,
+        "showBatteries": true,
+        "showPv": true,
+        "subFields": 1,
+        "subLayout": "auto",
+        "autoFit": false,
+        "customWidth": null,
+        "customHeight": null,
+        "scale": 1,
+        "activeSeries": {
+          "solar": true,
+          "battery": true,
+          "load": true,
+          "self": true
+        }
+      },
+      "battery": {
+        "size": "1x1",
+        "shape": "rounded",
+        "accent": "#37c98b",
+        "title": "",
+        "range": "24h",
+        "forecastDays": 7,
+        "showBatteries": true,
+        "showPv": true,
+        "subFields": 1,
+        "subLayout": "auto",
+        "autoFit": false,
+        "customWidth": null,
+        "customHeight": null,
+        "scale": 1,
+        "activeSeries": {
+          "solar": true,
+          "battery": true,
+          "load": true,
+          "self": true
+        }
+      },
+      "load": {
+        "size": "1x1",
+        "shape": "rounded",
+        "accent": "#38bdf8",
+        "title": "",
+        "range": "24h",
+        "forecastDays": 7,
+        "showBatteries": true,
+        "showPv": true,
+        "subFields": 1,
+        "subLayout": "auto",
+        "autoFit": false,
+        "customWidth": null,
+        "customHeight": null,
+        "scale": 1,
+        "activeSeries": {
+          "solar": true,
+          "battery": true,
+          "load": true,
+          "self": true
+        }
+      },
+      "grid": {
+        "size": "1x1",
+        "shape": "rounded",
+        "accent": "#a855f7",
+        "title": "",
+        "range": "24h",
+        "forecastDays": 7,
+        "showBatteries": true,
+        "showPv": true,
+        "subFields": 1,
+        "subLayout": "auto",
+        "autoFit": false,
+        "customWidth": null,
+        "customHeight": null,
+        "scale": 1,
+        "activeSeries": {
+          "solar": true,
+          "battery": true,
+          "load": true,
+          "self": true
+        }
+      },
+      "weather": {
+        "size": "2x1",
+        "shape": "rounded",
+        "accent": "#38bdf8",
+        "title": "",
+        "range": "24h",
+        "forecastDays": 7,
+        "showBatteries": true,
+        "showPv": true,
+        "subFields": 1,
+        "subLayout": "auto",
+        "autoFit": false,
+        "customWidth": null,
+        "customHeight": null,
+        "scale": 1,
+        "activeSeries": {
+          "solar": true,
+          "battery": true,
+          "load": true,
+          "self": true
+        }
+      },
+      "solar_forecast": {
+        "size": "2x1",
+        "shape": "rounded",
+        "accent": "#f59e0b",
+        "title": "",
+        "range": "24h",
+        "forecastDays": 7,
+        "showBatteries": true,
+        "showPv": true,
+        "subFields": 1,
+        "subLayout": "auto",
+        "autoFit": false,
+        "customWidth": null,
+        "customHeight": null,
+        "scale": 1,
+        "activeSeries": {
+          "solar": true,
+          "battery": true,
+          "load": true,
+          "self": true
+        }
+      },
+      "chart": {
+        "size": "2x1",
+        "shape": "rounded",
+        "accent": "#f1873d",
+        "title": "",
+        "range": "24h",
+        "forecastDays": 7,
+        "showBatteries": true,
+        "showPv": true,
+        "subFields": 1,
+        "subLayout": "auto",
+        "autoFit": false,
+        "customWidth": null,
+        "customHeight": null,
+        "scale": 1,
+        "activeSeries": {
+          "solar": true,
+          "battery": true,
+          "load": true,
+          "self": true
+        }
+      },
+      "inverter_health": {
+        "size": "1x1",
+        "shape": "rounded",
+        "accent": "#f1873d",
+        "title": "",
+        "range": "24h",
+        "forecastDays": 7,
+        "showBatteries": true,
+        "showPv": true,
+        "subFields": 1,
+        "subLayout": "auto",
+        "autoFit": false,
+        "customWidth": null,
+        "customHeight": null,
+        "scale": 1,
+        "activeSeries": {
+          "solar": true,
+          "battery": true,
+          "load": true,
+          "self": true
+        }
+      },
+      "server_health": {
+        "size": "2x1",
+        "shape": "rounded",
+        "accent": "#38bdf8",
+        "title": "",
+        "range": "24h",
+        "forecastDays": 7,
+        "showBatteries": true,
+        "showPv": true,
+        "subFields": 1,
+        "subLayout": "auto",
+        "autoFit": false,
+        "customWidth": null,
+        "customHeight": null,
+        "scale": 1,
+        "activeSeries": {
+          "solar": true,
+          "battery": true,
+          "load": true,
+          "self": true
+        }
+      },
+      "battery_stack": {
+        "size": "full",
+        "shape": "rounded",
+        "accent": "#37c98b",
+        "title": "",
+        "range": "24h",
+        "forecastDays": 7,
+        "showBatteries": true,
+        "showPv": true,
+        "subFields": 1,
+        "subLayout": "auto",
+        "autoFit": false,
+        "customWidth": null,
+        "customHeight": null,
+        "scale": 1,
+        "activeSeries": {
+          "solar": true,
+          "battery": true,
+          "load": true,
+          "self": true
+        }
+      },
+      "equipment_status": {
+        "size": "full",
+        "shape": "rounded",
+        "accent": "#f1873d",
+        "title": "",
+        "range": "24h",
+        "forecastDays": 7,
+        "showBatteries": true,
+        "showPv": true,
+        "subFields": 1,
+        "subLayout": "auto",
+        "autoFit": false,
+        "customWidth": null,
+        "customHeight": null,
+        "scale": 1,
+        "activeSeries": {
+          "solar": true,
+          "battery": true,
+          "load": true,
+          "self": true
+        }
+      },
+      "pv_fields": {
+        "size": "full",
+        "shape": "rounded",
+        "accent": "#f59e0b",
+        "title": "",
+        "range": "24h",
+        "forecastDays": 7,
+        "showBatteries": true,
+        "showPv": true,
+        "subFields": 1,
+        "subLayout": "auto",
+        "autoFit": false,
+        "customWidth": null,
+        "customHeight": null,
+        "scale": 1,
+        "activeSeries": {
+          "solar": true,
+          "battery": true,
+          "load": true,
+          "self": true
+        }
+      },
+      "microinverter": {
+        "size": "full",
+        "shape": "rounded",
+        "accent": "#f59e0b",
+        "title": "",
+        "range": "24h",
+        "forecastDays": 7,
+        "showBatteries": true,
+        "showPv": true,
+        "subFields": 1,
+        "subLayout": "auto",
+        "autoFit": false,
+        "customWidth": null,
+        "customHeight": null,
+        "scale": 1,
+        "activeSeries": {
+          "solar": true,
+          "battery": true,
+          "load": true,
+          "self": true
+        }
+      },
+      "ev": {
+        "size": "1x1",
+        "shape": "rounded",
+        "accent": "#10b981",
+        "title": "",
+        "range": "24h",
+        "forecastDays": 7,
+        "showBatteries": true,
+        "showPv": true,
+        "subFields": 1,
+        "subLayout": "auto",
+        "autoFit": false,
+        "customWidth": null,
+        "customHeight": null,
+        "scale": 1,
+        "activeSeries": {
+          "solar": true,
+          "battery": true,
+          "load": true,
+          "self": true
+        }
+      },
+      "generator": {
+        "size": "1x1",
+        "shape": "rounded",
+        "accent": "#f97316",
+        "title": "",
+        "range": "24h",
+        "forecastDays": 7,
+        "showBatteries": true,
+        "showPv": true,
+        "subFields": 1,
+        "subLayout": "auto",
+        "autoFit": false,
+        "customWidth": null,
+        "customHeight": null,
+        "scale": 1,
+        "activeSeries": {
+          "solar": true,
+          "battery": true,
+          "load": true,
+          "self": true
+        }
+      }
+    },
+    "flowNodes": {
+      "solar": {
+        "x": 50,
+        "y": 14,
+        "label": "Solar"
+      },
+      "inverter": {
+        "x": 50,
+        "y": 50,
+        "label": "Inverter"
+      },
+      "battery": {
+        "x": 84,
+        "y": 50,
+        "label": "Battery"
+      },
+      "grid": {
+        "x": 16,
+        "y": 50,
+        "label": "Grid"
+      },
+      "load": {
+        "x": 50,
+        "y": 86,
+        "label": "Home"
+      },
+      "generator": {
+        "x": 16,
+        "y": 16,
+        "label": "Generator"
+      },
+      "ev": {
+        "x": 84,
+        "y": 86,
+        "label": "EV Charger"
+      }
+    },
+    "flowConnections": [
+      {
+        "id": "c-solar",
+        "from": "solar",
+        "to": "inverter",
+        "style": "curved",
+        "line": "traffic",
+        "direction": "forward",
+        "color": "#f59e0b"
+      },
+      {
+        "id": "c-battery",
+        "from": "battery",
+        "to": "inverter",
+        "style": "curved",
+        "line": "traffic",
+        "direction": "auto",
+        "color": "#37c98b"
+      },
+      {
+        "id": "c-grid",
+        "from": "grid",
+        "to": "inverter",
+        "style": "curved",
+        "line": "traffic",
+        "direction": "auto",
+        "color": "#a855f7"
+      },
+      {
+        "id": "c-load",
+        "from": "inverter",
+        "to": "load",
+        "style": "curved",
+        "line": "traffic",
+        "direction": "forward",
+        "color": "#38bdf8"
+      },
+      {
+        "id": "c-ev",
+        "from": "inverter",
+        "to": "ev",
+        "style": "curved",
+        "line": "traffic",
+        "direction": "forward",
+        "color": "#10b981"
+      },
+      {
+        "id": "c-gen",
+        "from": "generator",
+        "to": "inverter",
+        "style": "curved",
+        "line": "traffic",
+        "direction": "forward",
+        "color": "#f97316"
+      }
+    ],
+    "flowVariants": {
+      "desktop": {},
+      "tablet": {},
+      "mobile": {}
+    },
+    "flowMeters": {
+      "inverter": {
+        "mode": "single",
+        "ratedPower": 6000
+      },
+      "solar": {
+        "mode": "single",
+        "ratedPower": 6000
+      },
+      "grid": {
+        "mode": "single",
+        "ratedPower": 6000
+      },
+      "battery": {
+        "mode": "single",
+        "ratedPower": 6000
+      },
+      "load": {
+        "mode": "single",
+        "ratedPower": 6000
+      },
+      "generator": {
+        "mode": "single",
+        "ratedPower": 6000
+      },
+      "ev": {
+        "mode": "single",
+        "ratedPower": 6000
+      }
+    },
+    "elements": []
+  }
+}
