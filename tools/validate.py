@@ -4,10 +4,10 @@ import json
 import re
 
 root = Path(__file__).resolve().parents[1]
-hacs = json.loads((root / 'hacs.json').read_text())
+hacs = json.loads((root / 'hacs.json').read_text(encoding='utf-8'))
 assert hacs['filename'] == 'anma-card.js' and hacs['content_in_root'] is True
 assert (root / hacs['filename']).stat().st_size > 100000
-dashboard = json.loads((root / 'examples/three-tab-dashboard.yaml').read_text())
+dashboard = json.loads((root / 'examples/three-tab-dashboard.yaml').read_text(encoding='utf-8'))
 assert len(dashboard['views']) == 3
 for view in dashboard['views']:
     assert view['type'] == 'panel'
@@ -23,6 +23,6 @@ for file in root.rglob('*.md'):
         if '://' not in target and not target.startswith('#'):
             assert (file.parent / target.split('#')[0]).exists(), (file, target)
 for file in (root / 'examples').glob('*.yaml'):
-    text = file.read_text()
+    text = file.read_text(encoding='utf-8')
     assert not re.search(r'100\.11[14]\.|192\.168\.|access_token|password|Pivdenne', text, re.I)
 print('PASS: HACS structure, three views, 8 PV groups, 1 battery, English examples, local documentation links and private-address checks.')
