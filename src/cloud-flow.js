@@ -4,12 +4,12 @@
   const str=v=>typeof v==='string'?v.slice(0,200):'';
   const num=v=>v!==null&&v!==undefined&&v!==''&&Number.isFinite(Number(v))?Number(v):null;
   const clamp=(v,min,max,fallback)=>num(v)===null?fallback:Math.max(min,Math.min(max,Number(v)));
-  const atlas='__ANMA_CLOUD_ATLAS__',sky='__ANMA_CLOUD_SKY__';
+  const atlas='__ANMA_CLOUD_ATLAS__',sky='__ANMA_CLOUD_SKY__',evAsset='__ANMA_CLOUD_EV__';
   const asset=name=>typeof document!=='undefined'&&document.currentScript?.src?new URL('assets/'+name,document.currentScript.src).href:'/static/dashboards/assets/'+name;
-  const assets={atlas:atlas.startsWith('__')?asset('cloud-flow-atlas.webp'):atlas,sky:sky.startsWith('__')?asset('cloud-flow-sky.webp'):sky};
+  const assets={atlas:atlas.startsWith('__')?asset('cloud-flow-atlas.webp'):atlas,sky:sky.startsWith('__')?asset('cloud-flow-sky.webp'):sky,ev:evAsset.startsWith('__')?asset('cloud-flow-ev.webp'):evAsset};
   function normalize(raw={}){
     raw=raw&&typeof raw==='object'?raw:{};
-    return {weatherEntity:/^weather\.[\w]+$/.test(raw.weatherEntity)?raw.weatherEntity:'',forecastEntity:/^weather\.[\w]+$/.test(raw.forecastEntity)?raw.forecastEntity:'',forecastType:['auto','hourly','daily','twice_daily'].includes(raw.forecastType)?raw.forecastType:'auto',effects:raw.effects!==false,effectOpacity:clamp(raw.effectOpacity,0,100,35),showForecast:raw.showForecast!==false,solarToday:str(raw.solarToday),demoWeather:['sunny','partlycloudy','rainy','snowy','cloudy','clear-night'].includes(raw.demoWeather)?raw.demoWeather:'partlycloudy'};
+    return {showNonBackup:raw.showNonBackup!==false,showEv:raw.showEv===true,evGroup:raw.evGroup==='grid'?'grid':'backup',evName:str(raw.evName)||'Tesla · EV',weatherEntity:/^weather\.[\w]+$/.test(raw.weatherEntity)?raw.weatherEntity:'',forecastEntity:/^weather\.[\w]+$/.test(raw.forecastEntity)?raw.forecastEntity:'',forecastType:['auto','hourly','daily','twice_daily'].includes(raw.forecastType)?raw.forecastType:'auto',effects:raw.effects!==false,effectOpacity:clamp(raw.effectOpacity,0,100,35),showForecast:raw.showForecast!==false,solarToday:str(raw.solarToday),demoWeather:['sunny','partlycloudy','rainy','snowy','cloudy','clear-night'].includes(raw.demoWeather)?raw.demoWeather:'partlycloudy'};
   }
   function read(id,states,kind='power'){
     if(!id)return null;
@@ -20,13 +20,15 @@
     return Object.hasOwn(units,u)?v*units[u]:null;
   }
   const sum=values=>values.length&&values.every(v=>v!==null)?values.reduce((a,b)=>a+b,0):null;
+  function batteryState(power){return !Number.isFinite(power)?'unknown':Math.abs(power)<10?'idle':power<0?'charging':'discharging';}
   function calculate(c,layout,states={},demo=false){
     const value=(id,fallback,kind='power')=>demo&&!/^[+-]?(?:\d+(?:\.\d*)?|\.\d+)$/.test(String(id).trim())?fallback:read(id,states,kind);
     const solar=sum(c.strings.map((s,i)=>s.mppts.length?sum(s.mppts.map((m,j)=>value(m.power,900+i*100+j*200))):value(s.power,1800+i*200)));
     const powers=c.batteries.map(b=>{const v=value(b.power,-800);return v===null?null:v*(c.invertBattery?-1:1);});
     const state=(id,on,off,fault)=>{if(demo)return 'online';const v=String(states[id]?.state??'').toLowerCase();if(!v||['unknown','unavailable'].includes(v))return 'unknown';return fault?.split(',').map(s=>s.trim()).includes(v)?'fault':off.split(',').map(s=>s.trim()).includes(v)?'offline':on.split(',').map(s=>s.trim()).includes(v)?'online':'unknown';};
     const gridState=state(c.gridStatus,c.gridOn,c.gridOff),rawGrid=value(c.grid||layout.bindings?.grid_power,650);
-    return {solar,battery:sum(powers),soc:c.batteries.length?value(c.batteries[0].soc,76,'soc'):null,inverter:value(c.inverter.power,solar),inverterState:state(c.inverterStatus,c.inverterOn,c.inverterOff,c.inverterFault),grid:gridState==='offline'?0:rawGrid===null?null:rawGrid*(c.invertGrid?-1:1),gridState,home:value(c.load||layout.bindings?.load_power,2450),nonBackup:gridState==='offline'?0:value(c.nonBackup,350),today:value(c.cloud.solarToday,18.6,'energy')};
+    const battery=sum(powers),evOffline=c.cloud.evGroup==='grid'&&gridState==='offline';
+    return {solar,battery,batteryState:batteryState(battery),soc:c.batteries.length?value(c.batteries[0].soc,76,'soc'):null,inverter:value(c.inverter.power,solar),inverterState:state(c.inverterStatus,c.inverterOn,c.inverterOff,c.inverterFault),grid:gridState==='offline'?0:rawGrid===null?null:rawGrid*(c.invertGrid?-1:1),gridState,home:value(c.load||layout.bindings?.load_power,2450),nonBackup:gridState==='offline'?0:value(c.nonBackup,350),ev:evOffline?0:value(c.ev||layout.bindings?.ev_power,1000),evOffline,today:value(c.cloud.solarToday,18.6,'energy')};
   }
   const conditions={sunny:['☀','Sunny','Сонячно'],partlycloudy:['⛅','Partly cloudy','Мінлива хмарність'],cloudy:['☁','Cloudy','Хмарно'],'clear-night':['☾','Clear night','Ясна ніч'],rainy:['☂','Rain','Дощ'],pouring:['☂','Heavy rain','Злива'],snowy:['❄','Snow','Сніг'],'snowy-rainy':['❄','Sleet','Мокрий сніг'],fog:['≋','Fog','Туман'],lightning:['ϟ','Thunderstorm','Гроза'],'lightning-rainy':['ϟ','Thunderstorm','Гроза'],windy:['≋','Windy','Вітряно'],'windy-variant':['≋','Windy','Вітряно'],hail:['❄','Hail','Град'],exceptional:['!','Exceptional','Особливі умови']};
   function forecastType(entity,requested='auto'){
@@ -49,6 +51,7 @@
     desktop:{width:1200,height:680,solar:[140,195,270,245],grid:[1040,190,220,280],house:[600,365,300,270],battery:[165,530,245,225],nonBackup:[1035,535,240,225],solarLabel:[325,100],gridLabel:[875,100],inverterLabel:[600,205],homeLabel:[600,555],batteryLabel:[155,390],nonBackupLabel:[1030,390]},
     phone:{width:375,height:630,solar:[76,118,145,145],grid:[302,120,120,165],house:[188,315,156,160],battery:[74,474,135,135],nonBackup:[303,474,135,135],solarLabel:[76,32],gridLabel:[300,32],inverterLabel:[78,268],homeLabel:[188,425],batteryLabel:[75,554],nonBackupLabel:[300,554]}
   };
+  function sceneLayout(phone,cloud){const base=layouts[phone?'phone':'desktop'];return {...base,height:base.height+(cloud.showEv?(phone?160:140):0),ev:phone?[188,cloud.showEv?640:560,170,126]:[600,cloud.showEv?655:560,210,140],evLabel:phone?[188,cloud.showEv?742:600]:[600,cloud.showEv?762:620]};}
   const css=`
     .cf-scene{--cf-bg:#0b1721;--cf-text:#f1f6fb;--cf-muted:#a9bbcd;--cf-border:#304658;--cf-panel:#102130;position:relative;isolation:isolate;grid-column:1/-1;width:100%;min-width:0;box-sizing:border-box;border:1px solid var(--cf-border);border-radius:18px;overflow:hidden;background:var(--cf-bg);color:var(--cf-text);font:14px system-ui,sans-serif;container-type:inline-size;container-name:cloudscene}
     .cf-scene[data-theme=day]{--cf-bg:#e9f0f6;--cf-text:#172d40;--cf-muted:#465d70;--cf-border:#b7c9d8;--cf-panel:#f5f8fc}.cf-scene[data-theme=day] .cf-landscape{opacity:.18}.cf-scene[data-theme=day] .cf-number{text-shadow:0 1px 1px #fff}.cf-scene[data-theme=day] .cf-node-label{--cf-label-shadow:#fff9}.cf-scene[data-theme=day] .cf-node-label[data-state=offline],.cf-scene[data-theme=day] .cf-node-label[data-state=unknown]{color:#566573}
@@ -67,7 +70,7 @@
   `;
   // Source atlas crops are isolated alpha images; CSS crops keep one downloadable asset.
   const crops={solar:[0,100,600,440],grid:[620,0,300,550],house:[955,90,581,460],battery:[0,570,540,450],nonBackup:[540,590,540,400]};
-  const colors={solar:'#f4b744',grid:'#58b7ff',inverter:'#f1873d',home:'#46d3e5',battery:'#65d69a',nonBackup:'#67baff'};
+  const colors={solar:'#f4b744',grid:'#58b7ff',inverter:'#f1873d',home:'#46d3e5',battery:'#65d69a',nonBackup:'#67baff',ev:'#46d3e5'};
   function render(layout,{uk=false,demo=false,hass=null,change=null,normalizePower}={}){
     const c=normalizePower(layout.powerFlow),tr=(en,ua)=>uk?ua:en;
     const n=(tag,cls,text)=>{const e=document.createElement(tag);if(cls)e.className=cls;if(text!==undefined)e.textContent=text;return e;};
@@ -80,18 +83,20 @@
     const weatherBox=n('div','cf-weather'),weatherMain=n('div','cf-weather-main'),weatherIcon=n('span','cf-weather-icon'),temperature=n('b'),condition=n('span'),forecastList=n('ol','cf-weather-forecast'),weatherNote=n('span','cf-weather-note');weatherMain.append(weatherIcon,temperature,condition);weatherBox.append(weatherMain,forecastList,weatherNote);card.append(weatherBox);
     const stage=n('div','cf-stage'),svg=s('svg',{'class':'cf-svg','aria-hidden':'true',preserveAspectRatio:'none'});stage.append(svg);card.append(stage);
     const objects={},labels={};
-    for(const kind of Object.keys(crops)){const obj=n('div','cf-object');obj.dataset.kind=kind;obj.setAttribute('aria-hidden','true');objects[kind]=obj;stage.append(obj);}
+    for(const kind of [...Object.keys(crops),'ev']){const obj=n('div','cf-object');obj.dataset.kind=kind;obj.setAttribute('aria-hidden','true');objects[kind]=obj;stage.append(obj);if(kind==='ev'){obj.style.backgroundImage=`url("${assets.ev}")`;obj.style.backgroundSize='contain';obj.style.backgroundPosition='center';}}
     const names={solar:tr('SOLAR','СОНЦЕ'),grid:tr('GRID','МЕРЕЖА'),inverter:c.inverter.name||tr('INVERTER','ІНВЕРТОР'),home:c.backupName==='EPS / Backup'?tr('HOME','БУДИНОК'):c.backupName,battery:tr('BATTERY','БАТАРЕЯ'),nonBackup:c.nonBackupName==='Grid / Non-backup'?tr('NON-BACKUP','НЕГАРАНТОВАНЕ'):c.nonBackupName};
+    names.ev=c.cloud.evName;
     for(const kind of Object.keys(names)){const el=n('div','cf-node-label'),title=n('span','',names[kind]),value=n('b','','—'),detail=n('small');el.dataset.kind=kind;el.style.setProperty('--cf-color',colors[kind]);el.append(title,value,detail);stage.append(el);labels[kind]={el,value,detail};}
     const foot=n('div','cf-foot');for(const kind of ['solar','grid','battery','home']){const el=n('span','',names[kind]);el.style.setProperty('--cf-color',colors[kind]);foot.append(el);}if(demo)foot.append(n('small','',tr('DEMO · simulated values','ДЕМО · змодельовані значення')));card.append(foot);
     let live=hass,data,phone=false,forecast=[],subscription=null,connection=null,subscriptionKey='',dead=false,token=null,resizeObserver;
-    const edges={};for(const key of ['solar','grid','battery','home','nonBackup']){const g=s('g',{'class':'cf-edge','data-branch':key}),track=s('path',{'class':'cf-track'}),flow=s('path',{'class':'cf-flow'});g.style.setProperty('--cf-wire',colors[key]);g.append(track,flow);const dots=[];for(let i=0;i<3;i++){const dot=s('circle',{'class':'cf-particle',r:3-i*.6,opacity:1-i*.28}),motion=s('animateMotion',{dur:'4s',repeatCount:'indefinite',begin:(-i*.11)+'s'});dot.append(motion);g.append(dot);dots.push(motion);}svg.append(g);edges[key]={g,track,flow,dots};}
+    const edges={};for(const key of ['solar','grid','battery','home','nonBackup','ev']){const g=s('g',{'class':'cf-edge','data-branch':key}),track=s('path',{'class':'cf-track'}),flow=s('path',{'class':'cf-flow'});g.style.setProperty('--cf-wire',colors[key]);g.append(track,flow);const dots=[];for(let i=0;i<3;i++){const dot=s('circle',{'class':'cf-particle',r:3-i*.6,opacity:1-i*.28}),motion=s('animateMotion',{dur:'4s',repeatCount:'indefinite',begin:(-i*.11)+'s'});dot.append(motion);g.append(dot);dots.push(motion);}svg.append(g);edges[key]={g,track,flow,dots};}
     function place(){
       const width=stage.getBoundingClientRect().width;if(!width)return;phone=c.profile==='mobile'||c.profile!=='desktop'&&width<600;card.dataset.phone=String(phone);
-      const l=layouts[phone?'phone':'desktop'];stage.style.aspectRatio=l.width+'/'+l.height;svg.setAttribute('viewBox',`0 0 ${l.width} ${l.height}`);
-      for(const [kind,el] of Object.entries(objects)){const [x,y,w,h]=l[kind],[sx,sy,cw,ch]=crops[kind];el.style.left=x/l.width*100+'%';el.style.top=y/l.height*100+'%';el.style.width=w/l.width*100+'%';el.style.height=h/l.height*100+'%';el.style.backgroundSize=`${1536/cw*100}% ${1024/ch*100}%`;el.style.backgroundPosition=`${sx/(1536-cw)*100}% ${sy/(1024-ch)*100}%`;}
+      const l=sceneLayout(phone,c.cloud);stage.style.aspectRatio=l.width+'/'+l.height;svg.setAttribute('viewBox',`0 0 ${l.width} ${l.height}`);
+      for(const [kind,el] of Object.entries(objects)){const [x,y,w,h]=l[kind];el.style.left=x/l.width*100+'%';el.style.top=y/l.height*100+'%';el.style.width=w/l.width*100+'%';el.style.height=h/l.height*100+'%';if(crops[kind]){const [sx,sy,cw,ch]=crops[kind];el.style.backgroundSize=`${1536/cw*100}% ${1024/ch*100}%`;el.style.backgroundPosition=`${sx/(1536-cw)*100}% ${sy/(1024-ch)*100}%`;}}
       for(const [kind,{el}] of Object.entries(labels)){const [x,y]=l[kind+'Label'];el.style.left=x/l.width*100+'%';el.style.top=y/l.height*100+'%';}
       const paths=phone?{solar:'M100 180L137 215Q145 220 145 232V268L174 285',grid:'M290 190L246 226Q238 230 238 244V280L210 295',battery:'M173 365L125 395Q114 402 110 415L94 435',home:'M188 365V403',nonBackup:'M262 215V330Q262 345 277 354L307 375V433'}:{solar:'M240 260L400 314L535 366',grid:'M978 270L800 320L680 360',battery:'M545 450L402 490L260 550',home:'M602 460V515',nonBackup:'M950 286L895 330L955 380Q975 393 975 420V470'};
+      paths.ev=phone?(c.cloud.evGroup==='grid'?'M302 190H366V598H235V615':'M188 452V595'):(c.cloud.evGroup==='grid'?'M978 270H1160V730H760L705 675':'M602 460L730 520V620Q730 640 710 640H705');
       for(const [key,e] of Object.entries(edges)){e.track.setAttribute('d',paths[key]);e.flow.setAttribute('d',paths[key]);for(const m of e.dots)m.setAttribute('path',paths[key]);}
     }
     const power=v=>v===null?'—':Math.abs(v)>=1000?(Math.abs(v)/1000).toLocaleString(uk?'uk':'en',{maximumFractionDigits:2})+' '+tr('kW','кВт'):Math.round(Math.abs(v))+' '+tr('W','Вт');
@@ -115,8 +120,11 @@
       setLabel('grid',power(data.grid),data.gridState==='offline'?tr('NO GRID','НЕМАЄ МЕРЕЖІ'):data.grid===null?tr('No data','Немає даних'):data.grid>0?tr('IMPORT','ІМПОРТ'):data.grid<0?tr('EXPORT','ЕКСПОРТ'):tr('IDLE','ОЧІКУВАННЯ'),data.gridState==='offline'?'offline':knownState(data.grid));
       setLabel('inverter',power(data.inverter),({online:tr('Running','Працює'),offline:tr('Standby','Очікування'),fault:tr('Fault','Помилка'),unknown:tr('Status unknown','Стан невідомий')})[data.inverterState],data.inverterState);
       setLabel('home',power(data.home),'',knownState(data.home));setLabel('nonBackup',data.gridState==='offline'?'—':power(data.nonBackup),data.gridState==='offline'?tr('No supply','Без живлення'):'',data.gridState==='offline'?'offline':knownState(data.nonBackup));
-      setLabel('battery',data.soc===null?'—':Math.round(data.soc)+'%',data.battery===null?tr('No power data','Немає потужності'):(data.battery<0?tr('Charging ','Заряд '):data.battery>0?tr('Discharging ','Розряд '):tr('Idle ','Очікування '))+power(data.battery),knownState(data.battery));
-      for(const [key,e] of Object.entries(edges)){const value=data[key],active=value!==null&&Math.abs(value)>=10&&layout.motion!==false&&(key==='grid'||key==='nonBackup'?data.gridState!=='offline':true);const reverse=key==='grid'?value<0:key==='battery'?value>0:key==='home'?value<0:false;e.g.dataset.active=e.flow.dataset.active=String(active);e.flow.dataset.reverse=String(reverse);const duration=6-4.5*Math.min(1,Math.abs(value||0)/10000);for(const m of e.dots){m.setAttribute('dur',duration+'s');m.setAttribute('keyPoints',reverse?'1;0':'0;1');m.setAttribute('keyTimes','0;1');m.setAttribute('calcMode','linear');}}
+      setLabel('battery',data.soc===null?'—':Math.round(data.soc)+'%',data.battery===null?tr('No power data','Немає потужності'):({charging:tr('Charging · ','Заряд · '),discharging:tr('Discharging · ','Розряд · '),idle:tr('Standby · ','Очікування · ')})[data.batteryState]+power(data.battery),data.batteryState);
+      labels.battery.el.style.setProperty('--cf-color',data.batteryState==='discharging'?'#58b7ff':colors.battery);edges.battery.g.style.setProperty('--cf-wire',data.batteryState==='discharging'?'#58b7ff':colors.battery);
+      setLabel('ev',power(data.ev),data.evOffline?tr('No supply','Без живлення'):data.ev===null?tr('No data','Немає даних'):Math.abs(data.ev)<10?tr('Standby','Очікування'):data.ev<0?tr('Export','Віддає енергію'):tr('Charging','Заряд'),data.evOffline?'offline':knownState(data.ev));
+      for(const [kind,visible] of [['nonBackup',c.cloud.showNonBackup],['ev',c.cloud.showEv]]){objects[kind].style.display=labels[kind].el.style.display=visible?'':'none';edges[kind].g.style.display=visible?'':'none';}
+      for(const [key,e] of Object.entries(edges)){const value=data[key],active=value!==null&&Math.abs(value)>=10&&layout.motion!==false&&(key==='grid'||key==='nonBackup'||key==='ev'&&c.cloud.evGroup==='grid'?data.gridState!=='offline':true);const reverse=key==='grid'?value<0:key==='battery'?value>0:key==='home'||key==='ev'?value<0:false;e.g.dataset.active=e.flow.dataset.active=String(active);e.flow.dataset.reverse=String(reverse);const duration=6-4.5*Math.min(1,Math.abs(value||0)/10000);for(const m of e.dots){m.setAttribute('dur',duration+'s');m.setAttribute('keyPoints',reverse?'1;0':'0;1');m.setAttribute('keyTimes','0;1');m.setAttribute('calcMode','linear');}}
       updateWeather();
     }
     if(change){
@@ -143,5 +151,5 @@
     if(settingsOpen){const panel=card.querySelector('.cf-settings');if(panel)panel.hidden=false;card.querySelector('.cf-connections')?.setAttribute('aria-expanded','true');}
     host.replaceChildren(card);return card;
   }
-  const api={normalize,calculate,read,weather,forecastType,layouts,render,update};root.AnmaCloudFlow=api;if(typeof module!=='undefined'&&module.exports)module.exports=api;
+  const api={normalize,calculate,batteryState,read,weather,forecastType,layouts,sceneLayout,render,update};root.AnmaCloudFlow=api;if(typeof module!=='undefined'&&module.exports)module.exports=api;
 })(typeof window!=='undefined'?window:globalThis);

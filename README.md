@@ -4,7 +4,7 @@
 
 Design on [ANMA Energy Platform](https://app.anma-electric.com.ua/), connect your Home Assistant entities and export your layout. Install **one HACS package** and use **`custom:anma-card`** for every view.
 
-**Latest release: 0.7.0** · [Download](https://github.com/bobantonbob/lovelace-anma-card/releases/latest) · [Configuration](docs/CONFIGURATION.md) · [Changelog](CHANGELOG.md)
+**Latest release: 0.7.1** · [Download](https://github.com/bobantonbob/lovelace-anma-card/releases/latest) · [Configuration](docs/CONFIGURATION.md) · [Changelog](CHANGELOG.md)
 
 ## Start with Energy Station
 
@@ -24,9 +24,11 @@ Energy Station combines up to **10 PV fields, 5 batteries, GEN/AUX and configura
 
 [Energy Station example](examples/energy-station.yaml)
 
-## New in 0.7.0: architectural Cloud Flow
+## New in 0.7.1: optional EV and supply groups
 
-![Cloud Flow architectural desktop scene](docs/images/cloud-flow-070.png)
+![Cloud Flow architectural desktop scene](docs/images/cloud-flow-071.png)
+
+Cloud Flow includes an optional Tesla-style EV below the house, a non-backup group visibility switch, and explicit battery charging, discharging and standby states. Choose backup or grid supply for the EV and bind its power entity; its consumption is already included in its parent group. All controls export through the same `custom:anma-card`.
 
 Cloud Flow now presents energy as a restrained dimensional scene: solar panels, a transmission pylon, a compact home with inverter, battery cabinets and non-backup supply. The values and directional paths are live interface elements above the illustrated objects.
 
@@ -34,7 +36,7 @@ Cloud Flow now presents energy as a restrained dimensional scene: solar panels, 
 
 The phone layout rearranges the sources, house, battery and non-backup supply. It does not simply shrink the desktop diagram.
 
-<img src="docs/images/cloud-flow-phone-070.png" alt="Cloud Flow at 375px phone width" width="375">
+<img src="docs/images/cloud-flow-phone-071.png" alt="Cloud Flow at 375px phone width" width="375">
 
 [Cloud Flow example](examples/cloud-flow-card.yaml) · [Weather setup](docs/CONFIGURATION.md#cloud-flow-weather)
 
@@ -99,7 +101,7 @@ This is a HACS custom repository; inclusion in the default HACS catalog is a sep
 
 ### Manual installation
 
-Download **anma-card.js**, or the manual-install ZIP, from the release. Copy the JS file to `/config/www/anma/anma-card.js`. Register `/local/anma/anma-card.js?v=0.7.0` as a JavaScript module. Update your existing ANMA resource when upgrading and keep one active resource.
+Download **anma-card.js**, or the manual-install ZIP, from the release. Copy the JS file to `/config/www/anma/anma-card.js`. Register `/local/anma/anma-card.js?v=0.7.1` as a JavaScript module. Update your existing ANMA resource when upgrading and keep one active resource.
 
 ## Connect your readings
 

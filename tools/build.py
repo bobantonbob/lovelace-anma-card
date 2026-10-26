@@ -9,7 +9,7 @@ start = card.index('/* ANMA Energy Station:')
 marker = "})(typeof window !== 'undefined' ? window : globalThis);"
 end = card.index(marker, start) + len(marker)
 shared = '\n'.join((src / name).read_text(encoding='utf-8') for name in ('energy-station.js', 'cloud-flow.js', 'power-flow.js', 'model.js'))
-for marker, name in [('__ANMA_CLOUD_ATLAS__', 'cloud-flow-atlas.webp'), ('__ANMA_CLOUD_SKY__', 'cloud-flow-sky.webp')]:
+for marker, name in [('__ANMA_CLOUD_ATLAS__', 'cloud-flow-atlas.webp'), ('__ANMA_CLOUD_SKY__', 'cloud-flow-sky.webp'), ('__ANMA_CLOUD_EV__', 'cloud-flow-ev.webp')]:
     data = base64.b64encode((src / 'assets' / name).read_bytes()).decode('ascii')
     shared = shared.replace("'" + marker + "'", "'data:image/webp;base64," + data + "'")
 shared = '\n'.join(line.rstrip() for line in shared.splitlines())

@@ -1,5 +1,12 @@
 # Changelog
 
+## 0.7.1 — Cloud Flow groups, EV and battery states
+
+Optional Tesla-style EV below the house, backup/grid EV supply selection, and a
+non-backup visibility switch. Charging, discharging and standby battery labels
+match the animation threshold. Settings persist in the unified card YAML.
+New desktop and phone captures, embedded EV asset and updated installation ZIP.
+
 ## 0.7.0 — Architectural Cloud Flow and refreshed gallery
 
 Cloud Flow now uses a responsive architectural scene with live energy readings and directional paths. Add current weather and a separate forecast provider, select supported forecast types, and adjust rain, snow, cloud or light effects behind the data. All images are embedded in the single `anma-card.js` resource.

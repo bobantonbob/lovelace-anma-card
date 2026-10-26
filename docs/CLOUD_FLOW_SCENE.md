@@ -40,9 +40,33 @@ on a physical iPhone. The gallery fixture is `tests/card-gallery.html`.
 
 ## Generated assets and prompts
 
+### 0.7.1 groups, EV and battery states
+
+Connections includes `cloud.showNonBackup` (default true), `cloud.showEv`
+(default false), `cloud.evName` and `cloud.evGroup` (`backup` or `grid`).
+EV power uses the existing `powerFlow.ev` entity. These options persist in the
+same `custom:anma-card` YAML. Hiding a group removes its object, label and wire;
+it never changes parent totals. A grid-connected EV loses supply during an outage;
+a backup-connected EV remains governed by its own sensor.
+
+Battery power below 10 W in magnitude displays standby and stops its flow.
+Negative normalized power means charging; positive means discharging. Missing
+power stays unknown. The existing battery sign-inversion setting still applies.
+
+The optional car is a separate alpha WebP embedded in the single HACS file.
+Generated prompt: isolated pearl-white Tesla Model 3, dark glass roof and wheels,
+restrained realistic architectural product render, 30-degree isometric view,
+front lower left and rear upper right, transparent background, small contact
+shadow, no charger, cable, scenery, labels, numbers or UI. Original PNG is retained
+as `static/dashboards/assets/cloud-flow-ev.png`.
+
+Validated at 1440px and 375px in headless Edge with actual standalone runtime:
+EV visibility, group visibility including wire removal, all three battery states,
+and the Connections checkbox. No horizontal overflow or JavaScript page errors.
+
 Images were generated with the built-in image generation tool for this project.
 The production files are `static/dashboards/assets/cloud-flow-atlas.webp` and
-`cloud-flow-sky.webp`; original PNGs are retained in the primary platform source. No image contains
+`cloud-flow-sky.webp`; original PNGs are retained beside them. No image contains
 live numbers: all values and animation are rendered by code.
 
 Atlas prompt: create a production six-object atlas with a transparent background,

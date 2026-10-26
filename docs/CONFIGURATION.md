@@ -1,5 +1,18 @@
 # Configuration
 
+## Cloud Flow groups and EV
+
+In Connections, use **Cloud Flow · groups and EV** to show or hide the non-backup
+group and the optional Tesla-style EV. The EV appears below the main house.
+`layout.powerFlow.cloud` accepts `showNonBackup` (true by default), `showEv`
+(false by default), `evName`, and `evGroup` (`backup` or `grid`). Bind the EV
+power entity in `layout.powerFlow.ev`. Hiding equipment does not change totals.
+During a reported grid outage, a grid-fed EV loses supply and its flow stops.
+
+Battery power uses the existing sign convention (positive discharge, negative
+charge), with the existing inversion option. Below 10 W in magnitude the label
+shows standby and the flow stops. Missing data is never treated as zero.
+
 ## Starting point
 
 Use a `type: custom:anma-card` card with a `layout` object. Examples are JSON formatted as YAML (JSON is valid YAML), so the Home Assistant raw editor accepts them directly. The three-tab file is a whole dashboard; the individual files are individual cards. Do not paste a whole dashboard into a single card editor.
