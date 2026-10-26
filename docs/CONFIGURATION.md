@@ -2,6 +2,13 @@
 
 ## Cloud Flow groups and EV
 
+Since 0.7.5, Connections > Scene background allows a personal photo (file upload
+or image URL), visibility slider, cover/contain and position. Remove it to restore
+the standard background. Settings use `layout.powerFlow.background` with `image`,
+`opacity` (0–100), `fit` and `position`. Uploads are resized/compressed and embedded
+in the configuration; external/local URLs must resolve from the HA browser.
+Cloud Flow no longer exposes or follows day/night themes. Other views still do.
+
 `layout.powerFlow.cloud.solarForecast` selects today's total solar generation
 forecast (energy sensor or fixed kWh value). The solar detail displays today's
 actual generation / forecast. Sensor Wh and MWh are converted to kWh. Leave empty

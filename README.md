@@ -4,7 +4,7 @@
 
 Design on [ANMA Energy Platform](https://app.anma-electric.com.ua/), connect your Home Assistant entities and export your layout. Install **one HACS package** and use **`custom:anma-card`** for every view.
 
-**Latest release: 0.7.4** · [Download](https://github.com/bobantonbob/lovelace-anma-card/releases/latest) · [Configuration](docs/CONFIGURATION.md) · [Changelog](CHANGELOG.md)
+**Latest release: 0.7.5** · [Download](https://github.com/bobantonbob/lovelace-anma-card/releases/latest) · [Configuration](docs/CONFIGURATION.md) · [Changelog](CHANGELOG.md)
 
 ## Start with Energy Station
 
@@ -115,7 +115,7 @@ This is a HACS custom repository; inclusion in the default HACS catalog is a sep
 
 ### Manual installation
 
-Download **anma-card.js**, or the manual-install ZIP, from the release. Copy the JS file to `/config/www/anma/anma-card.js`. Register `/local/anma/anma-card.js?v=0.7.4` as a JavaScript module. Update your existing ANMA resource when upgrading and keep one active resource.
+Download **anma-card.js**, or the manual-install ZIP, from the release. Copy the JS file to `/config/www/anma/anma-card.js`. Register `/local/anma/anma-card.js?v=0.7.5` as a JavaScript module. Update your existing ANMA resource when upgrading and keep one active resource.
 
 ## Connect your readings
 

@@ -1,5 +1,11 @@
 # Changelog
 
+## 0.7.5 — Cloud Flow personal background photo
+
+Replace the day/night control with scene-photo upload/URL, visibility, fill,
+position and reset. Uploaded photos are embedded in the saved configuration.
+Equipment artwork and other dashboard themes are preserved.
+
 ## 0.7.4 — Cloud Flow solar forecast
 
 Add an optional total-generation forecast entity for today. The solar detail reads
