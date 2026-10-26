@@ -339,6 +339,8 @@
       const solar=section('Solar · total','Сонце · разом');
       powerInput(solar,tr('Total solar power','Загальна потужність сонця'),c.cloud,'solarPower');
       field(solar,tr('Solar energy today (kWh or entity)','Генерація сьогодні (кВт·год або сутність)'),c.cloud,'solarToday');
+      field(solar,tr('Solar forecast today (kWh or entity)','Прогноз генерації на сьогодні (кВт·год або сутність)'),c.cloud,'solarForecast');
+      solar.append(n('small',tr('Today: actual / forecast, in kWh. Choose the total generation forecast for today, not the remaining forecast.','Сьогодні: факт / прогноз, у кВт·год. Оберіть прогноз загальної генерації за сьогодні, а не залишок прогнозу.')));
       solar.append(n('small',tr('One solar object. An empty total preserves the sum of previously connected PV sensors. A total sensor overrides that sum without double counting.','Один об’єкт сонця. Порожнє поле потужності зберігає суму раніше підключених PV-сенсорів. Загальний сенсор замінює цю суму без подвійного підрахунку.')));
       const battery=section('Battery · total','Батарея · разом');
       powerInput(battery,tr('Total battery power','Загальна потужність батареї'),c.cloud,'batteryPower');

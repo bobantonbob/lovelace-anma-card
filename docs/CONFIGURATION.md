@@ -2,6 +2,11 @@
 
 ## Cloud Flow groups and EV
 
+`layout.powerFlow.cloud.solarForecast` selects today's total solar generation
+forecast (energy sensor or fixed kWh value). The solar detail displays today's
+actual generation / forecast. Sensor Wh and MWh are converted to kWh. Leave empty
+for actual-only display. Choose a full-day forecast rather than remaining energy.
+
 Since 0.7.2 Cloud Flow has dedicated Connections sections for its fixed objects.
 Set `layout.powerFlow.cloud.solarPower`, `batteryPower` and `batterySoc` to total
 sensor IDs (or fixed numeric values). Solar/battery power uses W, kW or MW sensor

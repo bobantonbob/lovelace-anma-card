@@ -370,7 +370,7 @@ if (typeof window !== 'undefined') {
   const assets={atlas:atlas.startsWith('__')?asset('cloud-flow-atlas.webp'):atlas,sky:sky.startsWith('__')?asset('cloud-flow-sky.webp'):sky,ev:evAsset.startsWith('__')?asset('cloud-flow-ev.webp'):evAsset};
   function normalize(raw={}){
     raw=raw&&typeof raw==='object'?raw:{};
-    return {solarPower:str(raw.solarPower),batteryPower:str(raw.batteryPower),batterySoc:str(raw.batterySoc),showNonBackup:raw.showNonBackup!==false,showEv:raw.showEv===true,evGroup:raw.evGroup==='grid'?'grid':'backup',evName:str(raw.evName)||'Tesla · EV',weatherEntity:/^weather\.[\w]+$/.test(raw.weatherEntity)?raw.weatherEntity:'',forecastEntity:/^weather\.[\w]+$/.test(raw.forecastEntity)?raw.forecastEntity:'',forecastType:['auto','hourly','daily','twice_daily'].includes(raw.forecastType)?raw.forecastType:'auto',effects:raw.effects!==false,effectOpacity:clamp(raw.effectOpacity,0,100,35),showForecast:raw.showForecast!==false,solarToday:str(raw.solarToday),demoWeather:['sunny','partlycloudy','rainy','snowy','cloudy','clear-night'].includes(raw.demoWeather)?raw.demoWeather:'partlycloudy'};
+    return {solarPower:str(raw.solarPower),batteryPower:str(raw.batteryPower),batterySoc:str(raw.batterySoc),showNonBackup:raw.showNonBackup!==false,showEv:raw.showEv===true,evGroup:raw.evGroup==='grid'?'grid':'backup',evName:str(raw.evName)||'Tesla · EV',weatherEntity:/^weather\.[\w]+$/.test(raw.weatherEntity)?raw.weatherEntity:'',forecastEntity:/^weather\.[\w]+$/.test(raw.forecastEntity)?raw.forecastEntity:'',forecastType:['auto','hourly','daily','twice_daily'].includes(raw.forecastType)?raw.forecastType:'auto',effects:raw.effects!==false,effectOpacity:clamp(raw.effectOpacity,0,100,35),showForecast:raw.showForecast!==false,solarToday:str(raw.solarToday),solarForecast:str(raw.solarForecast),demoWeather:['sunny','partlycloudy','rainy','snowy','cloudy','clear-night'].includes(raw.demoWeather)?raw.demoWeather:'partlycloudy'};
   }
   function read(id,states,kind='power'){
     if(!id)return null;
@@ -389,7 +389,7 @@ if (typeof window !== 'undefined') {
     const state=(id,on,off,fault)=>{if(demo)return 'online';const v=String(states[id]?.state??'').toLowerCase();if(!v||['unknown','unavailable'].includes(v))return 'unknown';return fault?.split(',').map(s=>s.trim()).includes(v)?'fault':off.split(',').map(s=>s.trim()).includes(v)?'offline':on.split(',').map(s=>s.trim()).includes(v)?'online':'unknown';};
     const gridState=state(c.gridStatus,c.gridOn,c.gridOff),rawGrid=value(c.grid||layout.bindings?.grid_power,650);
     const aggregateBattery=c.cloud.batteryPower?value(c.cloud.batteryPower,-1600):null,battery=c.cloud.batteryPower?(aggregateBattery===null?null:aggregateBattery*(c.invertBattery?-1:1)):sum(powers),evOffline=c.cloud.evGroup==='grid'&&gridState==='offline';
-    return {solar,battery,batteryState:batteryState(battery),soc:c.cloud.batterySoc?value(c.cloud.batterySoc,76,'soc'):c.batteries.length?value(c.batteries[0].soc,76,'soc'):null,inverter:value(c.inverter.power,solar),inverterState:state(c.inverterStatus,c.inverterOn,c.inverterOff,c.inverterFault),grid:gridState==='offline'?0:rawGrid===null?null:rawGrid*(c.invertGrid?-1:1),gridState,home:value(c.load||layout.bindings?.load_power,2450),nonBackup:gridState==='offline'?0:value(c.nonBackup,350),ev:evOffline?0:value(c.ev||layout.bindings?.ev_power,1000),evOffline,today:value(c.cloud.solarToday,18.6,'energy')};
+    return {solar,battery,batteryState:batteryState(battery),soc:c.cloud.batterySoc?value(c.cloud.batterySoc,76,'soc'):c.batteries.length?value(c.batteries[0].soc,76,'soc'):null,inverter:value(c.inverter.power,solar),inverterState:state(c.inverterStatus,c.inverterOn,c.inverterOff,c.inverterFault),grid:gridState==='offline'?0:rawGrid===null?null:rawGrid*(c.invertGrid?-1:1),gridState,home:value(c.load||layout.bindings?.load_power,2450),nonBackup:gridState==='offline'?0:value(c.nonBackup,350),ev:evOffline?0:value(c.ev||layout.bindings?.ev_power,1000),evOffline,today:value(c.cloud.solarToday,18.6,'energy'),solarForecast:value(c.cloud.solarForecast,24,'energy')};
   }
   const conditions={sunny:['☀','Sunny','Сонячно'],partlycloudy:['⛅','Partly cloudy','Мінлива хмарність'],cloudy:['☁','Cloudy','Хмарно'],'clear-night':['☾','Clear night','Ясна ніч'],rainy:['☂','Rain','Дощ'],pouring:['☂','Heavy rain','Злива'],snowy:['❄','Snow','Сніг'],'snowy-rainy':['❄','Sleet','Мокрий сніг'],fog:['≋','Fog','Туман'],lightning:['ϟ','Thunderstorm','Гроза'],'lightning-rainy':['ϟ','Thunderstorm','Гроза'],windy:['≋','Windy','Вітряно'],'windy-variant':['≋','Windy','Вітряно'],hail:['❄','Hail','Град'],exceptional:['!','Exceptional','Особливі умови']};
   function forecastType(entity,requested='auto'){
@@ -482,7 +482,7 @@ if (typeof window !== 'undefined') {
     function refresh(options={}){
       if(dead)return;live=options.hass??live;data=calculate(c,layout,live?.states||{},demo);
       const theme=c.mode==='auto'?(typeof live?.themes?.darkMode==='boolean'?(live.themes.darkMode?'night':'day'):String(layout.theme?.mode).startsWith('light')?'day':'night'):c.mode;card.dataset.theme=theme;
-      setLabel('solar',power(data.solar),data.today===null?'':tr('Today ','Сьогодні ')+data.today.toLocaleString(uk?'uk':'en',{maximumFractionDigits:1})+' '+tr('kWh','кВт·год'),knownState(data.solar));
+      setLabel('solar',power(data.solar),(data.today!==null||c.cloud.solarForecast)?tr('Today ','Сьогодні ')+(data.today===null?'—':data.today.toLocaleString(uk?'uk':'en',{maximumFractionDigits:1}))+(c.cloud.solarForecast?' / '+(data.solarForecast===null?'—':data.solarForecast.toLocaleString(uk?'uk':'en',{maximumFractionDigits:1})):'')+' '+tr('kWh','кВт·год'):'',knownState(data.solar));
       setLabel('grid',power(data.grid),data.gridState==='offline'?tr('NO GRID','НЕМАЄ МЕРЕЖІ'):data.grid===null?tr('No data','Немає даних'):data.grid>0?tr('IMPORT','ІМПОРТ'):data.grid<0?tr('EXPORT','ЕКСПОРТ'):tr('IDLE','ОЧІКУВАННЯ'),data.gridState==='offline'?'offline':knownState(data.grid));
       setLabel('inverter',power(data.inverter),({online:tr('Running','Працює'),offline:tr('Standby','Очікування'),fault:tr('Fault','Помилка'),unknown:tr('Status unknown','Стан невідомий')})[data.inverterState],data.inverterState);
       setLabel('home',power(data.home),'',knownState(data.home));setLabel('nonBackup',data.gridState==='offline'?'—':power(data.nonBackup),data.gridState==='offline'?tr('No supply','Без живлення'):'',data.gridState==='offline'?'offline':knownState(data.nonBackup));
@@ -861,6 +861,8 @@ if (typeof window !== 'undefined') {
       const solar=section('Solar · total','Сонце · разом');
       powerInput(solar,tr('Total solar power','Загальна потужність сонця'),c.cloud,'solarPower');
       field(solar,tr('Solar energy today (kWh or entity)','Генерація сьогодні (кВт·год або сутність)'),c.cloud,'solarToday');
+      field(solar,tr('Solar forecast today (kWh or entity)','Прогноз генерації на сьогодні (кВт·год або сутність)'),c.cloud,'solarForecast');
+      solar.append(n('small',tr('Today: actual / forecast, in kWh. Choose the total generation forecast for today, not the remaining forecast.','Сьогодні: факт / прогноз, у кВт·год. Оберіть прогноз загальної генерації за сьогодні, а не залишок прогнозу.')));
       solar.append(n('small',tr('One solar object. An empty total preserves the sum of previously connected PV sensors. A total sensor overrides that sum without double counting.','Один об’єкт сонця. Порожнє поле потужності зберігає суму раніше підключених PV-сенсорів. Загальний сенсор замінює цю суму без подвійного підрахунку.')));
       const battery=section('Battery · total','Батарея · разом');
       powerInput(battery,tr('Total battery power','Загальна потужність батареї'),c.cloud,'batteryPower');
@@ -2764,7 +2766,7 @@ field(group,tr('Image URL (/local/… in HA)','URL зображення (/local/
 (() => {
   'use strict';
 
-  const CARD_VERSION = '0.7.3';
+  const CARD_VERSION = '0.7.4';
   const EN = {
     'Стан системи':'System status', 'Помилки':'Errors', 'Стан АКБ':'Battery status', 'Електромобіль — потужність':'EV — power', 'Генератор — потужність':'Generator — power', 'Мова картки': 'Card language', 'Сонце': 'Solar', 'Дім': 'Home', 'Самоспоживання': 'Self-consumption', 'АКБ': 'Battery', 'Прогноз на 7 днів': '7-day forecast', 'Середньодобово': 'Daily average', 'Найкращий день': 'Best day', 'Мікроінвертор': 'Microinverter', 'MPPT МАТРИЦЯ': 'MPPT MATRIX', '✓ Оптимально': '✓ Optimal', 'Автоматично (Home Assistant)': 'Automatic (Home Assistant)',
     'Імпортувати макет ANMA / Import ANMA layout (.json)': 'Import ANMA layout (.json)',

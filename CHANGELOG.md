@@ -1,5 +1,10 @@
 # Changelog
 
+## 0.7.4 — Cloud Flow solar forecast
+
+Add an optional total-generation forecast entity for today. The solar detail reads
+actual / forecast in kWh; missing readings stay unknown and YAML retains the binding.
+
 ## 0.7.3 — Cloud Flow viewport fit and smooth weather
 
 Fit the complete scene to available width and height in normal HA mode and
