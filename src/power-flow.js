@@ -238,7 +238,7 @@
         .apf-cloud .apf-wires{position:absolute;inset:0;width:100%;height:100%;overflow:visible}
         .apf-cloud .apf-wire{stroke-width:2;stroke-dasharray:4 6;stroke-linecap:round;animation-name:cloud-current;animation-duration:1s}
         @keyframes cloud-current{to{stroke-dashoffset:-20}}
-        
+
         .apf-cloud .apf-name,.apf-cloud h2{color:var(--pf-ink)}
         .apf-cloud .apf-perimeter,.apf-cloud .apf-marker{display:none}
         @media(prefers-reduced-motion:reduce){.cloud-flow-dot{display:none}}
