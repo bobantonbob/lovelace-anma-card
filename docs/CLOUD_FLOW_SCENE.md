@@ -40,6 +40,17 @@ on a physical iPhone. The gallery fixture is `tests/card-gallery.html`.
 
 ## Generated assets and prompts
 
+### 0.7.3 viewport fitting and weather motion
+
+The stage now sits inside a bounded viewport and scales as one coordinate canvas.
+Available height subtracts the card's screen position, heading, weather, footer,
+padding and borders from the visual viewport. Resize/fullscreen listeners are
+removed on disposal. Phone coordinates are compact; artwork remains unchanged.
+Rain and snow use eased alternate motion, so their turnaround has no reset jump.
+
+Actual standalone card checks covered 1920x1080, 1440x900, 768x1024, 375x812 and
+375x667, EV on/off, with no page overflow in the isolated single-card fixture.
+
 ### 0.7.2 dedicated Connections
 
 Cloud Flow uses an early-return editor branch in `power-flow.js`, shared by the

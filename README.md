@@ -4,7 +4,7 @@
 
 Design on [ANMA Energy Platform](https://app.anma-electric.com.ua/), connect your Home Assistant entities and export your layout. Install **one HACS package** and use **`custom:anma-card`** for every view.
 
-**Latest release: 0.7.2** · [Download](https://github.com/bobantonbob/lovelace-anma-card/releases/latest) · [Configuration](docs/CONFIGURATION.md) · [Changelog](CHANGELOG.md)
+**Latest release: 0.7.3** · [Download](https://github.com/bobantonbob/lovelace-anma-card/releases/latest) · [Configuration](docs/CONFIGURATION.md) · [Changelog](CHANGELOG.md)
 
 ## Start with Energy Station
 
@@ -24,7 +24,15 @@ Energy Station combines up to **10 PV fields, 5 batteries, GEN/AUX and configura
 
 [Energy Station example](examples/energy-station.yaml)
 
-## New in 0.7.2: focused Cloud Flow Connections
+## New in 0.7.3: screen fit and smooth weather
+
+Cloud Flow now fits the complete scene into the available Home Assistant screen in normal mode and fullscreen. Phone layouts include all enabled objects without requiring the card to scroll. Rain and snow move gently side to side without a restart jump.
+
+![Cloud Flow fitted to desktop](docs/images/cloud-fit-073.png)
+
+<img src="docs/images/cloud-fit-phone-073.png" alt="Cloud Flow fitted to a 375px phone with EV" width="375">
+
+## Focused Cloud Flow Connections
 
 Connections now follows the fixed scene: total solar, total battery and SOC, inverter, grid, house, non-backup group, EV, weather and appearance. Unused node-photo uploads, border ratings and PV/MPPT layout controls have been removed from this view. Existing bindings remain compatible.
 
@@ -107,7 +115,7 @@ This is a HACS custom repository; inclusion in the default HACS catalog is a sep
 
 ### Manual installation
 
-Download **anma-card.js**, or the manual-install ZIP, from the release. Copy the JS file to `/config/www/anma/anma-card.js`. Register `/local/anma/anma-card.js?v=0.7.2` as a JavaScript module. Update your existing ANMA resource when upgrading and keep one active resource.
+Download **anma-card.js**, or the manual-install ZIP, from the release. Copy the JS file to `/config/www/anma/anma-card.js`. Register `/local/anma/anma-card.js?v=0.7.3` as a JavaScript module. Update your existing ANMA resource when upgrading and keep one active resource.
 
 ## Connect your readings
 

@@ -1,5 +1,11 @@
 # Changelog
 
+## 0.7.3 — Cloud Flow viewport fit and smooth weather
+
+Fit the complete scene to available width and height in normal HA mode and
+fullscreen. Compact phone geometry includes the optional EV. Rain and snow use
+smooth eased side-to-side motion without a restart jump.
+
 ## 0.7.2 — Cloud Flow Connections cleanup
 
 A dedicated Cloud Flow editor replaces unused equipment-photo, border and PV/MPPT
