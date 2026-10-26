@@ -1,5 +1,13 @@
 # Changelog
 
+## 0.7.0 — Architectural Cloud Flow and refreshed gallery
+
+Cloud Flow now uses a responsive architectural scene with live energy readings and directional paths. Add current weather and a separate forecast provider, select supported forecast types, and adjust rain, snow, cloud or light effects behind the data. All images are embedded in the single `anma-card.js` resource.
+
+All six dashboard views have new desktop and 375px phone screenshots from the actual 0.7.0 build. Configuration documentation, examples, source snapshots, the standalone JS and manual-install ZIP are updated. Existing entity bindings and the unified `custom:anma-card` type are preserved.
+
+Validation: 30 automated tests, Django/syntax checks, six templates at two viewport sizes, legacy-card registration, independent forecast source, theme and grid-outage browser checks. Screenshots use synthetic Home Assistant data.
+
 ## 0.6.9 — Solar forecast and desktop telemetry
 
 Energy Station accepts a daily solar forecast entity in Connections → Solar. Below the sun, actual production is shown to the left of a centered slash and the daily forecast to the right. Energy entities are converted from Wh, kWh or MWh; an unavailable forecast remains unknown. Existing layouts without a forecast retain their production reading.

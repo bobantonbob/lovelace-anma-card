@@ -87,7 +87,16 @@
       ],
       "grid": "sensor.grid_active_power",
       "load": "sensor.home_consumption_power",
-      "ev": ""
+      "ev": "",
+      "cloud": {
+        "weatherEntity": "weather.home",
+        "forecastEntity": "weather.home",
+        "forecastType": "auto",
+        "showForecast": true,
+        "effects": true,
+        "effectOpacity": 35,
+        "solarToday": "sensor.solar_energy_daily"
+      }
     },
     "accent": "#f1873d",
     "font": "system",

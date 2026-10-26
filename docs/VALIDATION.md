@@ -1,18 +1,18 @@
-# Validation and release status
+# Validation — 0.7.0
 
-## Stable 0.2.0
+- 30 automated tests cover Cloud Flow weather sources, unavailable data, forecast capabilities, energy units, grid outages, configuration persistence and YAML export, plus existing Power Flow and Energy Station behavior.
+- JavaScript syntax and Django system checks passed.
+- Isolated Edge browser checks rendered all six templates at 1440px desktop and 375 × 812 phone viewport sizes, with no JavaScript errors or horizontal overflow.
+- All six templates were also checked after a legacy `anma-card` was pre-registered.
+- Cloud Flow's separate forecast source, settings drawer persistence, light/dark theme and grid-offline behavior were exercised in the browser.
+- Gallery images are fresh screenshots of the actual 0.7.0 standalone card. They use synthetic Home Assistant states, forecast events and history responses. The fixture is `tests/card-gallery.html` in the platform source.
+- Root `anma-card.js` is the same build as the platform distribution; checksums are recorded in `SHA256SUMS.txt`.
+- The manual-install ZIP contains the 0.7.0 resource and resource-version manifest.
 
-The owner has promoted the current card to the stable release channel. The package matches the platform distribution; checksums are recorded in SHA256SUMS.txt.
+## Scope
 
-- Five Power Flow model tests cover persistence, export, safe image values, opacity and existing settings.
-- 239 browser assertions cover PV counts 1–10 at 360/768/1440px and background controls.
-- 48 additional real-card assertions verify identical geometry before/after station and device photos for Power Flow and Cloud Flow at 360/768/1200px.
-- JavaScript syntax and package structure/documentation validation pass.
-- New desktop and phone-sized previews use synthetic states and the actual renderer.
-- HACS validation is run by the repository workflow. Default-catalog acceptance is separate.
+Phone screenshots are browser viewport previews, not physical iPhone/Safari tests. Live forecasts require a weather integration that supports the requested type; charts need recorded history. The local test's mocked HA connection cannot certify an individual provider or device integration.
 
-## Compatibility scope
+Cloud Flow's source assets are generated architectural illustrations. Their readings, conditions and animation are live code elements, not numbers painted into the images.
 
-Phone screenshots are browser viewport previews, not physical iPhone/Safari testing. Live history, weather and forecasts depend on the user's Home Assistant integrations; a local preview cannot verify those services. Stable release status does not imply certification of every browser or inverter integration.
-
-Compact metrics need their own sensor/unit settings. Keep only one ANMA JavaScript resource registered and reload the browser after upgrading.
+HACS custom-repository installation uses one resource: `/hacsfiles/lovelace-anma-card/anma-card.js`. Default HACS catalog acceptance remains a separate process.

@@ -2,6 +2,7 @@
 (function(root){
   'use strict';
   const Station=root.AnmaEnergyStation||(typeof require==='function'?require('./energy-station.js'):null);
+  const Cloud=root.AnmaCloudFlow||(typeof require==='function'?require('./cloud-flow.js'):null);
   const text=v=>typeof v==='string'?v.slice(0,200):'';
   const image=v=>typeof v==='string' && v.length<750000 && /^(https?:\/\/|\/(?!\/)|data:image\/(png|jpeg|webp);base64,)/.test(v)?v:'';
   const isManual=v=>typeof v==='string'&&/^[+-]?(?:\d+(?:\.\d*)?|\.\d+)$/.test(v.trim())&&Number.isFinite(Number(v));
@@ -21,8 +22,9 @@
   }
   function normalize(raw={}) {
     raw=raw&&typeof raw==='object'?raw:{};
+    const cloud=Cloud.normalize(raw.cloud);
     const unit=(v,i,prefix)=>({chargeSource:['solar','grid','mixed','sensor'].includes(v?.chargeSource)?v.chargeSource:'sensor',chargeSourceEntity:text(v?.chargeSourceEntity),backgroundOpacity:opacity(v?.backgroundOpacity),capacityKw:rating(v?.capacityKw),name:text(v?.name)||`${prefix} ${i+1}`,image:image(v?.image),imageOpacity:v?.imageOpacity!=null&&Number.isFinite(Number(v.imageOpacity))?Math.max(0,Math.min(100,Number(v.imageOpacity))):25,power:powerValue(v?.power),soc:text(v?.soc),voltage:text(v?.voltage),temperature:text(v?.temperature),mppts:Array.isArray(v?.mppts)?v.mppts.slice(0,2).map(x=>({name:text(x?.name),power:powerValue(x?.power)})):[]});
-    return {station:Station.normalize(raw.station),nodeAppearance:Object.fromEntries(['grid','load','nonBackup','ev','solar','battery'].map(k=>[k,appearance(raw.nodeAppearance?.[k])])),background:raw.background&&typeof raw.background==='object'?background(raw.background):null,gridCapacityKw:rating(raw.gridCapacityKw),fit:raw.fit!==false,gridStatus:text(raw.gridStatus),gridOn:text(raw.gridOn)||'on,connected,online,1',gridOff:text(raw.gridOff)||'off,disconnected,offline,0',inverterStatus:text(raw.inverterStatus),inverterOn:text(raw.inverterOn)||'on,running,normal,online',inverterOff:text(raw.inverterOff)||'off,standby,offline',inverterFault:text(raw.inverterFault)||'error,fault,alarm',nonBackup:powerValue(raw.nonBackup),backupName:text(raw.backupName)||'EPS / Backup',nonBackupName:text(raw.nonBackupName)||'Grid / Non-backup',mode:['auto','day','night'].includes(raw.mode)?raw.mode:'auto',profile:['auto','desktop','tablet','mobile'].includes(raw.profile)?raw.profile:'auto',hideDetails:raw.hideDetails!==false,showEv:raw.showEv!==false,invertGrid:raw.invertGrid===true,invertBattery:raw.invertBattery===true,inverter:unit(raw.inverter,0,'Inverter'),batteries:(Array.isArray(raw.batteries)?raw.batteries:[{},{}]).slice(0,5).map((v,i)=>unit(v,i,'Battery')),strings:(Array.isArray(raw.strings)?raw.strings:[{},{}]).slice(0,10).map((v,i)=>unit(v,i,'PV')),grid:powerValue(raw.grid),load:powerValue(raw.load),ev:powerValue(raw.ev)};
+    return {cloud,station:Station.normalize(raw.station),nodeAppearance:Object.fromEntries(['grid','load','nonBackup','ev','solar','battery'].map(k=>[k,appearance(raw.nodeAppearance?.[k])])),background:raw.background&&typeof raw.background==='object'?background(raw.background):null,gridCapacityKw:rating(raw.gridCapacityKw),fit:raw.fit!==false,gridStatus:text(raw.gridStatus),gridOn:text(raw.gridOn)||'on,connected,online,1',gridOff:text(raw.gridOff)||'off,disconnected,offline,0',inverterStatus:text(raw.inverterStatus),inverterOn:text(raw.inverterOn)||'on,running,normal,online',inverterOff:text(raw.inverterOff)||'off,standby,offline',inverterFault:text(raw.inverterFault)||'error,fault,alarm',nonBackup:powerValue(raw.nonBackup),backupName:text(raw.backupName)||'EPS / Backup',nonBackupName:text(raw.nonBackupName)||'Grid / Non-backup',mode:['auto','day','night'].includes(raw.mode)?raw.mode:'auto',profile:['auto','desktop','tablet','mobile'].includes(raw.profile)?raw.profile:'auto',hideDetails:raw.hideDetails!==false,showEv:raw.showEv!==false,invertGrid:raw.invertGrid===true,invertBattery:raw.invertBattery===true,inverter:unit(raw.inverter,0,'Inverter'),batteries:(Array.isArray(raw.batteries)?raw.batteries:[{},{}]).slice(0,5).map((v,i)=>unit(v,i,'Battery')),strings:(Array.isArray(raw.strings)?raw.strings:[{},{}]).slice(0,10).map((v,i)=>unit(v,i,'PV')),grid:powerValue(raw.grid),load:powerValue(raw.load),ev:powerValue(raw.ev)};
   }
   const css=`
   .apf{--pf-bg:#101b25;--pf-panel:#15232f;--pf-ink:#eef5fa;--pf-muted:#9eb1c0;container-type:inline-size;container-name:powerflow;position:relative;isolation:isolate;box-sizing:border-box;width:100%;min-width:0;border:1px solid #334655;border-radius:18px;background:var(--pf-bg);color:var(--pf-ink);padding:16px;overflow:hidden;font:14px system-ui,sans-serif;grid-column:1/-1;display:flex;flex-direction:column;gap:10px}
@@ -58,6 +60,7 @@
   `;
   function render(layout,{uk=false,demo=false,hass=null,change=null}={}){
     if(layout.template==='energy_station')return Station.render(layout,{uk,demo,hass,change});
+    if(layout.template==='cloud_flow')return Cloud.render(layout,{uk,demo,hass,change,normalizePower:normalize});
     const c=normalize(layout.powerFlow),n=(tag,cls,txt)=>{const e=document.createElement(tag);e.className=cls||'';if(txt!==undefined)e.textContent=txt;return e;},tr=(en,ua)=>uk?ua:en;
     const card=n('section','apf db-widget-box');card.dataset.mode=c.mode==='auto'?(String(layout.theme?.mode).startsWith('light')||layout.theme?.mode==='nordic'?'day':'night'):c.mode;card.dataset.autoTheme=String(c.mode==='auto');card.dataset.profile=c.profile;card.setAttribute('aria-label','ANMA Power Flow');
     card.append(n('style','',css));const sceneBackground=background(c.background||layout.background);if(sceneBackground.image){const bg=n('img','apf-bg');bg.src=sceneBackground.image;bg.alt='';bg.style.cssText='position:absolute;inset:0;width:100%;height:100%;max-width:none;max-height:none;z-index:-1;pointer-events:none';bg.style.opacity=sceneBackground.opacity/100;bg.style.objectFit=sceneBackground.fit;bg.style.objectPosition=sceneBackground.position;card.append(bg);}
@@ -269,6 +272,7 @@
   // Keep live nodes (and their animation timelines) across HA state updates.
   function update(host,layout,options={}){
     if(layout.template==='energy_station')return Station.update(host,layout,options);
+    if(layout.template==='cloud_flow')return Cloud.update(host,layout,{...options,normalizePower:normalize});
     const next=render(layout,options),current=host.firstElementChild;
     if(!current||current.className!==next.className){host.replaceChildren(next);return next;}
     function sync(target,source){
@@ -326,6 +330,20 @@
         input.oninput=update;input.onchange=update;input.addEventListener('focus',showStatus);input._refreshEntityStatus=showStatus;valueLabel.append(input);if(!manual)suggest(input,'power');valueLabel.append(status);showStatus();
       }
       select.onchange=()=>{obj[key]=select.value==='manual'?'0':'';renderValue();commit(false);};renderValue();
+    }
+    if(template==='cloud_flow'){
+      const group=n('fieldset');group.append(n('legend',tr('Cloud Flow · weather and atmosphere','Cloud Flow · погода й атмосфера')));form.append(group);
+      for(const [key,en,ua] of [['weatherEntity','Current weather entity (weather.*)','Поточна погода · сутність (weather.*)'],['forecastEntity','Forecast entity (optional; same as current weather if empty)','Сутність прогнозу (порожньо — як поточна погода)']]){
+        field(group,tr(en,ua),c.cloud,key);
+        const weatherInput=group.querySelector('label:last-child input'),list=n('datalist');list.id='cloud-weather-'+Math.random().toString(36).slice(2);weatherInput.setAttribute('list',list.id);weatherInput.placeholder='weather.home';
+        for(const [id,value] of Object.entries(getStates()||{}).filter(([id])=>id.startsWith('weather.'))){const option=n('option',value.attributes?.friendly_name||id);option.value=id;list.append(option);}group.append(list);
+      }
+      field(group,tr('Forecast','Прогноз'),c.cloud,'forecastType',[['auto',tr('Auto (prefer hourly)','Авто (спочатку погодинний)')],['hourly',tr('Hourly','Погодинний')],['daily',tr('Daily','Добовий')],['twice_daily',tr('Day / night','День / ніч')]]);
+      for(const [key,en,ua] of [['effects','Weather background effects','Погодні ефекти фону'],['showForecast','Show forecast','Показувати прогноз']]){const label=n('label',tr(en,ua)),input=n('input');input.type='checkbox';input.checked=c.cloud[key];input.onchange=()=>{c.cloud[key]=input.checked;commit();};label.append(input);group.append(label);}
+      const label=n('label',tr('Weather effects intensity','Інтенсивність погодних ефектів')),input=n('input'),value=n('output');input.type='range';input.min=0;input.max=100;input.value=c.cloud.effectOpacity;value.textContent=input.value+'%';input.oninput=()=>{c.cloud.effectOpacity=Number(input.value);value.textContent=input.value+'%';};input.onchange=()=>commit();label.append(input,value);group.append(label);
+      field(group,tr('Demo weather (preview only)','Погода в демо (лише перегляд)'),c.cloud,'demoWeather',[['partlycloudy',tr('Partly cloudy','Мінлива хмарність')],['sunny',tr('Sunny','Сонячно')],['rainy',tr('Rain','Дощ')],['snowy',tr('Snow','Сніг')],['cloudy',tr('Cloudy','Хмарно')],['clear-night',tr('Clear night','Ясна ніч')]]);
+      field(group,tr('Solar energy today (kWh or entity)','Генерація сьогодні (кВт·год або сутність)'),c.cloud,'solarToday');
+      group.append(n('small',tr('Current conditions and forecast use your selected Home Assistant weather provider. Unavailable data stays unknown. Demo weather is only used in website preview.','Поточна погода та прогноз — з обраної погодної сутності Home Assistant. Недоступні дані не підмінюються. Демопогода працює лише в перегляді сайту.')));
     }
     const photoGroup=n('fieldset');photoGroup.append(n('legend',tr('Card background','Фон картки')));form.append(photoGroup);
     const scene=background(c.background||legacyBackground),saveBackground=()=>{c.background={...scene};commit(false);};

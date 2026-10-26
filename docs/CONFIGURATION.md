@@ -75,4 +75,38 @@ Set `station.phases` to `1` (default) or `3`. Three-phase systems use `phaseRead
 
 `station.colors` supports six-digit hex values for `solar`, `grid`, `backup`, `battery`, `charge`, `discharge`, `aux`, and `inverter`. Configure these in Connections → Flow colors.
 
-The displayed battery kWh is now usable energy above `reserveSoc`: total capacity × max(0, SOC − reserve) / 100. Estimated runtime divides that energy by the current backup load, assuming battery-only supply; losses and future load changes are not included. Missing required readings produce a dash. The purchase price is no longer displayed on the diagram; saved bindings are retained.
+The displayed battery kWh is usable energy above `reserveSoc`: total capacity × max(0, SOC − reserve) / 100. Estimated runtime divides that energy by the actual battery discharge power. Missing required readings, charging and idle produce a dash. The purchase price is no longer displayed on the diagram; saved bindings are retained.
+
+## Cloud Flow weather
+
+Version 0.7.0 stores these options in `layout.powerFlow.cloud`. Select them under **Connections → Cloud Flow · weather and atmosphere**.
+
+| Field | Purpose | Default |
+| --- | --- | --- |
+| `weatherEntity` | `weather.*` for current conditions, temperature and atmosphere. | Empty |
+| `forecastEntity` | Separate forecast `weather.*`; empty uses `weatherEntity`. | Empty |
+| `forecastType` | `auto`, `hourly`, `daily`, `twice_daily`. Auto prefers supported hourly forecasts. | `auto` |
+| `showForecast` | Show the upcoming forecast row. | `true` |
+| `effects` | Enable background weather effects. | `true` |
+| `effectOpacity` | Effect intensity, 0–100. Text and equipment remain opaque. | `35` |
+| `solarToday` | Daily solar energy entity in Wh, kWh or MWh, or a fixed kWh value. | Empty |
+| `demoWeather` | Website preview only: sunny, partlycloudy, rainy, snowy, cloudy, clear-night. | `partlycloudy` |
+
+```yaml
+type: custom:anma-card
+layout:
+  template: cloud_flow
+  name: My home
+  powerFlow:
+    cloud:
+      weatherEntity: weather.home
+      forecastEntity: weather.forecast_home
+      forecastType: auto
+      showForecast: true
+      effects: true
+      effectOpacity: 35
+```
+
+Forecasts use Home Assistant's weather subscription API and the provider's supported forecast types. Selecting a separate provider changes only the forecast; the current weather entity continues to control the background. An unavailable explicitly selected provider is not replaced by a different source. Temperature units follow each selected weather entity.
+
+All views use the same `anma-card.js` resource. The architectural images are embedded; no extra JS card type or asset installation is needed.
