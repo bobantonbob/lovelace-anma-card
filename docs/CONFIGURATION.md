@@ -2,6 +2,16 @@
 
 ## Cloud Flow groups and EV
 
+Cloud Flow Names and captions uses `layout.powerFlow.cloud.labels`, keyed by
+`solar`, `grid`, `inverter`, `home`, `battery`, `nonBackup`, `ev`. Each entry accepts
+`name` (empty uses the default) and `show` (false hides only the title and matching
+legend). `cloud.subtitle` changes the system caption beside Cloud Flow; an empty
+string hides it. If absent, the existing layout name is used.
+
+For all templates, `layout.showBrandHeader: false` hides the outer ANMA ELECTRIC
+header. The default is true. This setting is available under General in HA and
+the platform settings, and survives template switching and YAML export.
+
 Since 0.7.5, Connections > Scene background allows a personal photo (file upload
 or image URL), visibility slider, cover/contain and position. Remove it to restore
 the standard background. Settings use `layout.powerFlow.background` with `image`,

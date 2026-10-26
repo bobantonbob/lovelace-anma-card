@@ -293,7 +293,7 @@
     }
     sync(current,next);current._refreshCloudPaths?.();current._refreshPowerPaths?.();return current;
   }
-  function editor(raw,uk,onchange,{getStates=()=>null,legacyBackground=null,template=null,demoPreview=false,showEntityImport=true}={}){
+  function editor(raw,uk,onchange,{getStates=()=>null,legacyBackground=null,template=null,demoPreview=false,showEntityImport=true,systemName=''}={}){
     if(template==='energy_station')return Station.editor(raw?.station,uk,(station,redraw)=>onchange({...normalize(raw),station},redraw),{getStates});
     const c=normalize(raw),n=(tag,txt)=>{const e=document.createElement(tag);if(txt)e.textContent=txt;return e;},tr=(en,ua)=>uk?ua:en;
     const box=n('details'),summary=n('summary',tr('Configure Power Flow','Налаштувати Power Flow')),form=n('div');form.className='apf-settings';box.className='apf-config';box.append(summary,form);const commit=(redraw=true)=>{const host=box.getRootNode();onchange(c,redraw);host.querySelectorAll('.apf-config').forEach(e=>e.open=true);};box.addEventListener('click',e=>e.stopPropagation());
@@ -336,6 +336,11 @@
       summary.textContent=tr('Cloud Flow · Connections','Cloud Flow · З’єднання');
       const section=(en,ua)=>{const el=n('fieldset');el.append(n('legend',tr(en,ua)));form.append(el);return el;};
       const toggle=(parent,en,ua,obj,key)=>{const label=n('label',tr(en,ua)),input=n('input');input.type='checkbox';input.checked=obj[key];input.onchange=()=>{obj[key]=input.checked;commit();};label.append(input);parent.append(label);};
+      const captions=section('Names and captions','Назви й підписи');
+      if(c.cloud.subtitle===null)c.cloud.subtitle=systemName;
+      field(captions,tr('System caption beside Cloud Flow','Підпис системи поруч із Cloud Flow'),c.cloud,'subtitle');
+      captions.append(n('small',tr('Cloud Flow stays fixed. Leave the caption empty to hide it.','Cloud Flow залишається незмінним. Порожній підпис не відображається.')));
+      for(const [key,en,ua] of [['solar','Solar','Сонце'],['grid','Grid','Мережа'],['inverter','Inverter','Інвертор'],['home','House','Будинок'],['battery','Battery','Батарея'],['nonBackup','Non-backup','Негарантоване'],['ev','EV','Авто']]){toggle(captions,'Show name: '+en,'Показувати назву: '+ua,c.cloud.labels[key],'show');field(captions,tr(en+' name',ua+' · назва'),c.cloud.labels[key],'name');}
       const solar=section('Solar · total','Сонце · разом');
       powerInput(solar,tr('Total solar power','Загальна потужність сонця'),c.cloud,'solarPower');
       field(solar,tr('Solar energy today (kWh or entity)','Генерація сьогодні (кВт·год або сутність)'),c.cloud,'solarToday');

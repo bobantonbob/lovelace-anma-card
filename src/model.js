@@ -217,7 +217,7 @@
 
   const defaultBatteryStack = [
     { id: 'bat-1', name: 'Deye Pro 5.12kWh #1 (Master)', soc: 88, voltage: '53.2', current: '1.06', temp: 24, status: 'Master · OK' },
-    
+
   ];
 
   const defaultInverterStack = [
@@ -293,6 +293,7 @@
       id: 'db-' + Date.now() + '-' + Math.random().toString(36).slice(2, 8),
       name: 'PIVDENNE ENERGY · DA6K',
       brandTitle: 'ANMA ELECTRIC',
+      showBrandHeader: true,
       origin: 'standalone', // 'standalone' or 'builder'
       template: 'overview',
       powerFlow: PowerFlow.normalize(),
@@ -472,6 +473,7 @@
     result.origin = ['builder', 'standalone'].includes(raw.origin) ? raw.origin : 'standalone';
     result.name = clean(raw.name) || result.name;
     result.brandTitle = clean(raw.brandTitle) || 'ANMA ELECTRIC';
+    result.showBrandHeader = raw.showBrandHeader !== false;
     result.template = Object.hasOwn(templates, raw.template) ? raw.template : 'overview';
     result.accent = /^#[0-9a-f]{6}$/i.test(raw.accent) ? raw.accent : result.accent;
     result.font = fonts.includes(raw.font) ? raw.font : 'system';

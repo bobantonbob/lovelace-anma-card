@@ -370,7 +370,8 @@ if (typeof window !== 'undefined') {
   const assets={atlas:atlas.startsWith('__')?asset('cloud-flow-atlas.webp'):atlas,sky:sky.startsWith('__')?asset('cloud-flow-sky.webp'):sky,ev:evAsset.startsWith('__')?asset('cloud-flow-ev.webp'):evAsset};
   function normalize(raw={}){
     raw=raw&&typeof raw==='object'?raw:{};
-    return {solarPower:str(raw.solarPower),batteryPower:str(raw.batteryPower),batterySoc:str(raw.batterySoc),showNonBackup:raw.showNonBackup!==false,showEv:raw.showEv===true,evGroup:raw.evGroup==='grid'?'grid':'backup',evName:str(raw.evName)||'Tesla · EV',weatherEntity:/^weather\.[\w]+$/.test(raw.weatherEntity)?raw.weatherEntity:'',forecastEntity:/^weather\.[\w]+$/.test(raw.forecastEntity)?raw.forecastEntity:'',forecastType:['auto','hourly','daily','twice_daily'].includes(raw.forecastType)?raw.forecastType:'auto',effects:raw.effects!==false,effectOpacity:clamp(raw.effectOpacity,0,100,35),showForecast:raw.showForecast!==false,solarToday:str(raw.solarToday),solarForecast:str(raw.solarForecast),demoWeather:['sunny','partlycloudy','rainy','snowy','cloudy','clear-night'].includes(raw.demoWeather)?raw.demoWeather:'partlycloudy'};
+    const labelKeys=['solar','grid','inverter','home','battery','nonBackup','ev'];const labels=Object.fromEntries(labelKeys.map(k=>[k,{name:str(raw.labels?.[k]?.name),show:raw.labels?.[k]?.show!==false}]));
+    return {labels,subtitle:typeof raw.subtitle==='string'?str(raw.subtitle):null,solarPower:str(raw.solarPower),batteryPower:str(raw.batteryPower),batterySoc:str(raw.batterySoc),showNonBackup:raw.showNonBackup!==false,showEv:raw.showEv===true,evGroup:raw.evGroup==='grid'?'grid':'backup',evName:str(raw.evName)||'Tesla · EV',weatherEntity:/^weather\.[\w]+$/.test(raw.weatherEntity)?raw.weatherEntity:'',forecastEntity:/^weather\.[\w]+$/.test(raw.forecastEntity)?raw.forecastEntity:'',forecastType:['auto','hourly','daily','twice_daily'].includes(raw.forecastType)?raw.forecastType:'auto',effects:raw.effects!==false,effectOpacity:clamp(raw.effectOpacity,0,100,35),showForecast:raw.showForecast!==false,solarToday:str(raw.solarToday),solarForecast:str(raw.solarForecast),demoWeather:['sunny','partlycloudy','rainy','snowy','cloudy','clear-night'].includes(raw.demoWeather)?raw.demoWeather:'partlycloudy'};
   }
   function read(id,states,kind='power'){
     if(!id)return null;
@@ -439,7 +440,7 @@ if (typeof window !== 'undefined') {
     const card=n('section','cf-scene apf-cloud db-widget-box');card.setAttribute('aria-label','ANMA Cloud Flow');card.dataset.fit=String(c.fit);card.style.setProperty('--cf-atlas',`url("${assets.atlas}")`);card.style.setProperty('--cf-sky',`url("${assets.sky}")`);const landscape=n('div','cf-landscape');card.append(n('style','',css),landscape,n('div','cf-atmosphere'));
     const background=c.background||layout.background;
     if(background?.image){card.dataset.customBackground='true';landscape.style.backgroundImage='url('+JSON.stringify(background.image)+')';landscape.style.backgroundSize=background.fit||'cover';landscape.style.backgroundPosition=background.position||'center';landscape.style.opacity=(background.opacity??25)/100;}
-    const head=n('header','cf-head'),brand=n('h2','','Cloud Flow'),name=n('span','cf-name',layout.name||'');brand.append(name);const tools=n('div','cf-tools');head.append(brand,tools);card.append(head);
+    const head=n('header','cf-head'),brand=n('h2','','Cloud Flow'),name=n('span','cf-name',c.cloud.subtitle??layout.name??'');brand.append(name);const tools=n('div','cf-tools');head.append(brand,tools);card.append(head);
     const expand=n('button','cf-expand','⛶');expand.type='button';expand.setAttribute('aria-label',tr('Cloud Flow fullscreen','Cloud Flow на весь екран'));expand.onclick=async()=>{try{if(document.fullscreenElement)await document.exitFullscreen();else await card.requestFullscreen();}catch(_){expand.title=tr('Fullscreen unavailable in this browser','Повноекранний режим недоступний у браузері');}};tools.append(expand);
     const weatherBox=n('div','cf-weather'),weatherMain=n('div','cf-weather-main'),weatherIcon=n('span','cf-weather-icon'),temperature=n('b'),condition=n('span'),forecastList=n('ol','cf-weather-forecast'),weatherNote=n('span','cf-weather-note');weatherMain.append(weatherIcon,temperature,condition);weatherBox.append(weatherMain,forecastList,weatherNote);card.append(weatherBox);
     const viewport=n('div','cf-viewport'),stage=n('div','cf-stage'),svg=s('svg',{'class':'cf-svg','aria-hidden':'true',preserveAspectRatio:'none'});stage.append(svg);viewport.append(stage);card.append(viewport);
@@ -447,8 +448,8 @@ if (typeof window !== 'undefined') {
     for(const kind of [...Object.keys(crops),'ev']){const obj=n('div','cf-object');obj.dataset.kind=kind;obj.setAttribute('aria-hidden','true');objects[kind]=obj;stage.append(obj);if(kind==='ev'){obj.style.backgroundImage=`url("${assets.ev}")`;obj.style.backgroundSize='contain';obj.style.backgroundPosition='center';}}
     const names={solar:tr('SOLAR','СОНЦЕ'),grid:tr('GRID','МЕРЕЖА'),inverter:c.inverter.name||tr('INVERTER','ІНВЕРТОР'),home:c.backupName==='EPS / Backup'?tr('HOME','БУДИНОК'):c.backupName,battery:tr('BATTERY','БАТАРЕЯ'),nonBackup:c.nonBackupName==='Grid / Non-backup'?tr('NON-BACKUP','НЕГАРАНТОВАНЕ'):c.nonBackupName};
     names.ev=c.cloud.evName;
-    for(const kind of Object.keys(names)){const el=n('div','cf-node-label'),title=n('span','',names[kind]),value=n('b','','—'),detail=n('small');el.dataset.kind=kind;el.style.setProperty('--cf-color',colors[kind]);el.append(title,value,detail);stage.append(el);labels[kind]={el,value,detail};}
-    const foot=n('div','cf-foot');for(const kind of ['solar','grid','battery','home']){const el=n('span','',names[kind]);el.style.setProperty('--cf-color',colors[kind]);foot.append(el);}if(demo)foot.append(n('small','',tr('DEMO · simulated values','ДЕМО · змодельовані значення')));card.append(foot);
+    for(const kind of Object.keys(names)){const el=n('div','cf-node-label'),title=n('span','',c.cloud.labels[kind].name||names[kind]),value=n('b','','—'),detail=n('small');title.style.display=c.cloud.labels[kind].show?'':'none';el.dataset.kind=kind;el.style.setProperty('--cf-color',colors[kind]);el.append(title,value,detail);stage.append(el);labels[kind]={el,value,detail};}
+    const foot=n('div','cf-foot');for(const kind of ['solar','grid','battery','home']){const el=n('span','',c.cloud.labels[kind].name||names[kind]);el.style.display=c.cloud.labels[kind].show?'':'none';el.style.setProperty('--cf-color',colors[kind]);foot.append(el);}if(demo)foot.append(n('small','',tr('DEMO · simulated values','ДЕМО · змодельовані значення')));if(!demo&&['solar','grid','battery','home'].every(k=>!c.cloud.labels[k].show))foot.style.display='none';card.append(foot);
     let live=hass,data,phone=false,forecast=[],subscription=null,connection=null,subscriptionKey='',dead=false,token=null,resizeObserver;
     const edges={};for(const key of ['solar','grid','battery','home','nonBackup','ev']){const g=s('g',{'class':'cf-edge','data-branch':key}),track=s('path',{'class':'cf-track'}),flow=s('path',{'class':'cf-flow'});g.style.setProperty('--cf-wire',colors[key]);g.append(track,flow);const dots=[];for(let i=0;i<3;i++){const dot=s('circle',{'class':'cf-particle',r:3-i*.6,opacity:1-i*.28}),motion=s('animateMotion',{dur:'4s',repeatCount:'indefinite',begin:(-i*.11)+'s'});dot.append(motion);g.append(dot);dots.push(motion);}svg.append(g);edges[key]={g,track,flow,dots};}
     function place(){
@@ -501,7 +502,7 @@ if (typeof window !== 'undefined') {
       const editor=root.AnmaPowerFlow.editor(c,uk,(next,redraw)=>{
         const scope=card.getRootNode();layout.powerFlow=next;change(redraw);
         for(const scene of scope.querySelectorAll('.cf-scene'))if(scene.dataset.cloudId===card.dataset.cloudId){const panel=scene.querySelector('.cf-settings');if(panel)panel.hidden=false;scene.querySelector('.cf-connections')?.setAttribute('aria-expanded','true');}
-      },{template:'cloud_flow',demoPreview:demo,getStates:()=>live?.states||{},legacyBackground:layout.background});
+      },{template:'cloud_flow',systemName:layout.name,demoPreview:demo,getStates:()=>live?.states||{},legacyBackground:layout.background});
       editor.open=true;settings.append(editor);card.append(settings);toggle.onclick=()=>{settings.hidden=!settings.hidden;toggle.setAttribute('aria-expanded',String(!settings.hidden));};tools.append(toggle);card.addEventListener('keydown',e=>{if(e.key==='Escape')close.click();});
     }
     let removalObserver;
@@ -815,7 +816,7 @@ if (typeof window !== 'undefined') {
     }
     sync(current,next);current._refreshCloudPaths?.();current._refreshPowerPaths?.();return current;
   }
-  function editor(raw,uk,onchange,{getStates=()=>null,legacyBackground=null,template=null,demoPreview=false,showEntityImport=true}={}){
+  function editor(raw,uk,onchange,{getStates=()=>null,legacyBackground=null,template=null,demoPreview=false,showEntityImport=true,systemName=''}={}){
     if(template==='energy_station')return Station.editor(raw?.station,uk,(station,redraw)=>onchange({...normalize(raw),station},redraw),{getStates});
     const c=normalize(raw),n=(tag,txt)=>{const e=document.createElement(tag);if(txt)e.textContent=txt;return e;},tr=(en,ua)=>uk?ua:en;
     const box=n('details'),summary=n('summary',tr('Configure Power Flow','Налаштувати Power Flow')),form=n('div');form.className='apf-settings';box.className='apf-config';box.append(summary,form);const commit=(redraw=true)=>{const host=box.getRootNode();onchange(c,redraw);host.querySelectorAll('.apf-config').forEach(e=>e.open=true);};box.addEventListener('click',e=>e.stopPropagation());
@@ -858,6 +859,11 @@ if (typeof window !== 'undefined') {
       summary.textContent=tr('Cloud Flow · Connections','Cloud Flow · З’єднання');
       const section=(en,ua)=>{const el=n('fieldset');el.append(n('legend',tr(en,ua)));form.append(el);return el;};
       const toggle=(parent,en,ua,obj,key)=>{const label=n('label',tr(en,ua)),input=n('input');input.type='checkbox';input.checked=obj[key];input.onchange=()=>{obj[key]=input.checked;commit();};label.append(input);parent.append(label);};
+      const captions=section('Names and captions','Назви й підписи');
+      if(c.cloud.subtitle===null)c.cloud.subtitle=systemName;
+      field(captions,tr('System caption beside Cloud Flow','Підпис системи поруч із Cloud Flow'),c.cloud,'subtitle');
+      captions.append(n('small',tr('Cloud Flow stays fixed. Leave the caption empty to hide it.','Cloud Flow залишається незмінним. Порожній підпис не відображається.')));
+      for(const [key,en,ua] of [['solar','Solar','Сонце'],['grid','Grid','Мережа'],['inverter','Inverter','Інвертор'],['home','House','Будинок'],['battery','Battery','Батарея'],['nonBackup','Non-backup','Негарантоване'],['ev','EV','Авто']]){toggle(captions,'Show name: '+en,'Показувати назву: '+ua,c.cloud.labels[key],'show');field(captions,tr(en+' name',ua+' · назва'),c.cloud.labels[key],'name');}
       const solar=section('Solar · total','Сонце · разом');
       powerInput(solar,tr('Total solar power','Загальна потужність сонця'),c.cloud,'solarPower');
       field(solar,tr('Solar energy today (kWh or entity)','Генерація сьогодні (кВт·год або сутність)'),c.cloud,'solarToday');
@@ -1242,6 +1248,7 @@ field(group,tr('Image URL (/local/… in HA)','URL зображення (/local/
       id: 'db-' + Date.now() + '-' + Math.random().toString(36).slice(2, 8),
       name: 'PIVDENNE ENERGY · DA6K',
       brandTitle: 'ANMA ELECTRIC',
+      showBrandHeader: true,
       origin: 'standalone', // 'standalone' or 'builder'
       template: 'overview',
       powerFlow: PowerFlow.normalize(),
@@ -1421,6 +1428,7 @@ field(group,tr('Image URL (/local/… in HA)','URL зображення (/local/
     result.origin = ['builder', 'standalone'].includes(raw.origin) ? raw.origin : 'standalone';
     result.name = clean(raw.name) || result.name;
     result.brandTitle = clean(raw.brandTitle) || 'ANMA ELECTRIC';
+    result.showBrandHeader = raw.showBrandHeader !== false;
     result.template = Object.hasOwn(templates, raw.template) ? raw.template : 'overview';
     result.accent = /^#[0-9a-f]{6}$/i.test(raw.accent) ? raw.accent : result.accent;
     result.font = fonts.includes(raw.font) ? raw.font : 'system';
@@ -2780,7 +2788,7 @@ field(group,tr('Image URL (/local/… in HA)','URL зображення (/local/
 (() => {
   'use strict';
 
-  const CARD_VERSION = '0.7.5';
+  const CARD_VERSION = '0.7.6';
   const EN = {
     'Стан системи':'System status', 'Помилки':'Errors', 'Стан АКБ':'Battery status', 'Електромобіль — потужність':'EV — power', 'Генератор — потужність':'Generator — power', 'Мова картки': 'Card language', 'Сонце': 'Solar', 'Дім': 'Home', 'Самоспоживання': 'Self-consumption', 'АКБ': 'Battery', 'Прогноз на 7 днів': '7-day forecast', 'Середньодобово': 'Daily average', 'Найкращий день': 'Best day', 'Мікроінвертор': 'Microinverter', 'MPPT МАТРИЦЯ': 'MPPT MATRIX', '✓ Оптимально': '✓ Optimal', 'Автоматично (Home Assistant)': 'Automatic (Home Assistant)',
     'Імпортувати макет ANMA / Import ANMA layout (.json)': 'Import ANMA layout (.json)',
@@ -3920,7 +3928,7 @@ field(group,tr('Image URL (/local/… in HA)','URL зображення (/local/
         </div>
 
       `;
-      root.appendChild(head);
+      if(l.showBrandHeader!==false)root.appendChild(head);
 
       // 2. Canvas Grid
       const canvas = document.createElement('div');
@@ -5163,6 +5171,9 @@ field(group,tr('Image URL (/local/… in HA)','URL зображення (/local/
       const houseName=this._node('input','',houseLabel);
       houseName.type='text';houseName.value=this._config?.layout?.name||'';
       houseName.onchange=()=>this._emit({...this._config?.layout,name:houseName.value,brandTitle:'ANMA ELECTRIC'});
+      const brandLabel=this._node('label','Показувати шапку ANMA ELECTRIC / Show brand header',root);
+      const brandToggle=this._node('input','',brandLabel);brandToggle.type='checkbox';brandToggle.checked=this._config?.layout?.showBrandHeader!==false;
+      brandToggle.onchange=()=>this._emit({...this._config.layout,showBrandHeader:brandToggle.checked});
       const languageLabel = this._node('label', 'Мова картки', root);
       const language = this._node('select', '', languageLabel);
       language.dataset.control = 'language';
@@ -5931,7 +5942,7 @@ field(group,tr('Image URL (/local/… in HA)','URL зображення (/local/
         const editor=window.AnmaPowerFlow.editor(layout.powerFlow,uk,(powerFlow,redraw=true)=>{
           this._emit({...this._config.layout,powerFlow});
           if(redraw)this._rows();
-        },{getStates:()=>this._hass?.states||null,legacyBackground:layout.background,template:layout.template,showEntityImport:false});
+        },{getStates:()=>this._hass?.states||null,legacyBackground:layout.background,template:layout.template,systemName:layout.name,showEntityImport:false});
         editor.open=true;parent.append(editor);return;
       }
 

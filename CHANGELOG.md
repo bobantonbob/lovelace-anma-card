@@ -1,5 +1,11 @@
 # Changelog
 
+## 0.7.6 — Names, captions and optional brand header
+
+Cloud Flow object titles can be renamed or hidden independently of readings.
+Its system caption is editable separately. General settings can hide the ANMA
+ELECTRIC header across all six dashboard templates, freeing mobile screen space.
+
 ## 0.7.5 — Cloud Flow personal background photo
 
 Replace the day/night control with scene-photo upload/URL, visibility, fill,
