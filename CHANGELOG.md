@@ -1,5 +1,12 @@
 # Changelog
 
+## 0.7.2 — Cloud Flow Connections cleanup
+
+A dedicated Cloud Flow editor replaces unused equipment-photo, border and PV/MPPT
+controls. Total solar, battery power and SOC bindings override legacy aggregates
+without deleting them. HA navigation identifies the scene correctly. Illustrations
+and other dashboard editors remain unchanged.
+
 ## 0.7.1 — Cloud Flow groups, EV and battery states
 
 Optional Tesla-style EV below the house, backup/grid EV supply selection, and a

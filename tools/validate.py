@@ -8,7 +8,7 @@ hacs = json.loads((root / 'hacs.json').read_text(encoding='utf-8'))
 assert hacs['filename'] == 'anma-card.js' and hacs['content_in_root'] is True
 assert (root / hacs['filename']).stat().st_size > 100000
 bundle = (root / hacs['filename']).read_text(encoding='utf-8')
-assert "const CARD_VERSION = '0.7.1'" in bundle
+assert "const CARD_VERSION = '0.7.2'" in bundle
 assert "'data:image/webp;base64," in bundle
 assert "'__ANMA_CLOUD_ATLAS__'" not in bundle
 assert "'__ANMA_CLOUD_EV__'" not in bundle
@@ -38,4 +38,4 @@ for file in root.rglob('*.md'):
 for file in (root / 'examples').glob('*.yaml'):
     text = file.read_text(encoding='utf-8')
     assert not re.search(r'100\.11[14]\.|192\.168\.|access_token|password|Pivdenne', text, re.I)
-print('PASS: HACS structure, 0.7.1 embedded assets, 12 gallery captures, cloud weather example, three-view example, documentation links and private-address checks.')
+print('PASS: HACS structure, 0.7.2 embedded assets, 12 gallery captures, cloud weather example, three-view example, documentation links and private-address checks.')

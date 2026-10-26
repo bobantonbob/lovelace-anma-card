@@ -293,7 +293,7 @@
     }
     sync(current,next);current._refreshCloudPaths?.();current._refreshPowerPaths?.();return current;
   }
-  function editor(raw,uk,onchange,{getStates=()=>null,legacyBackground=null,template=null}={}){
+  function editor(raw,uk,onchange,{getStates=()=>null,legacyBackground=null,template=null,demoPreview=false,showEntityImport=true}={}){
     if(template==='energy_station')return Station.editor(raw?.station,uk,(station,redraw)=>onchange({...normalize(raw),station},redraw),{getStates});
     const c=normalize(raw),n=(tag,txt)=>{const e=document.createElement(tag);if(txt)e.textContent=txt;return e;},tr=(en,ua)=>uk?ua:en;
     const box=n('details'),summary=n('summary',tr('Configure Power Flow','Налаштувати Power Flow')),form=n('div');form.className='apf-settings';box.className='apf-config';box.append(summary,form);const commit=(redraw=true)=>{const host=box.getRootNode();onchange(c,redraw);host.querySelectorAll('.apf-config').forEach(e=>e.open=true);};box.addEventListener('click',e=>e.stopPropagation());
@@ -332,11 +332,31 @@
       select.onchange=()=>{obj[key]=select.value==='manual'?'0':'';renderValue();commit(false);};renderValue();
     }
     if(template==='cloud_flow'){
-      const groups=n('fieldset');groups.append(n('legend',tr('Cloud Flow · groups and EV','Cloud Flow · групи й авто')));form.append(groups);
-      for(const [key,en,ua] of [['showNonBackup','Show non-backup group','Показувати негарантовану групу'],['showEv','Show Tesla / EV below the house','Показувати Tesla / авто під будинком']]){const label=n('label',tr(en,ua)),input=n('input');input.type='checkbox';input.checked=c.cloud[key];input.onchange=()=>{c.cloud[key]=input.checked;commit();};label.append(input);groups.append(label);}
+      if(!showEntityImport||Object.keys(getStates()||{}).length)importLabel.remove();
+      summary.textContent=tr('Cloud Flow · Connections','Cloud Flow · З’єднання');
+      const section=(en,ua)=>{const el=n('fieldset');el.append(n('legend',tr(en,ua)));form.append(el);return el;};
+      const toggle=(parent,en,ua,obj,key)=>{const label=n('label',tr(en,ua)),input=n('input');input.type='checkbox';input.checked=obj[key];input.onchange=()=>{obj[key]=input.checked;commit();};label.append(input);parent.append(label);};
+      const solar=section('Solar · total','Сонце · разом');
+      powerInput(solar,tr('Total solar power','Загальна потужність сонця'),c.cloud,'solarPower');
+      field(solar,tr('Solar energy today (kWh or entity)','Генерація сьогодні (кВт·год або сутність)'),c.cloud,'solarToday');
+      solar.append(n('small',tr('One solar object. An empty total preserves the sum of previously connected PV sensors. A total sensor overrides that sum without double counting.','Один об’єкт сонця. Порожнє поле потужності зберігає суму раніше підключених PV-сенсорів. Загальний сенсор замінює цю суму без подвійного підрахунку.')));
+      const battery=section('Battery · total','Батарея · разом');
+      powerInput(battery,tr('Total battery power','Загальна потужність батареї'),c.cloud,'batteryPower');
+      field(battery,tr('Total battery SOC entity or %','Загальний SOC батареї · сутність або %'),c.cloud,'batterySoc');suggest(battery.querySelector('label:last-child input'),'soc');
+      toggle(battery,'Reverse battery sign (default: positive discharge)','Інвертувати знак батареї (типово: плюс = розряд)',c,'invertBattery');
+      battery.append(n('small',tr('Empty fields retain the previous battery power sum and first battery SOC. Charging, discharging and standby are detected automatically.','Порожні поля зберігають попередню суму потужності батарей і SOC першої батареї. Заряд, розряд та очікування визначаються автоматично.')));
+      const inverter=section('Inverter','Інвертор');field(inverter,tr('Inverter name','Назва інвертора'),c.inverter,'name');powerInput(inverter,tr('Inverter power','Потужність інвертора'),c.inverter);
+      for(const [key,en,ua] of [['inverterStatus','Inverter status entity','Сенсор стану інвертора'],['inverterOn','Running values (comma separated)','Значення: працює (через кому)'],['inverterOff','Standby / off values','Значення: очікування / вимкнений'],['inverterFault','Fault values','Значення: помилка']])field(inverter,tr(en,ua),c,key);
+      const grid=section('Grid','Мережа');powerInput(grid,tr('Grid power','Потужність мережі'),c,'grid');toggle(grid,'Reverse grid sign (default: positive import)','Інвертувати знак мережі (типово: плюс = імпорт)',c,'invertGrid');
+      for(const [key,en,ua] of [['gridStatus','Grid status entity','Сенсор стану мережі'],['gridOn','Connected values (comma separated)','Значення: мережа є (через кому)'],['gridOff','Disconnected values','Значення: мережі немає']])field(grid,tr(en,ua),c,key);
+      const home=section('House · backup group','Будинок · гарантована група');field(home,tr('House / group name','Назва будинку / групи'),c,'backupName');powerInput(home,tr('House power','Потужність будинку'),c,'load');
+      const nonBackup=section('Non-backup group','Негарантована група');toggle(nonBackup,'Show non-backup group','Показувати негарантовану групу',c.cloud,'showNonBackup');field(nonBackup,tr('Group name','Назва групи'),c,'nonBackupName');powerInput(nonBackup,tr('Non-backup power','Потужність негарантованої групи'),c,'nonBackup');
+      const groups=n('fieldset');groups.append(n('legend',tr('Electric vehicle','Електромобіль')));form.append(groups);
+      toggle(groups,'Show Tesla / EV below the house','Показувати Tesla / авто під будинком',c.cloud,'showEv');
       field(groups,tr('EV name','Назва авто'),c.cloud,'evName');
       field(groups,tr('EV supply group','Група живлення авто'),c.cloud,'evGroup',[['backup',tr('Backup / house','Гарантована / будинок')],['grid',tr('Grid / non-backup','Мережа / негарантована')]]);
-      groups.append(n('small',tr('Set the EV power entity below. Appliance power is part of its parent group, not added again. Battery states: charging, discharging, standby (below 10 W).','Сутність потужності авто вкажіть нижче. Потужність авто входить у підсумок своєї групи й повторно не додається. Стани батареї: заряд, розряд, очікування (менше 10 Вт).')));
+      powerInput(groups,tr('EV power','Потужність авто'),c,'ev');
+      groups.append(n('small',tr('Select the EV power entity. Appliance power is part of its parent group, not added again. Battery states: charging, discharging, standby (below 10 W).','Оберіть сутність потужності авто. Потужність авто входить у підсумок своєї групи й повторно не додається. Стани батареї: заряд, розряд, очікування (менше 10 Вт).')));
       const group=n('fieldset');group.append(n('legend',tr('Cloud Flow · weather and atmosphere','Cloud Flow · погода й атмосфера')));form.append(group);
       for(const [key,en,ua] of [['weatherEntity','Current weather entity (weather.*)','Поточна погода · сутність (weather.*)'],['forecastEntity','Forecast entity (optional; same as current weather if empty)','Сутність прогнозу (порожньо — як поточна погода)']]){
         field(group,tr(en,ua),c.cloud,key);
@@ -346,9 +366,11 @@
       field(group,tr('Forecast','Прогноз'),c.cloud,'forecastType',[['auto',tr('Auto (prefer hourly)','Авто (спочатку погодинний)')],['hourly',tr('Hourly','Погодинний')],['daily',tr('Daily','Добовий')],['twice_daily',tr('Day / night','День / ніч')]]);
       for(const [key,en,ua] of [['effects','Weather background effects','Погодні ефекти фону'],['showForecast','Show forecast','Показувати прогноз']]){const label=n('label',tr(en,ua)),input=n('input');input.type='checkbox';input.checked=c.cloud[key];input.onchange=()=>{c.cloud[key]=input.checked;commit();};label.append(input);group.append(label);}
       const label=n('label',tr('Weather effects intensity','Інтенсивність погодних ефектів')),input=n('input'),value=n('output');input.type='range';input.min=0;input.max=100;input.value=c.cloud.effectOpacity;value.textContent=input.value+'%';input.oninput=()=>{c.cloud.effectOpacity=Number(input.value);value.textContent=input.value+'%';};input.onchange=()=>commit();label.append(input,value);group.append(label);
-      field(group,tr('Demo weather (preview only)','Погода в демо (лише перегляд)'),c.cloud,'demoWeather',[['partlycloudy',tr('Partly cloudy','Мінлива хмарність')],['sunny',tr('Sunny','Сонячно')],['rainy',tr('Rain','Дощ')],['snowy',tr('Snow','Сніг')],['cloudy',tr('Cloudy','Хмарно')],['clear-night',tr('Clear night','Ясна ніч')]]);
-      field(group,tr('Solar energy today (kWh or entity)','Генерація сьогодні (кВт·год або сутність)'),c.cloud,'solarToday');
+      if(demoPreview)field(group,tr('Demo weather (preview only)','Погода в демо (лише перегляд)'),c.cloud,'demoWeather',[['partlycloudy',tr('Partly cloudy','Мінлива хмарність')],['sunny',tr('Sunny','Сонячно')],['rainy',tr('Rain','Дощ')],['snowy',tr('Snow','Сніг')],['cloudy',tr('Cloudy','Хмарно')],['clear-night',tr('Clear night','Ясна ніч')]]);
       group.append(n('small',tr('Current conditions and forecast use your selected Home Assistant weather provider. Unavailable data stays unknown. Demo weather is only used in website preview.','Поточна погода та прогноз — з обраної погодної сутності Home Assistant. Недоступні дані не підмінюються. Демопогода працює лише в перегляді сайту.')));
+      const view=section('Appearance','Вигляд');field(view,tr('Theme','Тема'),c,'mode',[['auto','Auto'],['day',tr('Day','День')],['night',tr('Night','Ніч')]]);field(view,tr('Display','Екран'),c,'profile',[['auto','Auto'],['desktop','Desktop'],['tablet','Tablet'],['mobile','Phone']]);
+      view.append(n('small',tr('Equipment illustrations are fixed. Node photos, border ratings and MPPT layout controls belong to other views and are not used here.','Зображення обладнання фіксовані. Фото вузлів, номінали рамок і розмітка MPPT належать іншим дашбордам і тут не використовуються.')));
+      return box;
     }
     const photoGroup=n('fieldset');photoGroup.append(n('legend',tr('Card background','Фон картки')));form.append(photoGroup);
     const scene=background(c.background||legacyBackground),saveBackground=()=>{c.background={...scene};commit(false);};

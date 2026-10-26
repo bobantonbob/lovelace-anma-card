@@ -2,6 +2,16 @@
 
 ## Cloud Flow groups and EV
 
+Since 0.7.2 Cloud Flow has dedicated Connections sections for its fixed objects.
+Set `layout.powerFlow.cloud.solarPower`, `batteryPower` and `batterySoc` to total
+sensor IDs (or fixed numeric values). Solar/battery power uses W, kW or MW sensor
+units; numeric power is W. SOC uses percent. A configured total replaces the old
+sum; unavailable configured totals stay unknown. Empty totals retain the previous
+PV and battery arrays, including first-battery SOC. No legacy bindings are deleted.
+
+Cloud Flow does not expose per-node images, border utilization or MPPT layout
+settings. Its illustrations are fixed; those controls remain in other views.
+
 In Connections, use **Cloud Flow · groups and EV** to show or hide the non-backup
 group and the optional Tesla-style EV. The EV appears below the main house.
 `layout.powerFlow.cloud` accepts `showNonBackup` (true by default), `showEv`

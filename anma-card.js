@@ -370,7 +370,7 @@ if (typeof window !== 'undefined') {
   const assets={atlas:atlas.startsWith('__')?asset('cloud-flow-atlas.webp'):atlas,sky:sky.startsWith('__')?asset('cloud-flow-sky.webp'):sky,ev:evAsset.startsWith('__')?asset('cloud-flow-ev.webp'):evAsset};
   function normalize(raw={}){
     raw=raw&&typeof raw==='object'?raw:{};
-    return {showNonBackup:raw.showNonBackup!==false,showEv:raw.showEv===true,evGroup:raw.evGroup==='grid'?'grid':'backup',evName:str(raw.evName)||'Tesla · EV',weatherEntity:/^weather\.[\w]+$/.test(raw.weatherEntity)?raw.weatherEntity:'',forecastEntity:/^weather\.[\w]+$/.test(raw.forecastEntity)?raw.forecastEntity:'',forecastType:['auto','hourly','daily','twice_daily'].includes(raw.forecastType)?raw.forecastType:'auto',effects:raw.effects!==false,effectOpacity:clamp(raw.effectOpacity,0,100,35),showForecast:raw.showForecast!==false,solarToday:str(raw.solarToday),demoWeather:['sunny','partlycloudy','rainy','snowy','cloudy','clear-night'].includes(raw.demoWeather)?raw.demoWeather:'partlycloudy'};
+    return {solarPower:str(raw.solarPower),batteryPower:str(raw.batteryPower),batterySoc:str(raw.batterySoc),showNonBackup:raw.showNonBackup!==false,showEv:raw.showEv===true,evGroup:raw.evGroup==='grid'?'grid':'backup',evName:str(raw.evName)||'Tesla · EV',weatherEntity:/^weather\.[\w]+$/.test(raw.weatherEntity)?raw.weatherEntity:'',forecastEntity:/^weather\.[\w]+$/.test(raw.forecastEntity)?raw.forecastEntity:'',forecastType:['auto','hourly','daily','twice_daily'].includes(raw.forecastType)?raw.forecastType:'auto',effects:raw.effects!==false,effectOpacity:clamp(raw.effectOpacity,0,100,35),showForecast:raw.showForecast!==false,solarToday:str(raw.solarToday),demoWeather:['sunny','partlycloudy','rainy','snowy','cloudy','clear-night'].includes(raw.demoWeather)?raw.demoWeather:'partlycloudy'};
   }
   function read(id,states,kind='power'){
     if(!id)return null;
@@ -384,12 +384,12 @@ if (typeof window !== 'undefined') {
   function batteryState(power){return !Number.isFinite(power)?'unknown':Math.abs(power)<10?'idle':power<0?'charging':'discharging';}
   function calculate(c,layout,states={},demo=false){
     const value=(id,fallback,kind='power')=>demo&&!/^[+-]?(?:\d+(?:\.\d*)?|\.\d+)$/.test(String(id).trim())?fallback:read(id,states,kind);
-    const solar=sum(c.strings.map((s,i)=>s.mppts.length?sum(s.mppts.map((m,j)=>value(m.power,900+i*100+j*200))):value(s.power,1800+i*200)));
+    const solar=c.cloud.solarPower?value(c.cloud.solarPower,3800):sum(c.strings.map((s,i)=>s.mppts.length?sum(s.mppts.map((m,j)=>value(m.power,900+i*100+j*200))):value(s.power,1800+i*200)));
     const powers=c.batteries.map(b=>{const v=value(b.power,-800);return v===null?null:v*(c.invertBattery?-1:1);});
     const state=(id,on,off,fault)=>{if(demo)return 'online';const v=String(states[id]?.state??'').toLowerCase();if(!v||['unknown','unavailable'].includes(v))return 'unknown';return fault?.split(',').map(s=>s.trim()).includes(v)?'fault':off.split(',').map(s=>s.trim()).includes(v)?'offline':on.split(',').map(s=>s.trim()).includes(v)?'online':'unknown';};
     const gridState=state(c.gridStatus,c.gridOn,c.gridOff),rawGrid=value(c.grid||layout.bindings?.grid_power,650);
-    const battery=sum(powers),evOffline=c.cloud.evGroup==='grid'&&gridState==='offline';
-    return {solar,battery,batteryState:batteryState(battery),soc:c.batteries.length?value(c.batteries[0].soc,76,'soc'):null,inverter:value(c.inverter.power,solar),inverterState:state(c.inverterStatus,c.inverterOn,c.inverterOff,c.inverterFault),grid:gridState==='offline'?0:rawGrid===null?null:rawGrid*(c.invertGrid?-1:1),gridState,home:value(c.load||layout.bindings?.load_power,2450),nonBackup:gridState==='offline'?0:value(c.nonBackup,350),ev:evOffline?0:value(c.ev||layout.bindings?.ev_power,1000),evOffline,today:value(c.cloud.solarToday,18.6,'energy')};
+    const aggregateBattery=c.cloud.batteryPower?value(c.cloud.batteryPower,-1600):null,battery=c.cloud.batteryPower?(aggregateBattery===null?null:aggregateBattery*(c.invertBattery?-1:1)):sum(powers),evOffline=c.cloud.evGroup==='grid'&&gridState==='offline';
+    return {solar,battery,batteryState:batteryState(battery),soc:c.cloud.batterySoc?value(c.cloud.batterySoc,76,'soc'):c.batteries.length?value(c.batteries[0].soc,76,'soc'):null,inverter:value(c.inverter.power,solar),inverterState:state(c.inverterStatus,c.inverterOn,c.inverterOff,c.inverterFault),grid:gridState==='offline'?0:rawGrid===null?null:rawGrid*(c.invertGrid?-1:1),gridState,home:value(c.load||layout.bindings?.load_power,2450),nonBackup:gridState==='offline'?0:value(c.nonBackup,350),ev:evOffline?0:value(c.ev||layout.bindings?.ev_power,1000),evOffline,today:value(c.cloud.solarToday,18.6,'energy')};
   }
   const conditions={sunny:['☀','Sunny','Сонячно'],partlycloudy:['⛅','Partly cloudy','Мінлива хмарність'],cloudy:['☁','Cloudy','Хмарно'],'clear-night':['☾','Clear night','Ясна ніч'],rainy:['☂','Rain','Дощ'],pouring:['☂','Heavy rain','Злива'],snowy:['❄','Snow','Сніг'],'snowy-rainy':['❄','Sleet','Мокрий сніг'],fog:['≋','Fog','Туман'],lightning:['ϟ','Thunderstorm','Гроза'],'lightning-rainy':['ϟ','Thunderstorm','Гроза'],windy:['≋','Windy','Вітряно'],'windy-variant':['≋','Windy','Вітряно'],hail:['❄','Hail','Град'],exceptional:['!','Exceptional','Особливі умови']};
   function forecastType(entity,requested='auto'){
@@ -496,7 +496,7 @@ if (typeof window !== 'undefined') {
       const editor=root.AnmaPowerFlow.editor(c,uk,(next,redraw)=>{
         const scope=card.getRootNode();layout.powerFlow=next;change(redraw);
         for(const scene of scope.querySelectorAll('.cf-scene'))if(scene.dataset.cloudId===card.dataset.cloudId){const panel=scene.querySelector('.cf-settings');if(panel)panel.hidden=false;scene.querySelector('.cf-connections')?.setAttribute('aria-expanded','true');}
-      },{template:'cloud_flow',getStates:()=>live?.states||{},legacyBackground:layout.background});
+      },{template:'cloud_flow',demoPreview:demo,getStates:()=>live?.states||{},legacyBackground:layout.background});
       editor.open=true;settings.append(editor);card.append(settings);toggle.onclick=()=>{settings.hidden=!settings.hidden;toggle.setAttribute('aria-expanded',String(!settings.hidden));};tools.append(toggle);card.addEventListener('keydown',e=>{if(e.key==='Escape')close.click();});
     }
     let removalObserver;
@@ -810,7 +810,7 @@ if (typeof window !== 'undefined') {
     }
     sync(current,next);current._refreshCloudPaths?.();current._refreshPowerPaths?.();return current;
   }
-  function editor(raw,uk,onchange,{getStates=()=>null,legacyBackground=null,template=null}={}){
+  function editor(raw,uk,onchange,{getStates=()=>null,legacyBackground=null,template=null,demoPreview=false,showEntityImport=true}={}){
     if(template==='energy_station')return Station.editor(raw?.station,uk,(station,redraw)=>onchange({...normalize(raw),station},redraw),{getStates});
     const c=normalize(raw),n=(tag,txt)=>{const e=document.createElement(tag);if(txt)e.textContent=txt;return e;},tr=(en,ua)=>uk?ua:en;
     const box=n('details'),summary=n('summary',tr('Configure Power Flow','Налаштувати Power Flow')),form=n('div');form.className='apf-settings';box.className='apf-config';box.append(summary,form);const commit=(redraw=true)=>{const host=box.getRootNode();onchange(c,redraw);host.querySelectorAll('.apf-config').forEach(e=>e.open=true);};box.addEventListener('click',e=>e.stopPropagation());
@@ -849,11 +849,31 @@ if (typeof window !== 'undefined') {
       select.onchange=()=>{obj[key]=select.value==='manual'?'0':'';renderValue();commit(false);};renderValue();
     }
     if(template==='cloud_flow'){
-      const groups=n('fieldset');groups.append(n('legend',tr('Cloud Flow · groups and EV','Cloud Flow · групи й авто')));form.append(groups);
-      for(const [key,en,ua] of [['showNonBackup','Show non-backup group','Показувати негарантовану групу'],['showEv','Show Tesla / EV below the house','Показувати Tesla / авто під будинком']]){const label=n('label',tr(en,ua)),input=n('input');input.type='checkbox';input.checked=c.cloud[key];input.onchange=()=>{c.cloud[key]=input.checked;commit();};label.append(input);groups.append(label);}
+      if(!showEntityImport||Object.keys(getStates()||{}).length)importLabel.remove();
+      summary.textContent=tr('Cloud Flow · Connections','Cloud Flow · З’єднання');
+      const section=(en,ua)=>{const el=n('fieldset');el.append(n('legend',tr(en,ua)));form.append(el);return el;};
+      const toggle=(parent,en,ua,obj,key)=>{const label=n('label',tr(en,ua)),input=n('input');input.type='checkbox';input.checked=obj[key];input.onchange=()=>{obj[key]=input.checked;commit();};label.append(input);parent.append(label);};
+      const solar=section('Solar · total','Сонце · разом');
+      powerInput(solar,tr('Total solar power','Загальна потужність сонця'),c.cloud,'solarPower');
+      field(solar,tr('Solar energy today (kWh or entity)','Генерація сьогодні (кВт·год або сутність)'),c.cloud,'solarToday');
+      solar.append(n('small',tr('One solar object. An empty total preserves the sum of previously connected PV sensors. A total sensor overrides that sum without double counting.','Один об’єкт сонця. Порожнє поле потужності зберігає суму раніше підключених PV-сенсорів. Загальний сенсор замінює цю суму без подвійного підрахунку.')));
+      const battery=section('Battery · total','Батарея · разом');
+      powerInput(battery,tr('Total battery power','Загальна потужність батареї'),c.cloud,'batteryPower');
+      field(battery,tr('Total battery SOC entity or %','Загальний SOC батареї · сутність або %'),c.cloud,'batterySoc');suggest(battery.querySelector('label:last-child input'),'soc');
+      toggle(battery,'Reverse battery sign (default: positive discharge)','Інвертувати знак батареї (типово: плюс = розряд)',c,'invertBattery');
+      battery.append(n('small',tr('Empty fields retain the previous battery power sum and first battery SOC. Charging, discharging and standby are detected automatically.','Порожні поля зберігають попередню суму потужності батарей і SOC першої батареї. Заряд, розряд та очікування визначаються автоматично.')));
+      const inverter=section('Inverter','Інвертор');field(inverter,tr('Inverter name','Назва інвертора'),c.inverter,'name');powerInput(inverter,tr('Inverter power','Потужність інвертора'),c.inverter);
+      for(const [key,en,ua] of [['inverterStatus','Inverter status entity','Сенсор стану інвертора'],['inverterOn','Running values (comma separated)','Значення: працює (через кому)'],['inverterOff','Standby / off values','Значення: очікування / вимкнений'],['inverterFault','Fault values','Значення: помилка']])field(inverter,tr(en,ua),c,key);
+      const grid=section('Grid','Мережа');powerInput(grid,tr('Grid power','Потужність мережі'),c,'grid');toggle(grid,'Reverse grid sign (default: positive import)','Інвертувати знак мережі (типово: плюс = імпорт)',c,'invertGrid');
+      for(const [key,en,ua] of [['gridStatus','Grid status entity','Сенсор стану мережі'],['gridOn','Connected values (comma separated)','Значення: мережа є (через кому)'],['gridOff','Disconnected values','Значення: мережі немає']])field(grid,tr(en,ua),c,key);
+      const home=section('House · backup group','Будинок · гарантована група');field(home,tr('House / group name','Назва будинку / групи'),c,'backupName');powerInput(home,tr('House power','Потужність будинку'),c,'load');
+      const nonBackup=section('Non-backup group','Негарантована група');toggle(nonBackup,'Show non-backup group','Показувати негарантовану групу',c.cloud,'showNonBackup');field(nonBackup,tr('Group name','Назва групи'),c,'nonBackupName');powerInput(nonBackup,tr('Non-backup power','Потужність негарантованої групи'),c,'nonBackup');
+      const groups=n('fieldset');groups.append(n('legend',tr('Electric vehicle','Електромобіль')));form.append(groups);
+      toggle(groups,'Show Tesla / EV below the house','Показувати Tesla / авто під будинком',c.cloud,'showEv');
       field(groups,tr('EV name','Назва авто'),c.cloud,'evName');
       field(groups,tr('EV supply group','Група живлення авто'),c.cloud,'evGroup',[['backup',tr('Backup / house','Гарантована / будинок')],['grid',tr('Grid / non-backup','Мережа / негарантована')]]);
-      groups.append(n('small',tr('Set the EV power entity below. Appliance power is part of its parent group, not added again. Battery states: charging, discharging, standby (below 10 W).','Сутність потужності авто вкажіть нижче. Потужність авто входить у підсумок своєї групи й повторно не додається. Стани батареї: заряд, розряд, очікування (менше 10 Вт).')));
+      powerInput(groups,tr('EV power','Потужність авто'),c,'ev');
+      groups.append(n('small',tr('Select the EV power entity. Appliance power is part of its parent group, not added again. Battery states: charging, discharging, standby (below 10 W).','Оберіть сутність потужності авто. Потужність авто входить у підсумок своєї групи й повторно не додається. Стани батареї: заряд, розряд, очікування (менше 10 Вт).')));
       const group=n('fieldset');group.append(n('legend',tr('Cloud Flow · weather and atmosphere','Cloud Flow · погода й атмосфера')));form.append(group);
       for(const [key,en,ua] of [['weatherEntity','Current weather entity (weather.*)','Поточна погода · сутність (weather.*)'],['forecastEntity','Forecast entity (optional; same as current weather if empty)','Сутність прогнозу (порожньо — як поточна погода)']]){
         field(group,tr(en,ua),c.cloud,key);
@@ -863,9 +883,11 @@ if (typeof window !== 'undefined') {
       field(group,tr('Forecast','Прогноз'),c.cloud,'forecastType',[['auto',tr('Auto (prefer hourly)','Авто (спочатку погодинний)')],['hourly',tr('Hourly','Погодинний')],['daily',tr('Daily','Добовий')],['twice_daily',tr('Day / night','День / ніч')]]);
       for(const [key,en,ua] of [['effects','Weather background effects','Погодні ефекти фону'],['showForecast','Show forecast','Показувати прогноз']]){const label=n('label',tr(en,ua)),input=n('input');input.type='checkbox';input.checked=c.cloud[key];input.onchange=()=>{c.cloud[key]=input.checked;commit();};label.append(input);group.append(label);}
       const label=n('label',tr('Weather effects intensity','Інтенсивність погодних ефектів')),input=n('input'),value=n('output');input.type='range';input.min=0;input.max=100;input.value=c.cloud.effectOpacity;value.textContent=input.value+'%';input.oninput=()=>{c.cloud.effectOpacity=Number(input.value);value.textContent=input.value+'%';};input.onchange=()=>commit();label.append(input,value);group.append(label);
-      field(group,tr('Demo weather (preview only)','Погода в демо (лише перегляд)'),c.cloud,'demoWeather',[['partlycloudy',tr('Partly cloudy','Мінлива хмарність')],['sunny',tr('Sunny','Сонячно')],['rainy',tr('Rain','Дощ')],['snowy',tr('Snow','Сніг')],['cloudy',tr('Cloudy','Хмарно')],['clear-night',tr('Clear night','Ясна ніч')]]);
-      field(group,tr('Solar energy today (kWh or entity)','Генерація сьогодні (кВт·год або сутність)'),c.cloud,'solarToday');
+      if(demoPreview)field(group,tr('Demo weather (preview only)','Погода в демо (лише перегляд)'),c.cloud,'demoWeather',[['partlycloudy',tr('Partly cloudy','Мінлива хмарність')],['sunny',tr('Sunny','Сонячно')],['rainy',tr('Rain','Дощ')],['snowy',tr('Snow','Сніг')],['cloudy',tr('Cloudy','Хмарно')],['clear-night',tr('Clear night','Ясна ніч')]]);
       group.append(n('small',tr('Current conditions and forecast use your selected Home Assistant weather provider. Unavailable data stays unknown. Demo weather is only used in website preview.','Поточна погода та прогноз — з обраної погодної сутності Home Assistant. Недоступні дані не підмінюються. Демопогода працює лише в перегляді сайту.')));
+      const view=section('Appearance','Вигляд');field(view,tr('Theme','Тема'),c,'mode',[['auto','Auto'],['day',tr('Day','День')],['night',tr('Night','Ніч')]]);field(view,tr('Display','Екран'),c,'profile',[['auto','Auto'],['desktop','Desktop'],['tablet','Tablet'],['mobile','Phone']]);
+      view.append(n('small',tr('Equipment illustrations are fixed. Node photos, border ratings and MPPT layout controls belong to other views and are not used here.','Зображення обладнання фіксовані. Фото вузлів, номінали рамок і розмітка MPPT належать іншим дашбордам і тут не використовуються.')));
+      return box;
     }
     const photoGroup=n('fieldset');photoGroup.append(n('legend',tr('Card background','Фон картки')));form.append(photoGroup);
     const scene=background(c.background||legacyBackground),saveBackground=()=>{c.background={...scene};commit(false);};
@@ -2737,7 +2759,7 @@ field(group,tr('Image URL (/local/… in HA)','URL зображення (/local/
 (() => {
   'use strict';
 
-  const CARD_VERSION = '0.7.1';
+  const CARD_VERSION = '0.7.2';
   const EN = {
     'Стан системи':'System status', 'Помилки':'Errors', 'Стан АКБ':'Battery status', 'Електромобіль — потужність':'EV — power', 'Генератор — потужність':'Generator — power', 'Мова картки': 'Card language', 'Сонце': 'Solar', 'Дім': 'Home', 'Самоспоживання': 'Self-consumption', 'АКБ': 'Battery', 'Прогноз на 7 днів': '7-day forecast', 'Середньодобово': 'Daily average', 'Найкращий день': 'Best day', 'Мікроінвертор': 'Microinverter', 'MPPT МАТРИЦЯ': 'MPPT MATRIX', '✓ Оптимально': '✓ Optimal', 'Автоматично (Home Assistant)': 'Automatic (Home Assistant)',
     'Імпортувати макет ANMA / Import ANMA layout (.json)': 'Import ANMA layout (.json)',
@@ -5598,9 +5620,9 @@ field(group,tr('Image URL (/local/… in HA)','URL зображення (/local/
       const nav = this._sectionSelect, previous = this._activeSection || ((layout.widgets||[]).includes('power_flow')?'equipment':'general');
       nav.replaceChildren();
       this._node('option', uk ? 'Загальні · мова, імпорт, фото' : 'General · language, import, photo', nav).value = 'general';
-      this._node('option', uk ? '🧱 Віджети та розмітка' : '🧱 Widgets & Layout', nav).value = 'widgets';
-      this._node('option', layout.template==='energy_station'?'⚡ Energy Station · Connections':(uk ? '⚡ Обладнання · інвертори, АКБ, PV' : '⚡ Equipment · inverters, batteries, PV'), nav).value = 'equipment';
-      [...this._fields.children].forEach((section, i) => {
+      if(layout.template!=='cloud_flow')this._node('option', uk ? '🧱 Віджети та розмітка' : '🧱 Widgets & Layout', nav).value = 'widgets';
+      this._node('option', layout.template==='cloud_flow'?'⚡ Cloud Flow · Connections':layout.template==='energy_station'?'⚡ Energy Station · Connections':(uk ? '⚡ Обладнання · інвертори, АКБ, PV' : '⚡ Equipment · inverters, batteries, PV'), nav).value = 'equipment';
+      [...(layout.template==='cloud_flow'?[]:this._fields.children)].forEach((section, i) => {
         section.dataset.section = String(i);
         this._node('option', section.querySelector('summary').textContent, nav).value = String(i);
       });
@@ -5888,7 +5910,7 @@ field(group,tr('Image URL (/local/… in HA)','URL зображення (/local/
         const editor=window.AnmaPowerFlow.editor(layout.powerFlow,uk,(powerFlow,redraw=true)=>{
           this._emit({...this._config.layout,powerFlow});
           if(redraw)this._rows();
-        },{getStates:()=>this._hass?.states||null,legacyBackground:layout.background,template:layout.template});
+        },{getStates:()=>this._hass?.states||null,legacyBackground:layout.background,template:layout.template,showEntityImport:false});
         editor.open=true;parent.append(editor);return;
       }
 

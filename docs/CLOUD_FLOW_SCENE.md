@@ -40,6 +40,18 @@ on a physical iPhone. The gallery fixture is `tests/card-gallery.html`.
 
 ## Generated assets and prompts
 
+### 0.7.2 dedicated Connections
+
+Cloud Flow uses an early-return editor branch in `power-flow.js`, shared by the
+platform and HA. It exposes only scene readings, status mappings, group toggles,
+weather and theme/profile. Per-node photos, border ratings, PV/MPPT layouts and
+individual battery cards remain available to other templates only.
+
+`cloud.solarPower`, `cloud.batteryPower`, `cloud.batterySoc` are optional aggregate
+bindings. Configured totals override old arrays; missing sensor data remains
+unknown. Empty totals retain legacy power sums and first-battery SOC. Editing the
+scene never deletes those bindings. Existing artwork and backgrounds are preserved.
+
 ### 0.7.1 groups, EV and battery states
 
 Connections includes `cloud.showNonBackup` (default true), `cloud.showEv`

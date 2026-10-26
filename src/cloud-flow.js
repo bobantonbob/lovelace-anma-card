@@ -9,7 +9,7 @@
   const assets={atlas:atlas.startsWith('__')?asset('cloud-flow-atlas.webp'):atlas,sky:sky.startsWith('__')?asset('cloud-flow-sky.webp'):sky,ev:evAsset.startsWith('__')?asset('cloud-flow-ev.webp'):evAsset};
   function normalize(raw={}){
     raw=raw&&typeof raw==='object'?raw:{};
-    return {showNonBackup:raw.showNonBackup!==false,showEv:raw.showEv===true,evGroup:raw.evGroup==='grid'?'grid':'backup',evName:str(raw.evName)||'Tesla · EV',weatherEntity:/^weather\.[\w]+$/.test(raw.weatherEntity)?raw.weatherEntity:'',forecastEntity:/^weather\.[\w]+$/.test(raw.forecastEntity)?raw.forecastEntity:'',forecastType:['auto','hourly','daily','twice_daily'].includes(raw.forecastType)?raw.forecastType:'auto',effects:raw.effects!==false,effectOpacity:clamp(raw.effectOpacity,0,100,35),showForecast:raw.showForecast!==false,solarToday:str(raw.solarToday),demoWeather:['sunny','partlycloudy','rainy','snowy','cloudy','clear-night'].includes(raw.demoWeather)?raw.demoWeather:'partlycloudy'};
+    return {solarPower:str(raw.solarPower),batteryPower:str(raw.batteryPower),batterySoc:str(raw.batterySoc),showNonBackup:raw.showNonBackup!==false,showEv:raw.showEv===true,evGroup:raw.evGroup==='grid'?'grid':'backup',evName:str(raw.evName)||'Tesla · EV',weatherEntity:/^weather\.[\w]+$/.test(raw.weatherEntity)?raw.weatherEntity:'',forecastEntity:/^weather\.[\w]+$/.test(raw.forecastEntity)?raw.forecastEntity:'',forecastType:['auto','hourly','daily','twice_daily'].includes(raw.forecastType)?raw.forecastType:'auto',effects:raw.effects!==false,effectOpacity:clamp(raw.effectOpacity,0,100,35),showForecast:raw.showForecast!==false,solarToday:str(raw.solarToday),demoWeather:['sunny','partlycloudy','rainy','snowy','cloudy','clear-night'].includes(raw.demoWeather)?raw.demoWeather:'partlycloudy'};
   }
   function read(id,states,kind='power'){
     if(!id)return null;
@@ -23,12 +23,12 @@
   function batteryState(power){return !Number.isFinite(power)?'unknown':Math.abs(power)<10?'idle':power<0?'charging':'discharging';}
   function calculate(c,layout,states={},demo=false){
     const value=(id,fallback,kind='power')=>demo&&!/^[+-]?(?:\d+(?:\.\d*)?|\.\d+)$/.test(String(id).trim())?fallback:read(id,states,kind);
-    const solar=sum(c.strings.map((s,i)=>s.mppts.length?sum(s.mppts.map((m,j)=>value(m.power,900+i*100+j*200))):value(s.power,1800+i*200)));
+    const solar=c.cloud.solarPower?value(c.cloud.solarPower,3800):sum(c.strings.map((s,i)=>s.mppts.length?sum(s.mppts.map((m,j)=>value(m.power,900+i*100+j*200))):value(s.power,1800+i*200)));
     const powers=c.batteries.map(b=>{const v=value(b.power,-800);return v===null?null:v*(c.invertBattery?-1:1);});
     const state=(id,on,off,fault)=>{if(demo)return 'online';const v=String(states[id]?.state??'').toLowerCase();if(!v||['unknown','unavailable'].includes(v))return 'unknown';return fault?.split(',').map(s=>s.trim()).includes(v)?'fault':off.split(',').map(s=>s.trim()).includes(v)?'offline':on.split(',').map(s=>s.trim()).includes(v)?'online':'unknown';};
     const gridState=state(c.gridStatus,c.gridOn,c.gridOff),rawGrid=value(c.grid||layout.bindings?.grid_power,650);
-    const battery=sum(powers),evOffline=c.cloud.evGroup==='grid'&&gridState==='offline';
-    return {solar,battery,batteryState:batteryState(battery),soc:c.batteries.length?value(c.batteries[0].soc,76,'soc'):null,inverter:value(c.inverter.power,solar),inverterState:state(c.inverterStatus,c.inverterOn,c.inverterOff,c.inverterFault),grid:gridState==='offline'?0:rawGrid===null?null:rawGrid*(c.invertGrid?-1:1),gridState,home:value(c.load||layout.bindings?.load_power,2450),nonBackup:gridState==='offline'?0:value(c.nonBackup,350),ev:evOffline?0:value(c.ev||layout.bindings?.ev_power,1000),evOffline,today:value(c.cloud.solarToday,18.6,'energy')};
+    const aggregateBattery=c.cloud.batteryPower?value(c.cloud.batteryPower,-1600):null,battery=c.cloud.batteryPower?(aggregateBattery===null?null:aggregateBattery*(c.invertBattery?-1:1)):sum(powers),evOffline=c.cloud.evGroup==='grid'&&gridState==='offline';
+    return {solar,battery,batteryState:batteryState(battery),soc:c.cloud.batterySoc?value(c.cloud.batterySoc,76,'soc'):c.batteries.length?value(c.batteries[0].soc,76,'soc'):null,inverter:value(c.inverter.power,solar),inverterState:state(c.inverterStatus,c.inverterOn,c.inverterOff,c.inverterFault),grid:gridState==='offline'?0:rawGrid===null?null:rawGrid*(c.invertGrid?-1:1),gridState,home:value(c.load||layout.bindings?.load_power,2450),nonBackup:gridState==='offline'?0:value(c.nonBackup,350),ev:evOffline?0:value(c.ev||layout.bindings?.ev_power,1000),evOffline,today:value(c.cloud.solarToday,18.6,'energy')};
   }
   const conditions={sunny:['☀','Sunny','Сонячно'],partlycloudy:['⛅','Partly cloudy','Мінлива хмарність'],cloudy:['☁','Cloudy','Хмарно'],'clear-night':['☾','Clear night','Ясна ніч'],rainy:['☂','Rain','Дощ'],pouring:['☂','Heavy rain','Злива'],snowy:['❄','Snow','Сніг'],'snowy-rainy':['❄','Sleet','Мокрий сніг'],fog:['≋','Fog','Туман'],lightning:['ϟ','Thunderstorm','Гроза'],'lightning-rainy':['ϟ','Thunderstorm','Гроза'],windy:['≋','Windy','Вітряно'],'windy-variant':['≋','Windy','Вітряно'],hail:['❄','Hail','Град'],exceptional:['!','Exceptional','Особливі умови']};
   function forecastType(entity,requested='auto'){
@@ -135,7 +135,7 @@
       const editor=root.AnmaPowerFlow.editor(c,uk,(next,redraw)=>{
         const scope=card.getRootNode();layout.powerFlow=next;change(redraw);
         for(const scene of scope.querySelectorAll('.cf-scene'))if(scene.dataset.cloudId===card.dataset.cloudId){const panel=scene.querySelector('.cf-settings');if(panel)panel.hidden=false;scene.querySelector('.cf-connections')?.setAttribute('aria-expanded','true');}
-      },{template:'cloud_flow',getStates:()=>live?.states||{},legacyBackground:layout.background});
+      },{template:'cloud_flow',demoPreview:demo,getStates:()=>live?.states||{},legacyBackground:layout.background});
       editor.open=true;settings.append(editor);card.append(settings);toggle.onclick=()=>{settings.hidden=!settings.hidden;toggle.setAttribute('aria-expanded',String(!settings.hidden));};tools.append(toggle);card.addEventListener('keydown',e=>{if(e.key==='Escape')close.click();});
     }
     let removalObserver;
