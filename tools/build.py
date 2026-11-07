@@ -12,6 +12,7 @@ shared = '\n'.join((src / name).read_text(encoding='utf-8') for name in ('energy
 for marker, name in [('__ANMA_CLOUD_ATLAS__', 'cloud-flow-atlas.webp'), ('__ANMA_CLOUD_SKY__', 'cloud-flow-sky.webp'), ('__ANMA_CLOUD_EV__', 'cloud-flow-ev.webp')]:
     data = base64.b64encode((src / 'assets' / name).read_bytes()).decode('ascii')
     shared = shared.replace("'" + marker + "'", "'data:image/webp;base64," + data + "'")
+shared = shared.replace("'__ANMA_NIXIE_BACKGROUNDS__'", "'data:image/png;base64," + base64.b64encode((src / 'assets/nixie-backgrounds.png').read_bytes()).decode('ascii') + "'")
 shared = '\n'.join(line.rstrip() for line in shared.splitlines())
 (root / 'anma-card.js').write_bytes((card[:start] + shared.rstrip() + card[end:]).encode('utf-8'))
 print('Built anma-card.js')
