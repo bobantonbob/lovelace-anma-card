@@ -4,7 +4,25 @@
 
 Design on [ANMA Energy Platform](https://app.anma-electric.com.ua/), connect your Home Assistant entities and export your layout. Install **one HACS package** and use **`custom:anma-card`** for every view.
 
-**Latest release: 0.7.6** · [Download](https://github.com/bobantonbob/lovelace-anma-card/releases/latest) · [Configuration](docs/CONFIGURATION.md) · [Changelog](CHANGELOG.md)
+**Latest release: 0.8.0** · [Download](https://github.com/bobantonbob/lovelace-anma-card/releases/latest) · [Configuration](docs/CONFIGURATION.md) · [Changelog](CHANGELOG.md)
+
+## New in 0.8.0: Nixie Power Flow and battery runtime
+
+Power Flow now uses detailed glass Nixie tubes with warm illuminated digits. Up to ten independent PV fields fill the available width (three fields use one full row; nine use rows of four and five). Select up to five batteries with a slider. Enter each PV field's rated kW manually for its utilization bar. Current solar power, today's generation and today's forecast have separate readouts.
+
+Choose dark, aged plaster, wooden cabinet or electrical cabinet backgrounds, or upload your own. Panel-background opacity leaves digits and labels fully opaque. Optional non-backup and EV groups can be hidden. Small screens keep readable controls and allow scrolling when needed.
+
+![Nixie Power Flow desktop](docs/images/nixie-080.png)
+<img src="docs/images/nixie-phone-080.png" alt="Nixie Power Flow phone preview" width="320">
+
+Cloud Flow shows estimated battery time down to a configurable reserve SOC. Capacity can be entered in kWh or read from an energy entity (Wh/kWh/MWh). The estimate uses current home consumption, excludes inverter losses and assumes no solar or grid contribution; it is not a prediction of changing loads. Missing readings show No data.
+
+Upload your own transparent PNG/WebP icons for scene objects. Built-in object images remain static; directional energy flows and weather remain animated. Charging/discharging text beside the battery is replaced by the runtime display.
+
+![Cloud Flow battery runtime](docs/images/cloud-runtime-080.png)
+<img src="docs/images/cloud-runtime-phone-080.png" alt="Cloud Flow runtime phone preview" width="320">
+
+These are real browser captures of version 0.8.0 with synthetic demonstration readings, not live household data.
 
 ## Start with Energy Station
 
@@ -42,7 +60,7 @@ Connections now follows the fixed scene: total solar, total battery and SOC, inv
 
 ![Cloud Flow architectural desktop scene](docs/images/cloud-flow-071.png)
 
-Cloud Flow includes an optional Tesla-style EV below the house, a non-backup group visibility switch, and explicit battery charging, discharging and standby states. Choose backup or grid supply for the EV and bind its power entity; its consumption is already included in its parent group. All controls export through the same `custom:anma-card`.
+Cloud Flow includes an optional Tesla-style EV below the house, a non-backup group visibility switch, and battery power, SOC and estimated reserve runtime. Choose backup or grid supply for the EV and bind its power entity; its consumption is already included in its parent group. All controls export through the same `custom:anma-card`.
 
 Cloud Flow now presents energy as a restrained dimensional scene: solar panels, a transmission pylon, a compact home with inverter, battery cabinets and non-backup supply. The values and directional paths are live interface elements above the illustrated objects.
 

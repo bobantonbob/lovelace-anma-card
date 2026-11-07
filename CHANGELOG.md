@@ -1,5 +1,11 @@
 # Changelog
 
+## 0.8.0 — 2026-11-07
+
+- Nixie Power Flow: glass digits, independent PV fields, capacity bars, battery count slider and configurable backgrounds.
+- Cloud Flow: reserve runtime from home load, manual/entity battery capacity, transparent custom icons and static built-in objects.
+- Refreshed desktop/mobile screenshots and documentation. Existing card type and entity mappings are retained.
+
 ## 0.7.6 — Names, captions and optional brand header
 
 Cloud Flow object titles can be renamed or hidden independently of readings.

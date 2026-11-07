@@ -1,2 +1,1 @@
-c3e20e97f869c59ec201224bea7018ea23d041b6896293a438faf6308acce0b0  anma-card.js
-e4e2c8ad0edf250d1dd898b16997ff219794e3f4f1babb8fc1f567cf969f600a  anma_dashboard_manual_install.zip
+c9c941a2697f397bbfe6441c5e032d18736f0f3c5530a17c5df9db67182f5ddf  anma-card.js
