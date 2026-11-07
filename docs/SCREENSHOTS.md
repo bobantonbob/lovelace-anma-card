@@ -1,16 +1,15 @@
-# Current screenshot gallery — 0.4.1
+# Current screenshot gallery — 0.8.0
 
-Captured from the standalone card using synthetic Home Assistant states. Browser viewport previews, not physical-device certification.
+Actual standalone-card browser captures with synthetic demonstration data. Desktop 1600px; mobile 390px. These are not physical-device certification.
 
-## Energy Station
-![Energy Station desktop](images/energy-station-041.png)
-<img src="images/energy-station-phone-041.png" alt="Energy Station phone" width="375">
+## Nixie Power Flow
 
-## Power Flow
-![Power Flow](images/power-flow-041.png)
+![Desktop](images/nixie-080.png)
 
-## Cloud Flow
-![Cloud Flow](images/cloud-flow-041.png)
+<img src="images/nixie-phone-080.png" width="320" alt="Mobile preview">
 
-## Full System Analytics
-![Analytics](images/analytics-041.png)
+## Cloud Flow runtime
+
+![Desktop](images/cloud-runtime-080.png)
+
+<img src="images/cloud-runtime-phone-080.png" width="320" alt="Mobile preview">

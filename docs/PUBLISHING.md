@@ -12,7 +12,7 @@ GitHub Pages, Docker deployment and a Python server are not required to install 
 
 ## 2. Stable releases
 
-After committing the files to `main`, create a GitHub Release with tag `v0.7.0`, title “ANMA Energy Dashboards 0.7.0”, and publish it as the latest regular release. Copy the relevant CHANGELOG entry into the release notes. Attach the **root `anma-card.js`** and **`anma_dashboard_manual_install.zip`** as release assets. Home Assistant loads the JS module; the ZIP is a manual-install convenience.
+After committing the files to `main`, create a GitHub Release with tag `v0.8.0`, title “ANMA Energy Dashboards 0.8.0”, and publish it as the latest regular release. Copy the relevant CHANGELOG entry into the release notes. Attach the **root `anma-card.js`** and **`anma_dashboard_manual_install.zip`** as release assets. Home Assistant loads the JS module; the ZIP is a manual-install convenience.
 
 The distribution contains the tested platform bundle. `src/anma-card.js` is its maintained entry with embedded shared modules; `src/model.js`, `src/power-flow.js`, `src/cloud-flow.js` and `src/energy-station.js` are shared source snapshots. Cloud Flow's WebP assets are in `src/assets` and are embedded by `tools/build.py`. Run `python tools/build.py`, then `node --check anma-card.js` and `python tools/validate.py`. Commit source and artifact together. Bring changes from the primary platform rather than allowing the distribution to diverge.
 

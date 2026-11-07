@@ -155,3 +155,20 @@ layout:
 Forecasts use Home Assistant's weather subscription API and the provider's supported forecast types. Selecting a separate provider changes only the forecast; the current weather entity continues to control the background. An unavailable explicitly selected provider is not replaced by a different source. Temperature units follow each selected weather entity.
 
 All views use the same `anma-card.js` resource. The architectural images are embedded; no extra JS card type or asset installation is needed.
+
+
+## Nixie Power Flow (0.8.0)
+
+Use the existing `power_flow` template. Connections configures each PV independently (0–10); `strings[].capacityKw` is the manual rating used for utilization. Battery count is 0–5. The Connections appearance section selects built-in/custom background, background-only panel opacity and equipment icons. Visibility switches remove non-backup/EV nodes and their paths. Existing layouts keep their entity mappings.
+
+## Cloud Flow battery runtime (0.8.0)
+
+In Connections → battery, set reserve SOC and choose manual capacity or an entity. Configuration lives in `layout.powerFlow.cloud`:
+
+```json
+{"reserveSoc":20,"capacitySource":"manual","batteryCapacityKwh":10,"capacityEntity":""}
+```
+
+For an entity, set `capacitySource` to `sensor` and `capacityEntity` to an energy sensor in Wh, kWh or MWh. Capacity means total battery energy, not remaining energy. Ah-only sensors cannot be used directly. Runtime hours = max(SOC − reserveSOC, 0) / 100 × capacity kWh / home load kW. Unknown inputs or load below 10 W show No data; reaching the reserve shows zero. The estimate excludes inverter losses, solar/grid assistance and future load changes.
+
+Custom scene icons accept transparent PNG/WebP files up to 2 MB, resized to a maximum of 512 pixels. Keep a transparent background; opaque images are rejected. Animated uploads are not preserved as animations.
