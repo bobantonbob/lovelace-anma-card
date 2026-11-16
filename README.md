@@ -4,9 +4,9 @@
 
 Design on [ANMA Energy Platform](https://app.anma-electric.com.ua/), connect your Home Assistant entities and export your layout. Install **one HACS package** and use **`custom:anma-card`** for every view.
 
-**Latest release: 0.9.1** · [Download](https://github.com/bobantonbob/lovelace-anma-card/releases/latest) · [Configuration](docs/CONFIGURATION.md) · [Changelog](CHANGELOG.md)
+**Latest release: 0.9.2** · [Download](https://github.com/bobantonbob/lovelace-anma-card/releases/latest) · [Configuration](docs/CONFIGURATION.md) · [Changelog](CHANGELOG.md)
 
-## New in 0.9.1
+## New in 0.9.2
 
 Fixed-size Deye readings and chart pages, separate Li-BMS, and configurable GEN-port power readings. [Release notes](CHANGELOG.md).
 

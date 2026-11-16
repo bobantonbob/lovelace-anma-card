@@ -417,14 +417,16 @@
     </g>`;
   }
 
+  function flowTrail(path,direction) {
+    return [2.8,1.4,0.7].map((radius,i)=>`<circle class="dot ${direction}" r="${radius}"><animateMotion begin="${-2+i*.10}s" dur="2s" path="${path}" repeatCount="indefinite" calcMode="linear" keyTimes="0;1" keyPoints="${direction==='forward'?'0;1':'1;0'}"/></circle>`).join('');
+  }
+
   function wire({ name, from, bendX, to }, index) {
     const path = `M${from.join(" ")}H${bendX}V${to[1]}H${to[0]}`;
     return `<g class="wire" data-wire="${name}" data-flow="off">
       <path class="wire-track" d="${path}"/>
       ${flowArrows(to, bendX, "forward")}${flowArrows(from, bendX, "backward")}
-      <circle class="classic-only dot forward" r="2.8"><animateMotion dur="2s" path="${path}" repeatCount="indefinite"/></circle>
-      <circle class="classic-only dot backward" r="2.8"><animateMotion dur="2s" path="${path}" repeatCount="indefinite" calcMode="linear" keyTimes="0;1" keyPoints="1;0"/></circle>
-      ${technikaParticle(path, "forward", index)}${technikaParticle(path, "backward", index)}
+      ${flowTrail(path,'forward')}${flowTrail(path,'backward')}
       ${name === "grid" ? `<g class="grid-outage" role="img" aria-label="Мережу від’єднано">
         <text x="259" y="77">Off grid</text>
         <path d="M254 102h10v13h-10z" fill="${screenWhite}"/>
@@ -1341,7 +1343,7 @@
           </g>
           ${gaugeLayout.map(gauge).join("")}
           <g data-gen-port-indicator style="display:none" role="img">
-            <path data-gen-port-wire fill="none" stroke="#688c7a" stroke-width="1.4" stroke-dasharray="3 2"/>
+            <g class="wire" data-gen-port-flow data-flow="off"></g><path data-gen-port-wire fill="none" stroke="#688c7a" stroke-width="1.4" stroke-dasharray="3 2"/>
             <g data-gen-port-symbol fill="#d8e7d4" stroke="#315e4a" stroke-width="1.5"></g>
             <text data-gen-port-power text-anchor="middle" fill="#244d3c" font-size="9"></text><text data-gen-port-label text-anchor="middle" fill="#244d3c" font-size="8"></text>
           </g>
@@ -2228,6 +2230,9 @@
         symbol.innerHTML=kind==='micro'?'<rect x="-13" y="-10" width="26" height="19" rx="2"/><path d="M-9 -4h18M-9 1h6l3 4 4-8 3 4h3M-17 -4h4m26 0h4"/>':kind==='generator'?'<rect x="-14" y="-9" width="28" height="19" rx="2"/><path d="M-7 -9v-4h14v4M-18 10h36M6 -4h5M6 0h5"/><circle cx="-5" cy="1" r="5"/>':'<path d="M-15 0L0 -12 15 0M-11 -3v14h22V-3M-3 11V3h6v8"/>';
         const power=watts(states[this.config[kind==='micro'?'micro_inverter_power':kind==='generator'?'generator_power':'smart_load_actual_power']||this.config.gen_port_power]);const powerText=port.querySelector('[data-gen-port-power]');powerText.setAttribute('x','202');powerText.setAttribute('y',String(y+(top?-25:34)));powerText.textContent=power===null?'—':Math.round(power)+' W';
         const text=port.querySelector('[data-gen-port-label]');text.setAttribute('x','202');text.setAttribute('y',String(y+(top?-15:23)));text.textContent=label;
+        const genFlow=port.querySelector('[data-gen-port-flow]');
+        if(genFlow.dataset.mode!==kind){const route=top?'M202 77V111':kind==='generator'?'M202 198V174':'M202 174V195';genFlow.innerHTML=flowTrail(route,'forward')+flowTrail(route,'backward');genFlow.dataset.mode=kind;}
+        genFlow.dataset.flow=power===null||Math.abs(power)<flowThreshold?'off':power>0?'forward':'backward';
         port.querySelector('[data-gen-port-wire]').setAttribute('d',top?'M202 77V111l-3 -5m3 5 3 -5':kind==='generator'?'M202 198V174l-3 5m3 -5 3 5':'M202 174V195l-3 -5m3 5 3 -5');
       }
       const grid = signed(watts(states[this.config.grid_power]), this.config.invert_grid);

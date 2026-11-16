@@ -1,3 +1,14 @@
+# 0.9.2 — 2026-11-16
+
+## Directional energy flows
+
+- Three-dot trail with radii 1, 1/2, 1/4 on every active flow.
+- Animated microinverter and generator flow toward the inverter; Smart Load flow outward.
+- Grid import/export and battery charge/discharge retain signed direction and inversion settings.
+- No moving dots for zero/unavailable power; reduced-motion preference respected.
+
+Validated with positive, negative, zero and unavailable readings for grid, battery and all GEN modes. Existing entity bindings are preserved.
+
 # 0.9.1 — 2026-11-16
 
 ## Deye LCD: fixed screens and GEN power
