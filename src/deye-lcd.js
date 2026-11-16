@@ -830,6 +830,14 @@
     .deye-table{color:var(--lcd-ink)}.deye-detail-extra{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px;padding:9px;font-size:13px}.deye-detail-extra>div{display:flex;flex-direction:column;gap:4px;border-bottom:1px solid #ffffff40;padding:5px}.deye-history-tabs{display:flex;flex-wrap:wrap;gap:6px;padding:7px}.deye-history-tabs button{background:#cbdcc3;color:#18363c;border:1px solid #5f8085;font:inherit;padding:6px 12px;cursor:pointer}.deye-history-tabs button[aria-pressed=true]{background:#1b7184;color:white}.status,.status-text{cursor:pointer}
 
     :host { display:block; max-width:var(--lcd-viewport-width,720px); }
+    .lcd-shell {width:100%;margin:auto;}
+    .lcd-toolbar {height:44px;display:flex;justify-content:flex-end;align-items:center;}
+    .lcd-fullscreen-button {width:40px;height:40px;border:1px solid #304757;border-radius:12px;background:#102331;color:#edf6ff;cursor:pointer;display:grid;place-items:center;}
+    .lcd-fullscreen-button svg {width:20px;height:20px;}
+    .lcd-fullscreen-button:focus-visible {outline:2px solid #ff8a32;outline-offset:2px;}
+    .lcd-fullscreen-dialog {box-sizing:border-box;position:fixed;inset:0;margin:0;border:0;padding:8px;padding: max(8px,env(safe-area-inset-top)) max(8px,env(safe-area-inset-right)) max(8px,env(safe-area-inset-bottom)) max(8px,env(safe-area-inset-left));width:100%;height:100%;height:100dvh;max-width:none;max-height:none;background:#0d161f;overflow:hidden;}
+    .lcd-fullscreen-dialog[open] {display:flex;align-items:center;justify-content:center;}
+    .lcd-fullscreen-dialog::backdrop {background:#0d161f;}
     ha-card { display:block; overflow:hidden; border:1px solid #303840; border-radius:12px; background:#171b1d; padding:6px; }
     .screen { display:block; width:100%; height:auto; background:${screenWhite}; border-radius:5px; font-family:Roboto,Arial,sans-serif; }
     text { font-variant-numeric:tabular-nums; }
@@ -1318,7 +1326,7 @@
     constructor() {
       super();
       this.attachShadow({ mode: "open" });
-      this.shadowRoot.innerHTML = `<style>${styles}${responsiveStyles}</style><ha-card>
+      this.shadowRoot.innerHTML = `<style>${styles}${responsiveStyles}</style><div class="lcd-shell"><div class="lcd-toolbar"><button type="button" class="lcd-fullscreen-button" aria-label="Full screen" title="Full screen" aria-pressed="false"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M8 4H6a2 2 0 0 0-2 2v2m12-4h2a2 2 0 0 1 2 2v2M4 16v2a2 2 0 0 0 2 2h2m12-4v2a2 2 0 0 1-2 2h-2"/></svg></button></div><ha-card>
         <svg class="screen" data-status="missing" viewBox="0 0 400 268" aria-label="Головний екран Deye">
           <defs>
             <linearGradient id="deye-lcd-arc" gradientUnits="userSpaceOnUse" x1="-43" y1="12" x2="37" y2="20">
@@ -1359,8 +1367,14 @@
         <div class="deye-firmware-viewport">${settingsMarkup()}</div>
         ${aboutMarkup()}
         ${aboutMarkup(true)}
-      </ha-card>`;
+      </ha-card></div><dialog class="lcd-fullscreen-dialog" aria-label="Deye LCD"></dialog>`;
       const select = (selector) => this.shadowRoot.querySelector(selector);
+      this.lcdShell=select('.lcd-shell');
+      this.fullscreenDialog=select('.lcd-fullscreen-dialog');
+      this.fullscreenButton=select('.lcd-fullscreen-button');
+      this.fullscreenButton.addEventListener('click',()=>this.toggleFullscreen());
+      this.fullscreenDialog.addEventListener('cancel',event=>{event.preventDefault();this.closeFullscreen();});
+      this.fullscreenDialog.addEventListener('close',()=>this.restoreFullscreenShell());
       this.screen = select(".screen");
       this.clock = select("[data-clock]");
       this.weekday = select("[data-weekday]");
@@ -1548,22 +1562,32 @@
     connectedCallback() {
       this.firmwareResize?.disconnect();
       this.viewportCleanup?.();
-      const fit=()=>{const viewport=this.shadowRoot.querySelector('.deye-firmware-viewport');viewport.style.zoom=String(Math.min(1,Math.max(0.1,(this.getBoundingClientRect().width-14)/720)));this.detailsScreen.style.setProperty('--details-scale',String(Math.max(0.1,(this.getBoundingClientRect().width-14)/400)));this.scheduleSettingsFit();};
+      const fit=()=>{const width=this.lcdShell.getBoundingClientRect().width;const viewport=this.shadowRoot.querySelector('.deye-firmware-viewport');viewport.style.zoom=String(Math.max(0.1,(width-14)/720));this.detailsScreen.style.setProperty('--details-scale',String(Math.max(0.1,(width-14)/400)));this.scheduleSettingsFit();};
       const fitViewport=()=>{
         const visual=window.visualViewport;
         const height=visual?.height||window.innerHeight;
         const width=visual?.width||window.innerWidth;
+        if(this.fullscreenDialog.open){
+          const css=getComputedStyle(this.fullscreenDialog);
+          const usableWidth=this.fullscreenDialog.clientWidth-parseFloat(css.paddingLeft)-parseFloat(css.paddingRight);
+          const usableHeight=this.fullscreenDialog.clientHeight-parseFloat(css.paddingTop)-parseFloat(css.paddingBottom)-44;
+          this.lcdShell.style.width=`${Math.max(100,Math.min(usableWidth,(usableHeight-14)*400/268+14))}px`;
+          fit();return;
+        }
         // Fit short landscape displays without changing the surrounding dashboard's scrolling.
         if(width>height&&height<=650&&(!visual||visual.scale===1)){
           const top=Math.max(0,this.getBoundingClientRect().top-(visual?.offsetTop||0));
-          const available=height-(top<height-100?top:80)-32;
+          const available=height-(top<height-100?top:80)-32-44;
           this.style.setProperty('--lcd-viewport-width',`${Math.min(720,Math.max(100,(available-14)*400/268+14))}px`);
         }else this.style.removeProperty('--lcd-viewport-width');
         fit();
       };
+      this.fitViewport=fitViewport;
+      const fullscreenChanged=()=>{if(this.nativeFullscreen&&!this.fullscreenDialog.matches(':fullscreen'))this.closeFullscreen();fitViewport();};
+      document.addEventListener('fullscreenchange',fullscreenChanged);
       window.addEventListener('resize',fitViewport);
       window.visualViewport?.addEventListener('resize',fitViewport);
-      this.viewportCleanup=()=>{window.removeEventListener('resize',fitViewport);window.visualViewport?.removeEventListener('resize',fitViewport);};
+      this.viewportCleanup=()=>{window.removeEventListener('resize',fitViewport);window.visualViewport?.removeEventListener('resize',fitViewport);document.removeEventListener('fullscreenchange',fullscreenChanged);};
       this.firmwareResize=new ResizeObserver(fit);this.firmwareResize.observe(this);fit();
       fitViewport();
       this.localizer?.disconnect();
@@ -1573,6 +1597,7 @@
     }
 
     disconnectedCallback() {
+      this.closeFullscreen();
       cancelAnimationFrame(this.settingsFitFrame);
       this.firmwareResize?.disconnect();
       this.viewportCleanup?.();
@@ -1584,6 +1609,37 @@
         if (dialog.open) dialog.close();
       }
       this.clearPendingSettings();
+    }
+
+    async toggleFullscreen() {
+      if(this.fullscreenDialog.open){this.closeFullscreen();return;}
+      this.fullscreenDialog.append(this.lcdShell);
+      this.fullscreenDialog.showModal();
+      this.fullscreenButton.setAttribute('aria-pressed','true');
+      this.fullscreenButton.title=this.uiLanguage==='uk'?'Вийти з повного екрана':'Exit full screen';
+      this.fullscreenButton.setAttribute('aria-label',this.fullscreenButton.title);
+      this.fitViewport?.();
+      try{
+        if(this.fullscreenDialog.requestFullscreen){await this.fullscreenDialog.requestFullscreen();this.nativeFullscreen=this.fullscreenDialog.matches(':fullscreen');}
+      }catch{ /* The modal provides a full-window fallback on mobile browsers. */ }
+      this.fitViewport?.();
+    }
+
+    closeFullscreen() {
+      this.nativeFullscreen=false;
+      if(this.fullscreenDialog.matches(':fullscreen'))document.exitFullscreen?.().catch(()=>{});
+      if(this.fullscreenDialog.open)this.fullscreenDialog.close();
+      this.restoreFullscreenShell();
+    }
+
+    restoreFullscreenShell() {
+      if(this.fullscreenDialog.open)return;
+      this.shadowRoot.insertBefore(this.lcdShell,this.fullscreenDialog);
+      this.lcdShell.style.removeProperty('width');
+      this.fullscreenButton.setAttribute('aria-pressed','false');
+      this.fullscreenButton.title=this.uiLanguage==='uk'?'На весь екран':'Full screen';
+      this.fullscreenButton.setAttribute('aria-label',this.fullscreenButton.title);
+      if(this.isConnected)this.fitViewport?.();
     }
 
     getCardSize() { return 5; }

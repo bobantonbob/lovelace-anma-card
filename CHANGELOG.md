@@ -1,3 +1,12 @@
+## 0.9.4 — Deye LCD fullscreen
+
+- Add a fullscreen button above Deye LCD without covering readings or controls.
+- Fit portrait and landscape displays, including settings and chart pages.
+- Provide a full-window modal fallback when browser fullscreen is unavailable.
+- Exit with the same button or Escape; preserve entity bindings and pending settings.
+
+Validated fullscreen/fallback, rotation, detail pages, landscape fit and entity bindings. No live inverter settings changed.
+
 ## 0.9.3 — Deye landscape fit and complete entity bindings
 
 - Fit Deye LCD to the available height on short landscape phone screens; restore portrait sizing after rotation.

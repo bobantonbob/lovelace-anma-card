@@ -4,9 +4,11 @@
 
 Design on [ANMA Energy Platform](https://app.anma-electric.com.ua/), connect your Home Assistant entities and export your layout. Install **one HACS package** and use **`custom:anma-card`** for every view.
 
-**Latest release: 0.9.3** · [Download](https://github.com/bobantonbob/lovelace-anma-card/releases/latest) · [Configuration](docs/CONFIGURATION.md) · [Changelog](CHANGELOG.md)
+**Latest release: 0.9.4** · [Download](https://github.com/bobantonbob/lovelace-anma-card/releases/latest) · [Configuration](docs/CONFIGURATION.md) · [Changelog](CHANGELOG.md)
 
-## New in 0.9.3
+## New in 0.9.4
+
+Deye LCD now has a fullscreen button, with portrait/landscape fitting and a mobile full-window fallback.
 
 Deye LCD fits short landscape phone screens. All 335 settings fields support entity bindings; Device Info bindings are now available in the shared editor. Includes directional three-dot energy trails. [Release notes](CHANGELOG.md).
 
