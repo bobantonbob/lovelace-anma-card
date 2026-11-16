@@ -4,19 +4,20 @@
 
 Design on [ANMA Energy Platform](https://app.anma-electric.com.ua/), connect your Home Assistant entities and export your layout. Install **one HACS package** and use **`custom:anma-card`** for every view.
 
-**Latest release: 0.9.4** · [Download](https://github.com/bobantonbob/lovelace-anma-card/releases/latest) · [Configuration](docs/CONFIGURATION.md) · [Changelog](CHANGELOG.md)
+**Latest release: 0.9.5** · [Download](https://github.com/bobantonbob/lovelace-anma-card/releases/latest) · [Configuration](docs/CONFIGURATION.md) · [Changelog](CHANGELOG.md)
 
-## New in 0.9.4
+## New in 0.9.5
 
-Deye LCD now has a fullscreen button, with portrait/landscape fitting and a mobile full-window fallback.
+The ON button opens the ANMA information page inside the LCD, with Back/Escape navigation and no change to the display size. Refined Classic Deye symbols and modern ANMA icons. Fullscreen, directional flows and staged settings remain supported.
 
-Deye LCD fits short landscape phone screens. All 335 settings fields support entity bindings; Device Info bindings are now available in the shared editor. Includes directional three-dot energy trails. [Release notes](CHANGELOG.md).
+![Deye LCD — Classic](docs/images/deye-classic-095.png)
+![Deye LCD — ANMA](docs/images/deye-anma-095.png)
+![ANMA information inside the LCD](docs/images/deye-about-095.png)
 
 ## New in 0.9.0: Deye LCD and smoother Cloud Flow weather
 
 Deye LCD reproduces the inverter screen with 26 settings pages, Classic and dark/orange ANMA themes, English/Ukrainian labels, Gen Port indicators and grid outage status. Power gauges use a green-to-amber scale and a red nominal-power warning.
 
-![Deye LCD — ANMA theme](docs/images/deye-lcd-090.png)
 ![Deye LCD settings](docs/images/deye-settings-090.png)
 
 The Power Flow template now opens Deye LCD. Existing entity mappings remain editable. New website layouts use Solarman `deye_` defaults; selecting LP1 or LP3/HP3 models fills one/three-phase bindings. These are naming presets: verify entity availability in your integration. Changes are staged until the checkmark is pressed; hardware acknowledgement depends on HA state readback. No live inverter writes were performed during validation.
@@ -27,25 +28,7 @@ Cloud Flow has continuous two-layer rain and gently drifting snow, respects redu
 
 ![Cloud Flow snow preview](docs/images/cloud-snow-090.png)
 
-Screenshots use synthetic demonstration readings. Update the existing HACS resource; do not add a duplicate card resource. Existing Nixie artwork remains in the source bundle, but the Power Flow template now routes to Deye LCD.
-
-## Previously in 0.8.0: Nixie Power Flow and battery runtime
-
-Power Flow now uses detailed glass Nixie tubes with warm illuminated digits. Up to ten independent PV fields fill the available width (three fields use one full row; nine use rows of four and five). Select up to five batteries with a slider. Enter each PV field's rated kW manually for its utilization bar. Current solar power, today's generation and today's forecast have separate readouts.
-
-Choose dark, aged plaster, wooden cabinet or electrical cabinet backgrounds, or upload your own. Panel-background opacity leaves digits and labels fully opaque. Optional non-backup and EV groups can be hidden. Small screens keep readable controls and allow scrolling when needed.
-
-![Nixie Power Flow desktop](docs/images/nixie-080.png)
-<img src="docs/images/nixie-phone-080.png" alt="Nixie Power Flow phone preview" width="320">
-
-Cloud Flow shows estimated battery time down to a configurable reserve SOC. Capacity can be entered in kWh or read from an energy entity (Wh/kWh/MWh). The estimate uses current home consumption, excludes inverter losses and assumes no solar or grid contribution; it is not a prediction of changing loads. Missing readings show No data.
-
-Upload your own transparent PNG/WebP icons for scene objects. Built-in object images remain static; directional energy flows and weather remain animated. Charging/discharging text beside the battery is replaced by the runtime display.
-
-![Cloud Flow battery runtime](docs/images/cloud-runtime-080.png)
-<img src="docs/images/cloud-runtime-phone-080.png" alt="Cloud Flow runtime phone preview" width="320">
-
-These are real browser captures of version 0.8.0 with synthetic demonstration readings, not live household data.
+Screenshots use synthetic demonstration readings. Update the existing HACS resource; do not add a duplicate card resource. Power Flow opens Deye LCD. Older release details remain in the changelog.
 
 ## Start with Energy Station
 

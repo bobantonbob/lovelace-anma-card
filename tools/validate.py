@@ -8,7 +8,7 @@ hacs = json.loads((root / 'hacs.json').read_text(encoding='utf-8'))
 assert hacs['filename'] == 'anma-card.js' and hacs['content_in_root'] is True
 assert (root / hacs['filename']).stat().st_size > 100000
 bundle = (root / hacs['filename']).read_text(encoding='utf-8')
-assert "const CARD_VERSION = '0.9.4'" in bundle
+assert "const CARD_VERSION = '0.9.5'" in bundle
 assert "'data:image/webp;base64," in bundle
 assert "'__ANMA_CLOUD_ATLAS__'" not in bundle
 assert "'__ANMA_CLOUD_EV__'" not in bundle
@@ -41,6 +41,6 @@ for file in (root / 'examples').glob('*.yaml'):
 print('PASS: HACS structure, 0.8.0 embedded assets, 12 gallery captures, cloud weather example, three-view example, documentation links and private-address checks.')
 
 assert '__ANMA_NIXIE_BACKGROUNDS__' not in bundle
-for view in ['nixie', 'cloud-runtime']:
+for view in ['cloud-runtime']:
     for suffix in ['', '-phone']:
         assert (root / 'docs/images' / (view + suffix + '-080.png')).is_file()

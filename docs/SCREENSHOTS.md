@@ -1,15 +1,15 @@
-# Current screenshot gallery — 0.8.0
+# Current screenshot gallery — 0.9.5
 
-Actual standalone-card browser captures with synthetic demonstration data. Desktop 1600px; mobile 390px. These are not physical-device certification.
+Actual browser captures of the standalone card with synthetic demonstration readings.
 
-## Nixie Power Flow
+## Deye LCD Classic
+![Classic](images/deye-classic-095.png)
 
-![Desktop](images/nixie-080.png)
+## Deye LCD ANMA
+![ANMA](images/deye-anma-095.png)
 
-<img src="images/nixie-phone-080.png" width="320" alt="Mobile preview">
+## Inline information page
+![Information](images/deye-about-095.png)
 
-## Cloud Flow runtime
-
-![Desktop](images/cloud-runtime-080.png)
-
-<img src="images/cloud-runtime-phone-080.png" width="320" alt="Mobile preview">
+## Cloud Flow
+![Cloud Flow](images/cloud-snow-090.png)

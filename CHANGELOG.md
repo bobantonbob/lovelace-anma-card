@@ -1,3 +1,11 @@
+## 0.9.5 — Deye LCD inline information and refreshed icons
+
+- ON opens the ANMA information screen inside the LCD, with Back and Escape navigation.
+- Fixed display dimensions across desktop, portrait and landscape.
+- Refined Classic and ANMA icons; updated repository screenshots and removed the obsolete Nixie showcase.
+- Verified entity mapping, staged writes, directional flows and fullscreen behavior with browser tests.
+- No live inverter commands were sent.
+
 ## 0.9.4 — Deye LCD fullscreen
 
 - Add a fullscreen button above Deye LCD without covering readings or controls.
