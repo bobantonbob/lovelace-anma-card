@@ -544,6 +544,10 @@ if (typeof window !== 'undefined') {
 (function(root){
  'use strict';
  const pairs=`
+GEN port power|Потужність GEN-порту
+Micro inverter power|Потужність мікроінвертора
+Generator power|Потужність генератора
+Smart load power|Потужність Smart Load
 System Setup|Налаштування системи
 Battery Setting|Налаштування батареї
 Work Mode|Режим роботи
@@ -1560,9 +1564,9 @@ Grid input voltage. A reading of 0 V also helps detect an outage.|Напруга
         <button type="button" class="details-back" aria-label="Назад" title="Назад">
           <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M14 6l-6 6 6 6m-6-6h12"/></svg>
         </button>
-        <h2 id="details-title" tabindex="-1"></h2>
+        <h2 id="details-title" tabindex="-1"></h2><button type="button" class="details-prev" aria-label="Previous page">‹</button><span class="details-page-number"></span><button type="button" class="details-next" aria-label="Next page">›</button>
       </header>
-      <dl class="details-readings">
+      <div class="deye-reference-readings"></div><dl class="details-readings">
         ${measurementFields.map(({ key, label }) => `<div class="details-metric" data-metric="${key}">
           <dt>${label}</dt>
           <dd>${measurementMarkup}</dd>
@@ -2186,6 +2190,27 @@ Grid input voltage. A reading of 0 V also helps detect an outage.|Напруга
       :host([data-theme="technika"]) .technika-particle { display:none; }
     }
 
+    .deye-reference-readings {position:relative;height:224px;font-size:13px;font-weight:600;padding:12px 7px;box-sizing:border-box;}
+    .reference-top {display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:12px;}
+    .reference-pv {display:grid;grid-template-columns:repeat(3,1fr);gap:12px 5px;}
+    .reference-energy {text-align:center;margin-top:16px;line-height:1.9;}
+    .reference-left {width:48%;text-align:center;line-height:1.9;}
+    .reference-right {position:absolute;left:51%;top:12px;width:47%;line-height:1.9;text-align:center;}
+    .deye-reference-readings[data-source="battery"] .reference-right {font-size:10px;text-align:left;line-height:2.3;}
+    .deye-detail-corner {position:absolute;bottom:0;right:0;width:76px;height:48px;border:0;border-left:2px solid #c2d9d9;border-top:2px solid #c2d9d9;border-radius:100% 0 0 0;background:transparent;color:inherit;font:italic 12px Arial;padding:18px 0 0 18px;cursor:pointer;}
+    .deye-detail-corner.bms {right:80px;}
+    .details-screen { width:400px;height:268px;min-height:0!important;zoom:var(--details-scale,1); }
+    .details-header h2 { flex:1;font-size:18px!important; }
+    .details-header { height:40px;min-height:40px!important; }
+    .details-prev,.details-next {font:24px Arial;color:inherit;background:transparent;border:1px solid currentColor;border-radius:4px;cursor:pointer;}
+    .details-page-number {font-size:11px;white-space:nowrap;}
+    .details-screen .details-metric dt {font-size:12px;}
+    .details-screen .details-metric dd {font-size:20px;}
+    .details-screen .details-history h3 {font-size:13px;}
+    .details-screen .deye-history-tabs {gap:3px;padding:4px;}
+    .details-screen .deye-history-tabs button {padding:4px 7px;font-size:11px;}
+    .details-screen .deye-detail-extra {font-size:12px;gap:5px;padding:7px;}
+    .details-screen .history-chart svg {max-height:172px;}
     .details-screen {
       --details-ink:#f0faff;
       --details-muted:#d7edff;
@@ -2328,7 +2353,8 @@ Grid input voltage. A reading of 0 V also helps detect an outage.|Напруга
           { name: "lcd_theme", selector: { select: { mode: "dropdown", options: themes } } },
           { name: "inverter_model", selector: { select: { mode: "dropdown", options: models.map(model => ({ value: String(model), label: modelLabel(model) })) } } },
           { name: "inverter_phases", default: "1", selector: { select: { mode: "dropdown", options: phaseOptions } } },
-          group("extended_readings", "Deye · детальні показники та енергія", [...Object.values(extraReadings).flat().map(([name,label])=>{labels[name]=label;return entity(name,false);}),...readings('inverter',false)]),
+          group("extended_readings", "Deye · детальні показники та енергія", [...['pv_grid_tie_power','grid_ct_power','grid_ld_power','battery_soh','battery_bms_brand','battery_bms_charge_voltage','battery_bms_version'].map(name=>entity(name,false)),...Object.values(extraReadings).flat().map(([name,label])=>{labels[name]=label;return entity(name,false);}),...readings('inverter',false)]),
+          group('gen_port_entities','GEN · Micro Inverter / Generator / Smart Load',[['gen_port_power','GEN port power'],['micro_inverter_power','Micro inverter power'],['generator_power','Generator power'],['smart_load_actual_power','Smart load power']].map(([name,label])=>{labels[name]=label;return entity(name,false);})),
           group("solar_entities", "Сонячна генерація", readings("pv", false)),
           group("grid_entities", "Мережа", [
             ...readings("grid"), entity("grid_connected", false, "binary_sensor"), toggle("invert_grid"),
@@ -2402,7 +2428,7 @@ Grid input voltage. A reading of 0 V also helps detect an outage.|Напруга
           <g data-gen-port-indicator style="display:none" role="img">
             <path data-gen-port-wire fill="none" stroke="#688c7a" stroke-width="1.4" stroke-dasharray="3 2"/>
             <g data-gen-port-symbol fill="#d8e7d4" stroke="#315e4a" stroke-width="1.5"></g>
-            <text data-gen-port-label text-anchor="middle" fill="#244d3c" font-size="8"></text>
+            <text data-gen-port-power text-anchor="middle" fill="#244d3c" font-size="9"></text><text data-gen-port-label text-anchor="middle" fill="#244d3c" font-size="8"></text>
           </g>
         </svg>
         ${detailsMarkup()}
@@ -2440,6 +2466,8 @@ Grid input voltage. A reading of 0 V also helps detect an outage.|Напруга
         }));
         return { key, panel, cells };
       });
+      this.shadowRoot.querySelector('.deye-reference-readings').addEventListener('click',event=>{const action=event.target.closest('[data-detail-action]')?.dataset.detailAction;if(!action)return;this.detailsBms=action==='bms';this.detailsPage=action==='energy'?1:0;this.updateDetails();});
+      for (const [selector, step] of [['.details-prev',-1],['.details-next',1]]) select(selector).addEventListener('click',()=>{this.detailsPage+=step;this.updateDetails();});
       select(".details-back").addEventListener("click", () => this.closeDetails());
       this.historyPeriod = 'Power';
       for (const button of this.shadowRoot.querySelectorAll('[data-history-period]')) button.addEventListener('click',()=>{this.historyPeriod=button.dataset.historyPeriod;this.loadDetailsHistory();});
@@ -2595,7 +2623,7 @@ Grid input voltage. A reading of 0 V also helps detect an outage.|Напруга
 
     connectedCallback() {
       this.firmwareResize?.disconnect();
-      const fit=()=>{const viewport=this.shadowRoot.querySelector('.deye-firmware-viewport');viewport.style.zoom=String(Math.min(1,Math.max(0.1,this.getBoundingClientRect().width/720)));this.scheduleSettingsFit();};
+      const fit=()=>{const viewport=this.shadowRoot.querySelector('.deye-firmware-viewport');viewport.style.zoom=String(Math.min(1,Math.max(0.1,this.getBoundingClientRect().width/720)));this.detailsScreen.style.setProperty('--details-scale',String(Math.max(0.1,(this.getBoundingClientRect().width-14)/400)));this.scheduleSettingsFit();};
       this.firmwareResize=new ResizeObserver(fit);this.firmwareResize.observe(this);fit();
       this.localizer?.disconnect();
       this.localizer=window.AnmaDeyeI18n.attach(this.shadowRoot,()=>this.uiLanguage);
@@ -2667,6 +2695,7 @@ Grid input voltage. A reading of 0 V also helps detect an outage.|Напруга
       if (!gauge) return;
       this.historyPeriod = "Power";
       this.detailsKey = key;
+      this.detailsPage = 0;this.detailsBms=false;
       this.detailsScreen.dataset.source = gauge.source;
       this.detailsTitle.textContent = gauge.label;
       this.screen.setAttribute("hidden", "");
@@ -2708,6 +2737,45 @@ Grid input voltage. A reading of 0 V also helps detect an outage.|Напруга
           renderMeasurement(cell, this.config[`${prefix}_${cell.key}`], states, invert);
         }
       }
+      this.paginateDetails();
+    }
+
+    paginateDetails() {
+      this.renderReferenceDetails();
+      const pages=[this.shadowRoot.querySelector('.deye-reference-readings'),this.shadowRoot.querySelector('.details-history')];
+      this.detailsPage=Math.max(0,Math.min(this.detailsPage||0,1));
+      for(const el of this.detailsScreen.querySelectorAll(':scope > :not(header)'))el.style.display='none';
+      pages[this.detailsPage].style.display='';
+      this.shadowRoot.querySelector('.details-prev').style.visibility=this.detailsPage?'visible':'hidden';
+      this.shadowRoot.querySelector('.details-next').style.visibility=this.detailsPage?'hidden':'visible';
+      this.shadowRoot.querySelector('.details-page-number').textContent=`${this.detailsPage+1}/2`;
+    }
+
+    renderReferenceDetails() {
+      const source=gaugeByKey[this.detailsKey].source, root=this.shadowRoot.querySelector('.deye-reference-readings'), states=this.hassData?.states||{};
+      root.replaceChildren();root.dataset.source=source;
+      const value=(key,energy=false)=>{const e=states[this.config[key]];if(!e||['unknown','unavailable'].includes(e.state))return '—';const unit=e.attributes?.unit_of_measurement||'';const num=Number(e.state);if(energy&&Number.isFinite(num)){const kwh=unit==='Wh'?num/1000:unit==='MWh'?num*1000:num;return kwh>=1000?(kwh/1000).toFixed(2)+' MWh':kwh.toFixed(1)+' kWh';}return e.state+(unit?' '+unit:'');};
+      const caption=label=>this.uiLanguage==='uk'?({'Power:':'Потужність:','Grid Tie Power:':'Мережева потужність:','Today=':'Сьогодні=','Total =':'Загалом =','Stand by':'Очікування','Charge':'Заряд','Discharge':'Розряд','BUY':'КУПІВЛЯ','SELL':'ПРОДАЖ','Battery Voltage:':'Напруга АКБ:','Battery Current:':'Струм АКБ:','Battery Temp.:':'Темп. АКБ:','Alarms:':'Помилки:','Battery Charge Voltage:':'Напруга заряду:','Charge Current limit:':'Ліміт струму заряду:','Discharge Current limit:':'Ліміт струму розряду:'}[label]||label):label;
+      const block=(cls,items)=>{const el=document.createElement('div');el.className=cls;for(const [label,key,energy] of items){const row=document.createElement('div');row.textContent=caption(label)+(key?' '+value(key,energy):'');el.append(row);}root.append(el);};
+      const action=(label,id,cls='')=>{const button=document.createElement('button');button.type='button';button.dataset.detailAction=id;button.className='deye-detail-corner '+cls;button.textContent=label;root.append(button);};
+      this.detailsTitle.textContent=this.detailsBms&&source==='battery'?'Li-BMS':({pv:'Solar',grid:'Grid',load:'Load',battery:(Number(states[this.config.battery_voltage]?.state)>=40&&Number(states[this.config.battery_voltage]?.state)<=65?'Batt-48V':'Battery'),inverter:'Inverter'}[source]||source);
+      if(this.detailsBms&&source==='battery'){
+        block('reference-left',[['Battery Voltage:','battery_voltage'],['Battery Current:','battery_current'],['Battery Temp.:','battery_temperature'],['SOC:','battery_soc'],['SOH:','battery_soh'],['Alarms:','battery_bms_alarm']]);
+        block('reference-right',[['LiBms:','battery_bms_brand'],['Battery Charge Voltage:','battery_bms_charge_voltage'],['Charge Current limit:','battery_bms_charge_limit'],['Discharge Current limit:','battery_bms_discharge_limit'],['BMS Ver:','battery_bms_version']]);action('‹ Back','readings');return;
+      }
+      if(source==='pv'){
+        block('reference-top',[['Power:','pv_power'],['Grid Tie Power:','pv_grid_tie_power']]);
+        const rows=[];for(const [metric,short]of [['voltage','V'],['current','I'],['power','P']])for(let i=1;i<=3;i++)rows.push([metric==='power'?`P${i}:`:`PV${i}-${short}:`,`pv_${i}_${metric}`]);block('reference-pv',rows);
+        block('reference-energy',[['Today=','pv_energy_today',true],['Total =','pv_energy_total',true]]);
+      }else if(source==='grid'){
+        const power=watts(states[this.config.grid_power]);block('reference-left',[[power===null?'—':Math.abs(power)<5?'Stand by':power>0?'BUY':'SELL'],['','grid_power'],['','grid_frequency_sensor'],['','grid_voltage'],['','grid_current'],['CT:','grid_ct_power'],['LD:','grid_ld_power']]);
+        block('reference-right',[['BUY'],['Today=','grid_energy_today',true],['Total =','grid_energy_total',true],['SELL'],['Today=','grid_export_today',true],['Total =','grid_export_total',true]]);
+      }else if(source==='battery'){
+        const p=watts(states[this.config.battery_power]);block('reference-left',[[p===null?'—':Math.abs(p)<5?'Stand by':p<0?'Charge':'Discharge'],['SOC:','battery_soc'],['U:','battery_voltage'],['I:','battery_current'],['Power:','battery_power'],['Temp:','battery_temperature']]);action('Li-BMS','bms','bms');
+      }else{
+        block('reference-left',[['Power:',source+'_power'],['L:',source+'_voltage'],['I:',source+'_current']]);block('reference-right',[['Today=',source+'_energy_today',true],['Total =',source+'_energy_total',true]]);
+      }
+      action('Energy','energy');
     }
 
     showHistory(message, plot = "") {
@@ -3243,6 +3311,7 @@ Grid input voltage. A reading of 0 V also helps detect an outage.|Напруга
         port.setAttribute('aria-label',label);
         const symbol=port.querySelector('[data-gen-port-symbol]');symbol.setAttribute('transform',`translate(202 ${y})`);
         symbol.innerHTML=kind==='micro'?'<rect x="-13" y="-10" width="26" height="19" rx="2"/><path d="M-9 -4h18M-9 1h6l3 4 4-8 3 4h3M-17 -4h4m26 0h4"/>':kind==='generator'?'<rect x="-14" y="-9" width="28" height="19" rx="2"/><path d="M-7 -9v-4h14v4M-18 10h36M6 -4h5M6 0h5"/><circle cx="-5" cy="1" r="5"/>':'<path d="M-15 0L0 -12 15 0M-11 -3v14h22V-3M-3 11V3h6v8"/>';
+        const power=watts(states[this.config[kind==='micro'?'micro_inverter_power':kind==='generator'?'generator_power':'smart_load_actual_power']||this.config.gen_port_power]);const powerText=port.querySelector('[data-gen-port-power]');powerText.setAttribute('x','202');powerText.setAttribute('y',String(y+(top?-25:34)));powerText.textContent=power===null?'—':Math.round(power)+' W';
         const text=port.querySelector('[data-gen-port-label]');text.setAttribute('x','202');text.setAttribute('y',String(y+(top?-15:23)));text.textContent=label;
         port.querySelector('[data-gen-port-wire]').setAttribute('d',top?'M202 77V111l-3 -5m3 5 3 -5':kind==='generator'?'M202 198V174l-3 5m3 -5 3 5':'M202 174V195l-3 -5m3 5 3 -5');
       }
@@ -3296,7 +3365,7 @@ Grid input voltage. A reading of 0 V also helps detect an outage.|Напруга
     if(!/^[a-z0-9_]+$/.test(prefix))return {};
     const result={inverter_phases:String(phases)};
     const bind=(key,domain,suffix)=>{const id=domain+'.'+prefix+'_'+suffix;if(states===null||states[id])result[key]=id;};
-    const telemetry={pv_power:'pv_power',grid_power:'grid_power',load_power:'load_power',battery_power:'battery_power',battery_soc:'battery',battery_voltage:'battery_voltage',battery_current:'battery_current',battery_temperature:'battery_temperature',grid_voltage:'grid_voltage',grid_frequency_sensor:'grid_frequency',load_frequency:'load_frequency',inverter_power:'power',inverter_voltage:'output_voltage',inverter_frequency:'output_frequency',inverter_dc_temperature:'dc_temperature',inverter_ac_temperature:'temperature',pv_energy_today:'today_production',pv_energy_total:'total_production',grid_energy_today:'today_energy_import',grid_energy_total:'total_energy_import',grid_export_today:'today_energy_export',grid_export_total:'total_energy_export',load_energy_today:'today_load_consumption',load_energy_total:'total_load_consumption'};
+    const telemetry={micro_inverter_power:'microinverter_power',generator_power:'generator_power',smart_load_actual_power:'smartload_power',load_voltage:'load_l1_voltage',load_current:'load_l1_current',grid_current:'grid_l1_current',pv_power:'pv_power',grid_power:'grid_power',load_power:'load_power',battery_power:'battery_power',battery_soc:'battery',battery_voltage:'battery_voltage',battery_current:'battery_current',battery_temperature:'battery_temperature',grid_voltage:'grid_voltage',grid_frequency_sensor:'grid_frequency',load_frequency:'load_frequency',inverter_power:'power',inverter_voltage:'output_voltage',inverter_frequency:'output_frequency',inverter_dc_temperature:'dc_temperature',inverter_ac_temperature:'temperature',pv_energy_today:'today_production',pv_energy_total:'total_production',grid_energy_today:'today_energy_import',grid_energy_total:'total_energy_import',grid_export_today:'today_energy_export',grid_export_total:'total_energy_export',load_energy_today:'today_load_consumption',load_energy_total:'total_load_consumption'};
     for(const [k,v]of Object.entries(telemetry))bind(k,'sensor',v);
     bind('grid_connected','binary_sensor','grid');bind('inverter_status','sensor','device_state');
     for(const source of ['grid','load','inverter'])for(let i=1;i<=Number(phases);i++)for(const metric of ['power','voltage','current'])bind(`${source}_l${i}_${metric}`,'sensor',`${source==='inverter'?'output':source}_l${i}_${metric}`);
@@ -5860,7 +5929,7 @@ Grid input voltage. A reading of 0 V also helps detect an outage.|Напруга
 (() => {
   'use strict';
 
-  const CARD_VERSION = '0.9.0';
+  const CARD_VERSION = '0.9.1';
   const EN = {
     'Стан системи':'System status', 'Помилки':'Errors', 'Стан АКБ':'Battery status', 'Електромобіль — потужність':'EV — power', 'Генератор — потужність':'Generator — power', 'Мова картки': 'Card language', 'Сонце': 'Solar', 'Дім': 'Home', 'Самоспоживання': 'Self-consumption', 'АКБ': 'Battery', 'Прогноз на 7 днів': '7-day forecast', 'Середньодобово': 'Daily average', 'Найкращий день': 'Best day', 'Мікроінвертор': 'Microinverter', 'MPPT МАТРИЦЯ': 'MPPT MATRIX', '✓ Оптимально': '✓ Optimal', 'Автоматично (Home Assistant)': 'Automatic (Home Assistant)',
     'Імпортувати макет ANMA / Import ANMA layout (.json)': 'Import ANMA layout (.json)',

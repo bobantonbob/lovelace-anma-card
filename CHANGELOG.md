@@ -1,3 +1,17 @@
+# 0.9.1 — 2026-11-16
+
+## Deye LCD: fixed screens and GEN power
+
+- Solar, Grid, Battery and Load now have exactly two main pages: inverter-style readings and energy/history chart, with fixed LCD dimensions and Energy navigation.
+- Separate Li-BMS screen with editable entity bindings; unavailable readings remain unknown.
+- Microinverter, generator and Smart Load power bindings, plus an optional shared GEN-port power sensor.
+- Exact Solarman discovery includes available microinverter power and single-phase voltage/current sensors.
+- Existing mappings and checkmark-confirmed setting writes are preserved.
+
+Update ANMA Card through HACS, then refresh Home Assistant. Existing installations must bind the new power fields (for example sensor.deye_microinverter_power). No inverter settings are changed by this update.
+
+Validated: entity mapping, staged writes, history, two-page navigation and fixed dimensions at 360/768/1600 px.
+
 # 0.9.0 — 2026-11-16
 
 ## New in 0.9.0: Deye LCD and smoother Cloud Flow weather

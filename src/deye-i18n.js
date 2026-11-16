@@ -2,6 +2,10 @@
 (function(root){
  'use strict';
  const pairs=`
+GEN port power|Потужність GEN-порту
+Micro inverter power|Потужність мікроінвертора
+Generator power|Потужність генератора
+Smart load power|Потужність Smart Load
 System Setup|Налаштування системи
 Battery Setting|Налаштування батареї
 Work Mode|Режим роботи
