@@ -217,7 +217,7 @@
 
   const defaultBatteryStack = [
     { id: 'bat-1', name: 'Deye Pro 5.12kWh #1 (Master)', soc: 88, voltage: '53.2', current: '1.06', temp: 24, status: 'Master · OK' },
-
+    
   ];
 
   const defaultInverterStack = [
@@ -337,7 +337,7 @@
       devicePreset: 'responsive',
       deviceOrientation: 'portrait',
       widgetConfigs: {
-        power_flow: { size: 'full', shape: 'rounded', title: 'ANMA Power Flow' },
+        power_flow: { size: 'full', shape: 'rounded', title: 'Deye LCD' },
         flow: { size: 'full', shape: 'rounded', accent: '#f1873d', title: '' },
         solar: { size: '1x1', shape: 'rounded', accent: '#f59e0b', title: '' },
         battery: { size: '1x1', shape: 'rounded', accent: '#37c98b', title: '' },

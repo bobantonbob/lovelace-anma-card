@@ -1,3 +1,22 @@
+# 0.9.0 — 2026-11-16
+
+## New in 0.9.0: Deye LCD and smoother Cloud Flow weather
+
+Deye LCD reproduces the inverter screen with 26 settings pages, Classic and dark/orange ANMA themes, English/Ukrainian labels, Gen Port indicators and grid outage status. Power gauges use a green-to-amber scale and a red nominal-power warning.
+
+![Deye LCD — ANMA theme](docs/images/deye-lcd-090.png)
+![Deye LCD settings](docs/images/deye-settings-090.png)
+
+The Power Flow template now opens Deye LCD. Existing entity mappings remain editable. New website layouts use Solarman `deye_` defaults; selecting LP1 or LP3/HP3 models fills one/three-phase bindings. These are naming presets: verify entity availability in your integration. Changes are staged until the checkmark is pressed; hardware acknowledgement depends on HA state readback. No live inverter writes were performed during validation.
+
+[Entity mapping guide](docs/DEYE_ENTITY_MAPPING.md) · [Deye LCD documentation](docs/DEYE_LCD.md)
+
+Cloud Flow has continuous two-layer rain and gently drifting snow, respects reduced motion, and supports custom transparent PNG/WebP equipment images fitted inside fixed object frames.
+
+![Cloud Flow snow preview](docs/images/cloud-snow-090.png)
+
+Screenshots use synthetic demonstration readings. Update the existing HACS resource; do not add a duplicate card resource. Existing Nixie artwork remains in the source bundle, but the Power Flow template now routes to Deye LCD.
+
 # Changelog
 
 ## 0.8.0 — 2026-11-07

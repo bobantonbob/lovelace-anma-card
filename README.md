@@ -4,9 +4,26 @@
 
 Design on [ANMA Energy Platform](https://app.anma-electric.com.ua/), connect your Home Assistant entities and export your layout. Install **one HACS package** and use **`custom:anma-card`** for every view.
 
-**Latest release: 0.8.0** · [Download](https://github.com/bobantonbob/lovelace-anma-card/releases/latest) · [Configuration](docs/CONFIGURATION.md) · [Changelog](CHANGELOG.md)
+**Latest release: 0.9.0** · [Download](https://github.com/bobantonbob/lovelace-anma-card/releases/latest) · [Configuration](docs/CONFIGURATION.md) · [Changelog](CHANGELOG.md)
 
-## New in 0.8.0: Nixie Power Flow and battery runtime
+## New in 0.9.0: Deye LCD and smoother Cloud Flow weather
+
+Deye LCD reproduces the inverter screen with 26 settings pages, Classic and dark/orange ANMA themes, English/Ukrainian labels, Gen Port indicators and grid outage status. Power gauges use a green-to-amber scale and a red nominal-power warning.
+
+![Deye LCD — ANMA theme](docs/images/deye-lcd-090.png)
+![Deye LCD settings](docs/images/deye-settings-090.png)
+
+The Power Flow template now opens Deye LCD. Existing entity mappings remain editable. New website layouts use Solarman `deye_` defaults; selecting LP1 or LP3/HP3 models fills one/three-phase bindings. These are naming presets: verify entity availability in your integration. Changes are staged until the checkmark is pressed; hardware acknowledgement depends on HA state readback. No live inverter writes were performed during validation.
+
+[Entity mapping guide](docs/DEYE_ENTITY_MAPPING.md) · [Deye LCD documentation](docs/DEYE_LCD.md)
+
+Cloud Flow has continuous two-layer rain and gently drifting snow, respects reduced motion, and supports custom transparent PNG/WebP equipment images fitted inside fixed object frames.
+
+![Cloud Flow snow preview](docs/images/cloud-snow-090.png)
+
+Screenshots use synthetic demonstration readings. Update the existing HACS resource; do not add a duplicate card resource. Existing Nixie artwork remains in the source bundle, but the Power Flow template now routes to Deye LCD.
+
+## Previously in 0.8.0: Nixie Power Flow and battery runtime
 
 Power Flow now uses detailed glass Nixie tubes with warm illuminated digits. Up to ten independent PV fields fill the available width (three fields use one full row; nine use rows of four and five). Select up to five batteries with a slider. Enter each PV field's rated kW manually for its utilization bar. Current solar power, today's generation and today's forecast have separate readouts.
 
@@ -44,7 +61,7 @@ Energy Station combines up to **10 PV fields, 5 batteries, GEN/AUX and configura
 
 ## New in 0.7.3: screen fit and smooth weather
 
-Cloud Flow now fits the complete scene into the available Home Assistant screen in normal mode and fullscreen. Phone layouts include all enabled objects without requiring the card to scroll. Rain and snow move gently side to side without a restart jump.
+Cloud Flow now fits the complete scene into the available Home Assistant screen in normal mode and fullscreen. Phone layouts include all enabled objects without requiring the card to scroll. Rain and snow now fall continuously in two seamless layers (updated in 0.9.0).
 
 ![Cloud Flow fitted to desktop](docs/images/cloud-fit-073.png)
 
