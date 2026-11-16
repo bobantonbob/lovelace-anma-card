@@ -829,7 +829,7 @@
   const styles = extra.css + `
     .deye-table{color:var(--lcd-ink)}.deye-detail-extra{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px;padding:9px;font-size:13px}.deye-detail-extra>div{display:flex;flex-direction:column;gap:4px;border-bottom:1px solid #ffffff40;padding:5px}.deye-history-tabs{display:flex;flex-wrap:wrap;gap:6px;padding:7px}.deye-history-tabs button{background:#cbdcc3;color:#18363c;border:1px solid #5f8085;font:inherit;padding:6px 12px;cursor:pointer}.deye-history-tabs button[aria-pressed=true]{background:#1b7184;color:white}.status,.status-text{cursor:pointer}
 
-    :host { display:block; }
+    :host { display:block; max-width:var(--lcd-viewport-width,720px); }
     ha-card { display:block; overflow:hidden; border:1px solid #303840; border-radius:12px; background:#171b1d; padding:6px; }
     .screen { display:block; width:100%; height:auto; background:${screenWhite}; border-radius:5px; font-family:Roboto,Arial,sans-serif; }
     text { font-variant-numeric:tabular-nums; }
@@ -1288,6 +1288,13 @@
           group("inverter_entities", "Інвертор і паралельна робота", [
             entity("inverter_status", false), { name: "parallel_id", selector: { text: {} } },
           ]),
+          group("device_info_entities", "Device Info · інформація про пристрій", [
+            ["inverter_serial", "Serial number · серійний номер"],
+            ["hmi_version", "HMI version · версія дисплея"],
+            ["main_version", "Main version · основна прошивка"],
+            ["pack_version", "Pack version · версія пакета"],
+            ["alarm_history", "Alarm history · журнал тривог"],
+          ].map(([name,label])=>{labels[name]=label;return entity(name,false);})),
           ...settingBindings.map(([title, fields], index) =>
             group(`controls_${index}`, `Керування · ${title}`,
               fields.map(([name, domain]) => entity(name, false, domain)))
@@ -1540,8 +1547,25 @@
 
     connectedCallback() {
       this.firmwareResize?.disconnect();
-      const fit=()=>{const viewport=this.shadowRoot.querySelector('.deye-firmware-viewport');viewport.style.zoom=String(Math.min(1,Math.max(0.1,this.getBoundingClientRect().width/720)));this.detailsScreen.style.setProperty('--details-scale',String(Math.max(0.1,(this.getBoundingClientRect().width-14)/400)));this.scheduleSettingsFit();};
+      this.viewportCleanup?.();
+      const fit=()=>{const viewport=this.shadowRoot.querySelector('.deye-firmware-viewport');viewport.style.zoom=String(Math.min(1,Math.max(0.1,(this.getBoundingClientRect().width-14)/720)));this.detailsScreen.style.setProperty('--details-scale',String(Math.max(0.1,(this.getBoundingClientRect().width-14)/400)));this.scheduleSettingsFit();};
+      const fitViewport=()=>{
+        const visual=window.visualViewport;
+        const height=visual?.height||window.innerHeight;
+        const width=visual?.width||window.innerWidth;
+        // Fit short landscape displays without changing the surrounding dashboard's scrolling.
+        if(width>height&&height<=650&&(!visual||visual.scale===1)){
+          const top=Math.max(0,this.getBoundingClientRect().top-(visual?.offsetTop||0));
+          const available=height-(top<height-100?top:80)-32;
+          this.style.setProperty('--lcd-viewport-width',`${Math.min(720,Math.max(100,(available-14)*400/268+14))}px`);
+        }else this.style.removeProperty('--lcd-viewport-width');
+        fit();
+      };
+      window.addEventListener('resize',fitViewport);
+      window.visualViewport?.addEventListener('resize',fitViewport);
+      this.viewportCleanup=()=>{window.removeEventListener('resize',fitViewport);window.visualViewport?.removeEventListener('resize',fitViewport);};
       this.firmwareResize=new ResizeObserver(fit);this.firmwareResize.observe(this);fit();
+      fitViewport();
       this.localizer?.disconnect();
       this.localizer=window.AnmaDeyeI18n.attach(this.shadowRoot,()=>this.uiLanguage);
       this.updateClock();
@@ -1551,6 +1575,7 @@
     disconnectedCallback() {
       cancelAnimationFrame(this.settingsFitFrame);
       this.firmwareResize?.disconnect();
+      this.viewportCleanup?.();
       this.localizer?.disconnect();
       clearInterval(this.timer);
       this.closeDetails();

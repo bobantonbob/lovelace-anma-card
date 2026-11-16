@@ -1,3 +1,14 @@
+## 0.9.3 — Deye landscape fit and complete entity bindings
+
+- Fit Deye LCD to the available height on short landscape phone screens; restore portrait sizing after rotation.
+- Preserve fixed readings/chart pages and correct settings canvas scaling.
+- Expose serial number, HMI/Main/Pack versions and alarm history in the shared entity editor.
+- Verify bindings for all 335 settings fields, with 442 entity fields available overall.
+- Retain directional three-dot flows for PV, grid, battery, load and GEN-port modes.
+- Existing layouts and entity IDs are preserved. No physical inverter settings were changed during testing.
+
+Validation: landscape/portrait, detail pagination, binding coverage, one/three-phase mapping, staged writes and directional flow tests.
+
 # 0.9.2 — 2026-11-16
 
 ## Directional energy flows

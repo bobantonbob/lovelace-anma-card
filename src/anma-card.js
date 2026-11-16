@@ -1017,7 +1017,7 @@ Grid input voltage. A reading of 0 V also helps detect an outage.|Напруга
   pages['grid:0']='<div class="deye-grid-unlock">'+c('grid_settings_unlock','Unlock Grid Setting')+'</div>'+s('grid_mode','Grid Mode')+'<div class="deye-grid-frequency"><span>Grid Frequency</span>'+column([radio('grid_frequency','50Hz'),radio('grid_frequency','60Hz')])+s('grid_output_voltage','INV Output Voltage')+'</div><div class="deye-grid-type"><span>Grid Type</span>'+column(['Single Phase','120/240V Split Phase','120/208V 3 Phase'].map(v=>radio('grid_type',v)))+'</div>';
   pages['grid:5']=columns([grid([n('grid_fixed_q','Fixed Q'),n('grid_p_tau','R.T(3Tau)')]),c('grid_qp','Q(P)'),box('',points('grid_pq','P','Q'))],[c('grid_pfp','PF(P)'),box('',grid([n('grid_p_lock_in','Lock-in/Pn'),n('grid_p_lock_out','Lock-out/Pn')])+points('grid_pf','P','PF'))]);
   root.AnmaDeyePages={pages,fields,menus,esc,batteryExtra,workCt,css:`
-    :host{container-type:inline-size;max-width:720px;margin-inline:auto;width:100%}
+    :host{container-type:inline-size;max-width:var(--lcd-viewport-width,720px);margin-inline:auto;width:100%}
     .deye-function-limits .lcd-number:not([data-setting="ats"]){flex-direction:column-reverse;align-items:flex-start}.settings-page[data-settings-page="basic:0"]>.deye-inline{grid-template-columns:repeat(3,minmax(0,1fr))!important}
     .deye-gen-layout{display:grid;grid-template-columns:1fr 1fr;gap:16px}.deye-gen-layout .lcd-number{flex-direction:column;align-items:flex-start}.deye-gen-layout .deye-column{justify-content:space-between}.deye-clock .lcd-number{flex-direction:column;align-items:stretch}.deye-clock .lcd-number-value{display:flex;max-inline-size:none!important;inline-size:100%!important}.deye-clock input{min-width:0;width:100%}.deye-clock button{background:#dce8bf;color:#18302c;border:1px solid #eef6dd;min-width:24px;font:inherit}.deye-language-center{display:grid;justify-items:center;gap:18px;padding-top:70px}.deye-language-center .deye-language-setting{display:flex;flex-direction:column;text-align:center;gap:10px}.deye-language-center .deye-live{justify-content:center;gap:6px}.deye-parallel-top{display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px}.deye-parallel-top>.lcd-number{flex-direction:column;align-items:center}.deye-parallel-bottom{border-top:1px solid #cad9cd;padding-top:10px}.deye-radio input{border-radius:50%}.deye-indent{padding-left:25px}.deye-advanced-spacer{height:24px}
     .settings:has(:is([data-settings-page^="gen:"],[data-settings-page^="basic:"],[data-settings-page^="advanced:"]):not([hidden])){aspect-ratio:1.65;min-block-size:0}.settings-page:is([data-settings-page^="gen:"],[data-settings-page^="basic:"],[data-settings-page^="advanced:"]){font-size:clamp(11px,2.2cqi,15px);gap:10px;padding:2px}.settings-page:is([data-settings-page^="gen:"],[data-settings-page^="basic:"],[data-settings-page^="advanced:"]) .lcd-number-value{inline-size:5.5em}.settings-page:is([data-settings-page^="gen:"],[data-settings-page^="basic:"],[data-settings-page^="advanced:"]) .lcd-number input{min-height:26px}.settings-page[data-settings-page="advanced:0"] .deye-column{display:grid;grid-template-rows:repeat(6,1fr);gap:4px}
@@ -1914,7 +1914,7 @@ Grid input voltage. A reading of 0 V also helps detect an outage.|Напруга
   const styles = extra.css + `
     .deye-table{color:var(--lcd-ink)}.deye-detail-extra{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px;padding:9px;font-size:13px}.deye-detail-extra>div{display:flex;flex-direction:column;gap:4px;border-bottom:1px solid #ffffff40;padding:5px}.deye-history-tabs{display:flex;flex-wrap:wrap;gap:6px;padding:7px}.deye-history-tabs button{background:#cbdcc3;color:#18363c;border:1px solid #5f8085;font:inherit;padding:6px 12px;cursor:pointer}.deye-history-tabs button[aria-pressed=true]{background:#1b7184;color:white}.status,.status-text{cursor:pointer}
 
-    :host { display:block; }
+    :host { display:block; max-width:var(--lcd-viewport-width,720px); }
     ha-card { display:block; overflow:hidden; border:1px solid #303840; border-radius:12px; background:#171b1d; padding:6px; }
     .screen { display:block; width:100%; height:auto; background:${screenWhite}; border-radius:5px; font-family:Roboto,Arial,sans-serif; }
     text { font-variant-numeric:tabular-nums; }
@@ -2373,6 +2373,13 @@ Grid input voltage. A reading of 0 V also helps detect an outage.|Напруга
           group("inverter_entities", "Інвертор і паралельна робота", [
             entity("inverter_status", false), { name: "parallel_id", selector: { text: {} } },
           ]),
+          group("device_info_entities", "Device Info · інформація про пристрій", [
+            ["inverter_serial", "Serial number · серійний номер"],
+            ["hmi_version", "HMI version · версія дисплея"],
+            ["main_version", "Main version · основна прошивка"],
+            ["pack_version", "Pack version · версія пакета"],
+            ["alarm_history", "Alarm history · журнал тривог"],
+          ].map(([name,label])=>{labels[name]=label;return entity(name,false);})),
           ...settingBindings.map(([title, fields], index) =>
             group(`controls_${index}`, `Керування · ${title}`,
               fields.map(([name, domain]) => entity(name, false, domain)))
@@ -2625,8 +2632,25 @@ Grid input voltage. A reading of 0 V also helps detect an outage.|Напруга
 
     connectedCallback() {
       this.firmwareResize?.disconnect();
-      const fit=()=>{const viewport=this.shadowRoot.querySelector('.deye-firmware-viewport');viewport.style.zoom=String(Math.min(1,Math.max(0.1,this.getBoundingClientRect().width/720)));this.detailsScreen.style.setProperty('--details-scale',String(Math.max(0.1,(this.getBoundingClientRect().width-14)/400)));this.scheduleSettingsFit();};
+      this.viewportCleanup?.();
+      const fit=()=>{const viewport=this.shadowRoot.querySelector('.deye-firmware-viewport');viewport.style.zoom=String(Math.min(1,Math.max(0.1,(this.getBoundingClientRect().width-14)/720)));this.detailsScreen.style.setProperty('--details-scale',String(Math.max(0.1,(this.getBoundingClientRect().width-14)/400)));this.scheduleSettingsFit();};
+      const fitViewport=()=>{
+        const visual=window.visualViewport;
+        const height=visual?.height||window.innerHeight;
+        const width=visual?.width||window.innerWidth;
+        // Fit short landscape displays without changing the surrounding dashboard's scrolling.
+        if(width>height&&height<=650&&(!visual||visual.scale===1)){
+          const top=Math.max(0,this.getBoundingClientRect().top-(visual?.offsetTop||0));
+          const available=height-(top<height-100?top:80)-32;
+          this.style.setProperty('--lcd-viewport-width',`${Math.min(720,Math.max(100,(available-14)*400/268+14))}px`);
+        }else this.style.removeProperty('--lcd-viewport-width');
+        fit();
+      };
+      window.addEventListener('resize',fitViewport);
+      window.visualViewport?.addEventListener('resize',fitViewport);
+      this.viewportCleanup=()=>{window.removeEventListener('resize',fitViewport);window.visualViewport?.removeEventListener('resize',fitViewport);};
       this.firmwareResize=new ResizeObserver(fit);this.firmwareResize.observe(this);fit();
+      fitViewport();
       this.localizer?.disconnect();
       this.localizer=window.AnmaDeyeI18n.attach(this.shadowRoot,()=>this.uiLanguage);
       this.updateClock();
@@ -2636,6 +2660,7 @@ Grid input voltage. A reading of 0 V also helps detect an outage.|Напруга
     disconnectedCallback() {
       cancelAnimationFrame(this.settingsFitFrame);
       this.firmwareResize?.disconnect();
+      this.viewportCleanup?.();
       this.localizer?.disconnect();
       clearInterval(this.timer);
       this.closeDetails();
@@ -3469,7 +3494,6 @@ Grid input voltage. A reading of 0 V also helps detect an outage.|Напруга
     const audit=document.createElement('details'),auditTitle=document.createElement('summary'),auditBody=document.createElement('pre');auditTitle.textContent=uk?'Перевірка прив’язок':'Binding audit';auditBody.style.cssText='white-space:pre-wrap;font:12px system-ui';audit.append(auditTitle,auditBody);panel.append(audit);
     function auditBindings(){const states=availableStates(),online=Object.keys(states).length>0,rows=[];const scan=items=>{for(const entry of items){if(entry.schema){scan(entry.schema);continue;}if(!entry.selector?.entity)continue;const id=config[entry.name],domains=[entry.selector.entity.domain].flat();let result=!id?(uk?'не підключено':'unbound'):!domains.includes(id.split('.')[0])?(uk?'неправильний тип':'wrong domain'):online&&!states[id]?(uk?'сутність не знайдена':'entity missing'):online&&['unknown','unavailable'].includes(states[id]?.state)?(uk?'недоступна':'unavailable'):(uk?'прив’язано':'bound');rows.push(`${entry.name}: ${result}${id?' — '+id:''}`);}};scan(form.schema);auditBody.textContent=rows.join('\n');}
     audit.addEventListener('toggle',()=>{if(audit.open)auditBindings()});panel.addEventListener('change',auditBindings);button.addEventListener('click',auditBindings);auditBindings();
-    const diagnostic=document.createElement('details'),title=document.createElement('summary');title.textContent='Device Info · сутності';diagnostic.append(title);for(const key of ['inverter_serial','hmi_version','main_version','pack_version','alarm_history']){const input=document.createElement('input');input.placeholder=key;input.value=config[key]||'';input.setAttribute('aria-label',key);input.onchange=()=>{config[key]=input.value.trim();onchange({...raw,deye:{...config}},false);};diagnostic.append(input);}panel.append(diagnostic);
     root.AnmaDeyeI18n.attach(panel,()=>config.ui_language||(uk?'uk':'en')).disconnect();
     return panel;
   }
@@ -5934,7 +5958,7 @@ Grid input voltage. A reading of 0 V also helps detect an outage.|Напруга
 (() => {
   'use strict';
 
-  const CARD_VERSION = '0.9.2';
+  const CARD_VERSION = '0.9.3';
   const EN = {
     'Стан системи':'System status', 'Помилки':'Errors', 'Стан АКБ':'Battery status', 'Електромобіль — потужність':'EV — power', 'Генератор — потужність':'Generator — power', 'Мова картки': 'Card language', 'Сонце': 'Solar', 'Дім': 'Home', 'Самоспоживання': 'Self-consumption', 'АКБ': 'Battery', 'Прогноз на 7 днів': '7-day forecast', 'Середньодобово': 'Daily average', 'Найкращий день': 'Best day', 'Мікроінвертор': 'Microinverter', 'MPPT МАТРИЦЯ': 'MPPT MATRIX', '✓ Оптимально': '✓ Optimal', 'Автоматично (Home Assistant)': 'Automatic (Home Assistant)',
     'Імпортувати макет ANMA / Import ANMA layout (.json)': 'Import ANMA layout (.json)',
