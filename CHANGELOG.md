@@ -1,3 +1,7 @@
+## 0.9.6 — Consistent battery summary
+
+The main LCD always displays one horizontal battery and the aggregate battery_soc percentage, including configurations with a second battery. Individual battery bindings remain available in detail pages. Validated both themes with two battery entities, fixed-height detail pages and entity mapping.
+
 ## 0.9.5 — Deye LCD inline information and refreshed icons
 
 - ON opens the ANMA information screen inside the LCD, with Back and Escape navigation.

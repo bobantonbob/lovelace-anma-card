@@ -1524,7 +1524,8 @@
       this.scale = models.includes(requestedModel) ? requestedModel : defaultModel;
       this.screen.setAttribute("aria-label", `Головний екран ${modelLabel(this.scale)}`);
       const secondBattery = config.battery_soc_2 || measurementFields.some(({ key }) => config[`battery_2_${key}`]);
-      this.screen.dataset.battery = this.scale >= 80 || secondBattery ? "dual" : "single";
+      this.hasBatteryBreakdown = !!secondBattery;
+      this.screen.dataset.battery = "single";
       const parallelId = config.parallel_id?.trim().slice(0, 6) || "";
       this.parallelLabel.textContent = parallelId;
       this.statusLabel.setAttribute("y", parallelId ? "156" : "148");
@@ -1718,7 +1719,7 @@
       for(const [key,label] of extraReadings[gauge.source]||[]){const row=document.createElement('div'),name=document.createElement('span'),value=document.createElement('b');name.textContent=label;const entity=states[this.config[key]];value.textContent=entity&&!['unknown','unavailable'].includes(entity.state)?entity.state+' '+(entity.attributes?.unit_of_measurement||''):'—';row.append(name,value);extraNode.append(row);}
       const showBreakdown = {
         phases: acSources.includes(gauge.source) && threePhaseValues.includes(this.config.inverter_phases),
-        batteries: gauge.source === "battery" && this.screen.dataset.battery === "dual",
+        batteries: gauge.source === "battery" && this.hasBatteryBreakdown,
       };
       for (const metric of this.detailMetrics) {
         metric.row.hidden = metric.key === "temperature" && gauge.source !== "battery";

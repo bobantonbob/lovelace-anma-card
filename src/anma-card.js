@@ -2609,7 +2609,8 @@ Grid input voltage. A reading of 0 V also helps detect an outage.|Напруга
       this.scale = models.includes(requestedModel) ? requestedModel : defaultModel;
       this.screen.setAttribute("aria-label", `Головний екран ${modelLabel(this.scale)}`);
       const secondBattery = config.battery_soc_2 || measurementFields.some(({ key }) => config[`battery_2_${key}`]);
-      this.screen.dataset.battery = this.scale >= 80 || secondBattery ? "dual" : "single";
+      this.hasBatteryBreakdown = !!secondBattery;
+      this.screen.dataset.battery = "single";
       const parallelId = config.parallel_id?.trim().slice(0, 6) || "";
       this.parallelLabel.textContent = parallelId;
       this.statusLabel.setAttribute("y", parallelId ? "156" : "148");
@@ -2803,7 +2804,7 @@ Grid input voltage. A reading of 0 V also helps detect an outage.|Напруга
       for(const [key,label] of extraReadings[gauge.source]||[]){const row=document.createElement('div'),name=document.createElement('span'),value=document.createElement('b');name.textContent=label;const entity=states[this.config[key]];value.textContent=entity&&!['unknown','unavailable'].includes(entity.state)?entity.state+' '+(entity.attributes?.unit_of_measurement||''):'—';row.append(name,value);extraNode.append(row);}
       const showBreakdown = {
         phases: acSources.includes(gauge.source) && threePhaseValues.includes(this.config.inverter_phases),
-        batteries: gauge.source === "battery" && this.screen.dataset.battery === "dual",
+        batteries: gauge.source === "battery" && this.hasBatteryBreakdown,
       };
       for (const metric of this.detailMetrics) {
         metric.row.hidden = metric.key === "temperature" && gauge.source !== "battery";
@@ -6011,7 +6012,7 @@ Grid input voltage. A reading of 0 V also helps detect an outage.|Напруга
 (() => {
   'use strict';
 
-  const CARD_VERSION = '0.9.5';
+  const CARD_VERSION = '0.9.6';
   const EN = {
     'Стан системи':'System status', 'Помилки':'Errors', 'Стан АКБ':'Battery status', 'Електромобіль — потужність':'EV — power', 'Генератор — потужність':'Generator — power', 'Мова картки': 'Card language', 'Сонце': 'Solar', 'Дім': 'Home', 'Самоспоживання': 'Self-consumption', 'АКБ': 'Battery', 'Прогноз на 7 днів': '7-day forecast', 'Середньодобово': 'Daily average', 'Найкращий день': 'Best day', 'Мікроінвертор': 'Microinverter', 'MPPT МАТРИЦЯ': 'MPPT MATRIX', '✓ Оптимально': '✓ Optimal', 'Автоматично (Home Assistant)': 'Automatic (Home Assistant)',
     'Імпортувати макет ANMA / Import ANMA layout (.json)': 'Import ANMA layout (.json)',

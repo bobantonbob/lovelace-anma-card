@@ -4,9 +4,11 @@
 
 Design on [ANMA Energy Platform](https://app.anma-electric.com.ua/), connect your Home Assistant entities and export your layout. Install **one HACS package** and use **`custom:anma-card`** for every view.
 
-**Latest release: 0.9.5** · [Download](https://github.com/bobantonbob/lovelace-anma-card/releases/latest) · [Configuration](docs/CONFIGURATION.md) · [Changelog](CHANGELOG.md)
+**Latest release: 0.9.6** · [Download](https://github.com/bobantonbob/lovelace-anma-card/releases/latest) · [Configuration](docs/CONFIGURATION.md) · [Changelog](CHANGELOG.md)
 
-## New in 0.9.5
+## New in 0.9.6
+
+One horizontal battery and one aggregate SOC on the main display, regardless of individual battery bindings.
 
 The ON button opens the ANMA information page inside the LCD, with Back/Escape navigation and no change to the display size. Refined Classic Deye symbols and modern ANMA icons. Fullscreen, directional flows and staged settings remain supported.
 
