@@ -1090,7 +1090,7 @@ Grid input voltage. A reading of 0 V also helps detect an outage.|Напруга
   if (customElements.get(cardTag)) return;
 
   const version = "0.5";
-  const models = [6, 8, 10, 12, 15, 20, 30, 80, 160];
+  const models = [5, 6, 8, 10, 12, 15, 20, 30, 80, 160];
   const defaultModel = 8;
   const themes = [
     { value: "classic", label: "КЛАСіК" },
@@ -6012,7 +6012,7 @@ Grid input voltage. A reading of 0 V also helps detect an outage.|Напруга
 (() => {
   'use strict';
 
-  const CARD_VERSION = '0.9.7';
+  const CARD_VERSION = '0.9.8';
   const EN = {
     'Стан системи':'System status', 'Помилки':'Errors', 'Стан АКБ':'Battery status', 'Електромобіль — потужність':'EV — power', 'Генератор — потужність':'Generator — power', 'Мова картки': 'Card language', 'Сонце': 'Solar', 'Дім': 'Home', 'Самоспоживання': 'Self-consumption', 'АКБ': 'Battery', 'Прогноз на 7 днів': '7-day forecast', 'Середньодобово': 'Daily average', 'Найкращий день': 'Best day', 'Мікроінвертор': 'Microinverter', 'MPPT МАТРИЦЯ': 'MPPT MATRIX', '✓ Оптимально': '✓ Optimal', 'Автоматично (Home Assistant)': 'Automatic (Home Assistant)',
     'Імпортувати макет ANMA / Import ANMA layout (.json)': 'Import ANMA layout (.json)',

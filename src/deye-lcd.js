@@ -5,7 +5,7 @@
   if (customElements.get(cardTag)) return;
 
   const version = "0.5";
-  const models = [6, 8, 10, 12, 15, 20, 30, 80, 160];
+  const models = [5, 6, 8, 10, 12, 15, 20, 30, 80, 160];
   const defaultModel = 8;
   const themes = [
     { value: "classic", label: "КЛАСіК" },

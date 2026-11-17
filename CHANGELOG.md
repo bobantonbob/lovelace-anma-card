@@ -1,3 +1,9 @@
+## 0.9.8 — Deye 5 kW support
+
+- Add the 5 kW inverter option to the LCD configuration selector.
+- All four main power gauges use a 5.0 kW maximum when selected.
+- Preserve existing entity bindings and Cloud Flow image-upload fixes.
+
 ## 0.9.7 — Cloud Flow image uploads
 
 - Accept opaque and transparent PNG/WebP equipment images up to 2 MiB; remove the hidden minimum-transparency requirement.
