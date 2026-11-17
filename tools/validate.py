@@ -8,7 +8,7 @@ hacs = json.loads((root / 'hacs.json').read_text(encoding='utf-8'))
 assert hacs['filename'] == 'anma-card.js' and hacs['content_in_root'] is True
 assert (root / hacs['filename']).stat().st_size > 100000
 bundle = (root / hacs['filename']).read_text(encoding='utf-8')
-assert "const CARD_VERSION = '0.9.6'" in bundle
+assert "const CARD_VERSION = '0.9.7'" in bundle
 assert "'data:image/webp;base64," in bundle
 assert "'__ANMA_CLOUD_ATLAS__'" not in bundle
 assert "'__ANMA_CLOUD_EV__'" not in bundle

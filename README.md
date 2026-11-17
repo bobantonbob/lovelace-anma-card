@@ -4,9 +4,11 @@
 
 Design on [ANMA Energy Platform](https://app.anma-electric.com.ua/), connect your Home Assistant entities and export your layout. Install **one HACS package** and use **`custom:anma-card`** for every view.
 
-**Latest release: 0.9.6** · [Download](https://github.com/bobantonbob/lovelace-anma-card/releases/latest) · [Configuration](docs/CONFIGURATION.md) · [Changelog](CHANGELOG.md)
+**Latest release: 0.9.7** · [Download](https://github.com/bobantonbob/lovelace-anma-card/releases/latest) · [Configuration](docs/CONFIGURATION.md) · [Changelog](CHANGELOG.md)
 
-## New in 0.9.6
+## New in 0.9.7
+
+Cloud Flow now accepts PNG/WebP equipment photos with or without transparency, up to 2 MiB. Upload failures display a specific reason.
 
 One horizontal battery and one aggregate SOC on the main display, regardless of individual battery bindings.
 

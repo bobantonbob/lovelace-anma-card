@@ -1,3 +1,10 @@
+## 0.9.7 — Cloud Flow image uploads
+
+- Accept opaque and transparent PNG/WebP equipment images up to 2 MiB; remove the hidden minimum-transparency requirement.
+- Keep automatic resizing and fixed image frames.
+- Report file size, format and decoding errors separately; allow retry after a failed upload.
+- Validated opaque PNG uploads, saved configuration normalization, oversized/corrupt inputs and successful retry.
+
 ## 0.9.6 — Consistent battery summary
 
 The main LCD always displays one horizontal battery and the aggregate battery_soc percentage, including configurations with a second battery. Individual battery bindings remain available in detail pages. Validated both themes with two battery entities, fixed-height detail pages and entity mapping.
